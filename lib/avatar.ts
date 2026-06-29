@@ -16,16 +16,18 @@ const AVATAR_CLASSES = [
   "bg-avatar-7",
 ] as const;
 
-export function avatarClass(seed: string): string {
+export function avatarClass(seed: string | null | undefined): string {
+  const safeSeed = seed || "?";
   let sum = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    sum += seed.charCodeAt(i) * 31;
+  for (let i = 0; i < safeSeed.length; i += 1) {
+    sum += safeSeed.charCodeAt(i) * 31;
   }
   return AVATAR_CLASSES[Math.abs(sum) % AVATAR_CLASSES.length];
 }
 
-export function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+export function initials(name: string | null | undefined): string {
+  const safeName = name || "?";
+  const parts = safeName.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();

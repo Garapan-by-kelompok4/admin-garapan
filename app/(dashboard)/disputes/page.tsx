@@ -42,14 +42,6 @@ export default function DisputesPage() {
 
   const limit = 10;
 
-  // Mock static stats per design handoff
-  const stats = {
-    open: 12,
-    processing: 8,
-    resolved: 147,
-    slaWarn: 3
-  };
-
   // Query disputes
   const { data, isLoading, error } = useQuery({
     queryKey: ["disputes", page, search, statusFilter],
@@ -63,6 +55,11 @@ export default function DisputesPage() {
       return res;
     }
   });
+
+  // Derive counts from real query data (after useQuery)
+  const openCount = data?.data.filter((d) => d.status === "Terbuka").length ?? 0;
+  const processingCount = data?.data.filter((d) => d.status === "Diproses").length ?? 0;
+  const totalCount = data?.total ?? 0;
 
   // Query dispute detail
   const { data: disputeDetail, isLoading: isLoadingDetail } = useQuery<DisputeDetail, Error>({
@@ -289,10 +286,10 @@ export default function DisputesPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Laporan Terbuka", val: stats.open, icon: Flag, color: "text-danger-500 bg-danger-50 border-danger-100" },
-          { label: "Sedang Diproses", val: stats.processing, icon: Clock, color: "text-warn-500 bg-warn-50 border-warn-100" },
-          { label: "Selesai Diselesaikan", val: stats.resolved, icon: CheckCircle, color: "text-success-500 bg-success-50 border-success-100" },
-          { label: "SLA Terlampaui (<24j)", val: stats.slaWarn, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" }
+          { label: "Laporan Terbuka", val: openCount, icon: Flag, color: "text-danger-500 bg-danger-50 border-danger-100" },
+          { label: "Sedang Diproses", val: processingCount, icon: Clock, color: "text-warn-500 bg-warn-50 border-warn-100" },
+          { label: "Total Laporan", val: totalCount, icon: CheckCircle, color: "text-success-500 bg-success-50 border-success-100" },
+          { label: "Selesai Diselesaikan", val: data?.data.filter((d) => d.status === "Selesai").length ?? 0, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" }
         ].map((item, idx) => (
           <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
             <div className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}>

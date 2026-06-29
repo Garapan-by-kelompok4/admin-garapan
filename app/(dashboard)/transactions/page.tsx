@@ -36,14 +36,6 @@ export default function TransactionsPage() {
 
   const limit = 10;
 
-  // Mock static stats per design requirements
-  const stats = {
-    totalVolume: 1420500000,
-    activeEscrow: 182400000,
-    releasedEscrow: 1179500000,
-    refundedEscrow: 58600000
-  };
-
   // Query transactions list
   const { data, isLoading, error } = useQuery({
     queryKey: ["transactions", page, search, statusFilter],
@@ -57,6 +49,10 @@ export default function TransactionsPage() {
       return res;
     }
   });
+
+  // Derive stats from real query data (after useQuery)
+  const totalVolume = data?.data.reduce((sum, t) => sum + (t.amount ?? 0), 0) ?? 0;
+  const totalCount = data?.total ?? 0;
 
   // Query transaction detail
   const { data: orderDetail, isLoading: isLoadingDetail } = useQuery({
@@ -205,10 +201,10 @@ export default function TransactionsPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Volume Transaksi (GTV)", val: formatCurrency(stats.totalVolume), icon: TrendingUp, color: "text-success-500 bg-success-50 border-success-100" },
-          { label: "Escrow Ditahan", val: formatCurrency(stats.activeEscrow), icon: Wallet, color: "text-warn-500 bg-warn-50 border-warn-100" },
-          { label: "Dana Dicairkan", val: formatCurrency(stats.releasedEscrow), icon: DollarSign, color: "text-brand-500 bg-brand-50 border-brand-100" },
-          { label: "Total Pengembalian (Refund)", val: formatCurrency(stats.refundedEscrow), icon: Undo2, color: "text-danger-500 bg-danger-50 border-danger-100" }
+          { label: "Volume Transaksi (GTV)", val: formatCurrency(totalVolume), icon: TrendingUp, color: "text-success-500 bg-success-50 border-success-100" },
+          { label: "Escrow Ditahan", val: formatCurrency(data?.data.filter((t) => t.escrowStatus === "Ditahan").reduce((s, t) => s + t.amount, 0) ?? 0), icon: Wallet, color: "text-warn-500 bg-warn-50 border-warn-100" },
+          { label: "Dana Dicairkan", val: formatCurrency(data?.data.filter((t) => t.escrowStatus === "Dicairkan").reduce((s, t) => s + t.amount, 0) ?? 0), icon: DollarSign, color: "text-brand-500 bg-brand-50 border-brand-100" },
+          { label: "Total Pengembalian (Refund)", val: formatCurrency(data?.data.filter((t) => t.escrowStatus === "Refund").reduce((s, t) => s + t.amount, 0) ?? 0), icon: Undo2, color: "text-danger-500 bg-danger-50 border-danger-100" }
         ].map((item, idx) => (
           <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
             <div className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}>

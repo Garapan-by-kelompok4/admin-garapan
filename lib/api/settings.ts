@@ -37,18 +37,7 @@ export const settingsApi = {
   },
 
   listSkills: async (): Promise<SkillItem[]> => {
-    try {
-      return await apiClient<SkillItem[]>("/admin/skills");
-    } catch {
-      // Fallback fallback skills
-      return [
-        { id: "s1", name: "Next.js Development", category: "Web Dev", createdAt: new Date().toISOString() },
-        { id: "s2", name: "Figma UI/UX Design", category: "UI/UX", createdAt: new Date().toISOString() },
-        { id: "s3", name: "React Native Mobile App", category: "Mobile", createdAt: new Date().toISOString() },
-        { id: "s4", name: "SEO Optimization", category: "Digital Mkt", createdAt: new Date().toISOString() },
-        { id: "s5", name: "PostgreSQL Database Admin", category: "Lainnya", createdAt: new Date().toISOString() }
-      ];
-    }
+    return apiClient<SkillItem[]>("/admin/skills");
   },
 
   createSkill: async (payload: { name: string; category: string }): Promise<SkillItem> => {

@@ -36,14 +36,6 @@ export default function ModerationPage() {
 
   const limit = 10;
 
-  // Mock static stats per design handoff
-  const stats = {
-    pending: 8,
-    reportedToday: 12,
-    markedSafe: 142,
-    removed: 37
-  };
-
   // Query flagged contents
   const { data, isLoading, error } = useQuery({
     queryKey: ["content", page, search, statusFilter],
@@ -57,6 +49,10 @@ export default function ModerationPage() {
       return res;
     }
   });
+
+  // Derive stats from real query data (after useQuery)
+  const totalItems = data?.total ?? 0;
+  const pendingItems = data?.data.filter((c) => c.status === "Ditinjau").length ?? 0;
 
   // Query content detail
   const { data: contentDetail, isLoading: isLoadingDetail } = useQuery({
@@ -172,10 +168,10 @@ export default function ModerationPage() {
       header: "Pemilik",
       cell: ({ row }) => (
         <div className="flex items-center gap-2.5">
-          <div className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.owner.fullName)}`}>
-            {initials(row.original.owner.fullName)}
+          <div className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.owner?.fullName)}`}>
+            {initials(row.original.owner?.fullName)}
           </div>
-          <span className="font-medium text-ink-700 text-sm">{row.original.owner.fullName}</span>
+          <span className="font-medium text-ink-700 text-sm">{row.original.owner?.fullName ?? "-"}</span>
         </div>
       ),
     },
@@ -236,10 +232,10 @@ export default function ModerationPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Perlu Ditinjau", val: stats.pending, icon: AlertTriangle, color: "text-warn-500 bg-warn-50 border-warn-100" },
-          { label: "Dilaporkan Hari Ini", val: stats.reportedToday, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" },
-          { label: "Ditandai Aman", val: stats.markedSafe, icon: ShieldCheck, color: "text-success-500 bg-success-50 border-success-100" },
-          { label: "Dihapus / Sembunyi", val: stats.removed, icon: Trash2, color: "text-danger-500 bg-danger-50 border-danger-100" }
+          { label: "Perlu Ditinjau", val: pendingItems, icon: AlertTriangle, color: "text-warn-500 bg-warn-50 border-warn-100" },
+          { label: "Total Flagged", val: totalItems, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" },
+          { label: "Ditandai Aman", val: data?.data.filter((c) => c.status === "Aman").length ?? 0, icon: ShieldCheck, color: "text-success-500 bg-success-50 border-success-100" },
+          { label: "Dihapus / Sembunyi", val: data?.data.filter((c) => c.status === "Dihapus" || c.status === "Disembunyikan").length ?? 0, icon: Trash2, color: "text-danger-500 bg-danger-50 border-danger-100" }
         ].map((item, idx) => (
           <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
             <div className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}>
@@ -377,15 +373,15 @@ export default function ModerationPage() {
                     <div className="space-y-1.5">
                       <span className="text-[11.5px] text-ink-400 font-semibold select-none">Pemilik Konten:</span>
                       <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/80 bg-white">
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${avatarClass(contentDetail.owner.fullName)}`}>
-                          {initials(contentDetail.owner.fullName)}
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${avatarClass(contentDetail.owner?.fullName)}`}>
+                          {initials(contentDetail.owner?.fullName)}
                         </div>
                         <div>
-                          <div className="text-xs font-bold text-ink-900 leading-tight">{contentDetail.owner.fullName}</div>
+                          <div className="text-xs font-bold text-ink-900 leading-tight">{contentDetail.owner?.fullName ?? "-"}</div>
                           <div className="text-[10px] text-ink-400 font-semibold mt-0.5 flex gap-1.5">
-                            <span>ID: {contentDetail.owner.id}</span>
+                            <span>ID: {contentDetail.owner?.id ?? "-"}</span>
                             <span>•</span>
-                            <span>{contentDetail.owner.email}</span>
+                            <span>{contentDetail.owner?.email ?? "-"}</span>
                           </div>
                         </div>
                       </div>

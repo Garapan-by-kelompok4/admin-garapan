@@ -163,11 +163,11 @@ export default function UsersPage() {
       header: activeTab === "MAHASISWA" ? "Mahasiswa" : "Klien",
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(row.original.fullName)}`}>
-            {initials(row.original.fullName)}
+          <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(row.original.fullName || (row.original as any).name)}`}>
+            {initials(row.original.fullName || (row.original as any).name)}
           </div>
           <div>
-            <div className="font-semibold text-ink-900 leading-tight">{row.original.fullName}</div>
+            <div className="font-semibold text-ink-900 leading-tight">{row.original.fullName || (row.original as any).name || "User"}</div>
             <div className="text-xs text-ink-400 mt-1 font-medium">{row.original.email}</div>
           </div>
         </div>
@@ -243,7 +243,8 @@ export default function UsersPage() {
             ) : (
               <button
                 onClick={() => {
-                  if (confirm(`Apakah Anda yakin ingin memblokir ${row.original.fullName}?`)) {
+                  const nameToBan = row.original.fullName || (row.original as any).name || "User";
+                  if (confirm(`Apakah Anda yakin ingin memblokir ${nameToBan}?`)) {
                     banMutation.mutate(row.original.id);
                   }
                 }}
@@ -369,12 +370,12 @@ export default function UsersPage() {
               {/* Modal Header */}
               <div className="p-6 border-b border-border bg-surface-2/40 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border-2 border-white shadow-sm ${avatarClass(userDetail.fullName)}`}>
-                    {initials(userDetail.fullName)}
+                  <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border-2 border-white shadow-sm ${avatarClass(userDetail.fullName || (userDetail as any).name)}`}>
+                    {initials(userDetail.fullName || (userDetail as any).name)}
                   </div>
                   <div>
                     <h2 className="font-heading font-bold text-lg text-ink-900 tracking-tight leading-tight">
-                      {userDetail.fullName}
+                      {userDetail.fullName || (userDetail as any).name || "User"}
                     </h2>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <span className="text-xs text-ink-400 font-medium flex items-center gap-1">
@@ -545,7 +546,8 @@ export default function UsersPage() {
                 ) : (
                   <button
                     onClick={() => {
-                      if (confirm(`Apakah Anda yakin ingin memblokir ${userDetail.fullName}?`)) {
+                      const nameToBan = userDetail.fullName || (userDetail as any).name || "User";
+                      if (confirm(`Apakah Anda yakin ingin memblokir ${nameToBan}?`)) {
                         banMutation.mutate(userDetail.id);
                       }
                     }}
