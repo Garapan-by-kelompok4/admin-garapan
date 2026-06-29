@@ -28,6 +28,7 @@ export default function ChatPage() {
   const [showSessionList, setShowSessionList] = useState(true);
   const [showUserInfo, setShowUserInfo] = useState(false); // Collapsed by default
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
 
   // Set initial collapsible sidebar states based on client window width on mount
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function ChatPage() {
   const activeSession = sessions.find((s) => s.id === activeSessionId) || null;
 
   // 2. Query messages for the active session (polls every 5 seconds when activeSessionId is set)
-  const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
+  const { data: messages, isLoading: isLoadingMessages, isSuccess: isMessagesSuccess } = useQuery({
     queryKey: ["chatMessages", activeSessionId],
     queryFn: async () => {
       const msgs = await chatApi.getMessages(activeSessionId!);
@@ -67,10 +68,22 @@ export default function ChatPage() {
     refetchInterval: 5000, // poll messages every 5s when open
   });
 
+  // Sync query data into local state only on success, preventing wipes during upstream 500 drops
+  useEffect(() => {
+    if (isMessagesSuccess && messages) {
+      setLocalMessages(messages);
+    }
+  }, [messages, isMessagesSuccess]);
+
+  // Clear local messages when switching chat sessions
+  useEffect(() => {
+    setLocalMessages([]);
+  }, [activeSessionId]);
+
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [localMessages]);
 
   // Mutation to Send a Message
   const sendMessageMutation = useMutation({
@@ -82,6 +95,8 @@ export default function ChatPage() {
         ...(Array.isArray(old) ? old : []),
         newMessage,
       ]);
+      // Optimistically update local messages list instantly
+      setLocalMessages((prev) => [...prev, newMessage]);
       // Clear input
       setMessageInput("");
       // Invalidate sessions query to update last message preview
@@ -363,13 +378,13 @@ export default function ChatPage() {
                 <div className="p-8 text-center text-xs text-ink-400 font-medium">
                   Memuat riwayat chat...
                 </div>
-              ) : messages.length > 0 ? (
-                messages.map((msg, idx) => {
+              ) : localMessages.length > 0 ? (
+                localMessages.map((msg, idx) => {
                   const isMe = msg.senderRole === "ADMIN" || (user && msg.senderId === user.id);
                   
                   // Render a date separator if this is the first message of a day
                   const showDateSeparator = idx === 0 || 
-                    new Date(messages[idx - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+                    new Date(localMessages[idx - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
                   
                   return (
                     <React.Fragment key={`${msg.id}-${msg.createdAt}-${idx}`}>
