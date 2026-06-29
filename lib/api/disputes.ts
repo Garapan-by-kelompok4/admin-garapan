@@ -5,7 +5,7 @@ export type DisputeStatus = "Terbuka" | "Diproses" | "Selesai" | "Ditolak";
 export type DisputeOutcome = "RELEASE" | "REFUND" | "PARTIAL_REFUND" | "REJECT";
 
 export interface Dispute {
-  id: string; // e.g., "LP-001"
+  id: string;
   orderId: string;
   reporterId: string;
   reporterName: string;
@@ -52,6 +52,20 @@ export interface ResolveDisputePayload {
   refundAmount?: number;
 }
 
+function normaliseListResponse<T>(raw: any, page = 1, limit = 10): { data: T[]; total: number; page: number; limit: number } {
+  if (!raw) return { data: [], total: 0, page, limit };
+  if (Array.isArray(raw.data)) {
+    return { data: raw.data as T[], total: raw.total ?? raw.count ?? raw.data.length, page: raw.page ?? page, limit: raw.limit ?? limit };
+  }
+  if (Array.isArray(raw.items)) {
+    return { data: raw.items as T[], total: raw.total ?? raw.count ?? raw.items.length, page: raw.page ?? page, limit: raw.limit ?? limit };
+  }
+  if (Array.isArray(raw)) {
+    return { data: raw as T[], total: raw.length, page, limit };
+  }
+  return { data: [], total: 0, page, limit };
+}
+
 export const disputesApi = {
   list: async (params: ListDisputesParams = {}): Promise<ListDisputesResponse> => {
     const query = new URLSearchParams();
@@ -62,7 +76,8 @@ export const disputesApi = {
 
     const queryString = query.toString();
     const path = `/admin/disputes${queryString ? `?${queryString}` : ""}`;
-    return apiClient<ListDisputesResponse>(path);
+    const raw = await apiClient<any>(path);
+    return normaliseListResponse<Dispute>(raw, params.page, params.limit);
   },
 
   getById: async (id: string): Promise<DisputeDetail> => {
@@ -74,5 +89,5 @@ export const disputesApi = {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
-  }
+  },
 };

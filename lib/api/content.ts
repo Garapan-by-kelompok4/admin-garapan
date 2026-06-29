@@ -1,7 +1,7 @@
 import { apiClient } from "./client";
 
 export interface FlaggedContent {
-  id: string; // e.g., "JS-001"
+  id: string;
   title: string;
   description: string;
   category: string;
@@ -38,6 +38,38 @@ export interface ListContentResponse {
   limit: number;
 }
 
+/** Normalise any list response shape into {data, total, page, limit} */
+function normaliseListResponse<T>(raw: any, page = 1, limit = 10): { data: T[]; total: number; page: number; limit: number } {
+  if (!raw) return { data: [], total: 0, page, limit };
+
+  // Already correct shape
+  if (Array.isArray(raw.data)) {
+    return {
+      data: raw.data as T[],
+      total: raw.total ?? raw.count ?? raw.data.length,
+      page: raw.page ?? page,
+      limit: raw.limit ?? limit,
+    };
+  }
+
+  // Backend uses `items` key
+  if (Array.isArray(raw.items)) {
+    return {
+      data: raw.items as T[],
+      total: raw.total ?? raw.count ?? raw.items.length,
+      page: raw.page ?? page,
+      limit: raw.limit ?? limit,
+    };
+  }
+
+  // Backend returns plain array
+  if (Array.isArray(raw)) {
+    return { data: raw as T[], total: raw.length, page, limit };
+  }
+
+  return { data: [], total: 0, page, limit };
+}
+
 export const contentApi = {
   list: async (params: ListContentParams = {}): Promise<ListContentResponse> => {
     const query = new URLSearchParams();
@@ -48,7 +80,8 @@ export const contentApi = {
 
     const queryString = query.toString();
     const path = `/admin/content${queryString ? `?${queryString}` : ""}`;
-    return apiClient<ListContentResponse>(path);
+    const raw = await apiClient<any>(path);
+    return normaliseListResponse<FlaggedContent>(raw, params.page, params.limit);
   },
 
   remove: async (id: string): Promise<void> => {
@@ -61,5 +94,5 @@ export const contentApi = {
     return apiClient<void>(`/admin/content/${id}/safe`, {
       method: "PATCH",
     });
-  }
+  },
 };

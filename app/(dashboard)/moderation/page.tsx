@@ -52,14 +52,14 @@ export default function ModerationPage() {
 
   // Derive stats from real query data (after useQuery)
   const totalItems = data?.total ?? 0;
-  const pendingItems = data?.data.filter((c) => c.status === "Ditinjau").length ?? 0;
+  const pendingItems = data?.data?.filter((c) => c.status === "Ditinjau").length ?? 0;
 
   // Query content detail
   const { data: contentDetail, isLoading: isLoadingDetail } = useQuery({
     queryKey: ["contentDetail", selectedContentId],
     queryFn: async () => {
       // Find content in data or fallback to API
-      const found = data?.data.find((c) => c.id === selectedContentId);
+      const found = data?.data?.find((c) => c.id === selectedContentId);
       if (found) return found;
       // In a real application, we might have GET /admin/content/:id
       // but if the list endpoint returns full detail, we can fallback to list
@@ -234,8 +234,8 @@ export default function ModerationPage() {
         {[
           { label: "Perlu Ditinjau", val: pendingItems, icon: AlertTriangle, color: "text-warn-500 bg-warn-50 border-warn-100" },
           { label: "Total Flagged", val: totalItems, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" },
-          { label: "Ditandai Aman", val: data?.data.filter((c) => c.status === "Aman").length ?? 0, icon: ShieldCheck, color: "text-success-500 bg-success-50 border-success-100" },
-          { label: "Dihapus / Sembunyi", val: data?.data.filter((c) => c.status === "Dihapus" || c.status === "Disembunyikan").length ?? 0, icon: Trash2, color: "text-danger-500 bg-danger-50 border-danger-100" }
+          { label: "Ditandai Aman", val: data?.data?.filter((c) => c.status === "Aman").length ?? 0, icon: ShieldCheck, color: "text-success-500 bg-success-50 border-success-100" },
+          { label: "Dihapus / Sembunyi", val: data?.data?.filter((c) => c.status === "Dihapus" || c.status === "Disembunyikan").length ?? 0, icon: Trash2, color: "text-danger-500 bg-danger-50 border-danger-100" }
         ].map((item, idx) => (
           <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
             <div className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}>

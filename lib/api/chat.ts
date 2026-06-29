@@ -29,7 +29,8 @@ export interface ChatSession {
 export const chatApi = {
   listSessions: async (filter?: string): Promise<ChatSession[]> => {
     const path = `/live-chat-admin${filter ? `?filter=${filter}` : ""}`;
-    const sessions = await apiClient<ChatSession[]>(path);
+    const response = await apiClient<ChatSession[] | { data: ChatSession[] }>(path);
+    const sessions = Array.isArray(response) ? response : response.data;
     
     // Normalise fields to match the UI requirements and support both forms
     return sessions.map((s) => ({
@@ -48,7 +49,8 @@ export const chatApi = {
   },
 
   getMessages: async (userId: string): Promise<ChatMessage[]> => {
-    return apiClient<ChatMessage[]>(`/live-chat-admin/${userId}`);
+    const response = await apiClient<ChatMessage[] | { data: ChatMessage[] }>(`/live-chat-admin/${userId}`);
+    return Array.isArray(response) ? response : response.data;
   },
 
   sendMessage: async (userId: string, message: string): Promise<ChatMessage> => {

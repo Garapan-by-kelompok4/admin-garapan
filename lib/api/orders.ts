@@ -3,7 +3,7 @@ import { apiClient } from "./client";
 export type EscrowStatus = "Ditahan" | "Dicairkan" | "Refund";
 
 export interface OrderTransaction {
-  id: string; // e.g., "TRX-001" or "PESANAN-12"
+  id: string;
   clientName: string;
   clientId: string;
   studentName: string;
@@ -40,6 +40,40 @@ export interface ListOrdersResponse {
   limit: number;
 }
 
+/** Normalise an order/transaction item — maps possible backend field names */
+function normaliseOrder(raw: any): OrderTransaction {
+  return {
+    ...raw,
+    // Map alternative field names for client/student names
+    clientName: raw.clientName || raw.client?.name || raw.buyerName || raw.klienName || "-",
+    clientId: raw.clientId || raw.client?.id || raw.buyerId || raw.klienId || "-",
+    studentName: raw.studentName || raw.student?.name || raw.sellerName || raw.mahasiswaName || raw.freelancerName || "-",
+    studentId: raw.studentId || raw.student?.id || raw.sellerId || raw.mahasiswaId || raw.freelancerId || "-",
+    serviceTitle: raw.serviceTitle || raw.service?.title || raw.title || raw.jasaTitle || "-",
+    // Map alternative field names for amount
+    amount: raw.amount ?? raw.totalAmount ?? raw.price ?? raw.total ?? raw.value ?? 0,
+    // Map alternative field names for escrow status
+    escrowStatus: raw.escrowStatus || raw.status || "Ditahan",
+    createdAt: raw.createdAt || raw.date || raw.createdDate || new Date().toISOString(),
+  } as OrderTransaction;
+}
+
+function normaliseListResponse(raw: any, page = 1, limit = 10): ListOrdersResponse {
+  if (!raw) return { data: [], total: 0, page, limit };
+
+  let items: any[] = [];
+  if (Array.isArray(raw.data)) items = raw.data;
+  else if (Array.isArray(raw.items)) items = raw.items;
+  else if (Array.isArray(raw)) items = raw;
+
+  return {
+    data: items.map(normaliseOrder),
+    total: raw.total ?? raw.count ?? items.length,
+    page: raw.page ?? page,
+    limit: raw.limit ?? limit,
+  };
+}
+
 export const ordersApi = {
   list: async (params: ListOrdersParams = {}): Promise<ListOrdersResponse> => {
     const query = new URLSearchParams();
@@ -50,10 +84,12 @@ export const ordersApi = {
 
     const queryString = query.toString();
     const path = `/admin/orders${queryString ? `?${queryString}` : ""}`;
-    return apiClient<ListOrdersResponse>(path);
+    const raw = await apiClient<any>(path);
+    return normaliseListResponse(raw, params.page, params.limit);
   },
 
   getById: async (id: string): Promise<OrderDetail> => {
-    return apiClient<OrderDetail>(`/admin/orders/${id}`);
-  }
+    const raw = await apiClient<any>(`/admin/orders/${id}`);
+    return normaliseOrder(raw) as OrderDetail;
+  },
 };

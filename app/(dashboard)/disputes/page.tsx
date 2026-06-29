@@ -57,8 +57,8 @@ export default function DisputesPage() {
   });
 
   // Derive counts from real query data (after useQuery)
-  const openCount = data?.data.filter((d) => d.status === "Terbuka").length ?? 0;
-  const processingCount = data?.data.filter((d) => d.status === "Diproses").length ?? 0;
+  const openCount = data?.data?.filter((d) => d.status === "Terbuka").length ?? 0;
+  const processingCount = data?.data?.filter((d) => d.status === "Diproses").length ?? 0;
   const totalCount = data?.total ?? 0;
 
   // Query dispute detail
@@ -289,7 +289,7 @@ export default function DisputesPage() {
           { label: "Laporan Terbuka", val: openCount, icon: Flag, color: "text-danger-500 bg-danger-50 border-danger-100" },
           { label: "Sedang Diproses", val: processingCount, icon: Clock, color: "text-warn-500 bg-warn-50 border-warn-100" },
           { label: "Total Laporan", val: totalCount, icon: CheckCircle, color: "text-success-500 bg-success-50 border-success-100" },
-          { label: "Selesai Diselesaikan", val: data?.data.filter((d) => d.status === "Selesai").length ?? 0, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" }
+          { label: "Selesai Diselesaikan", val: data?.data?.filter((d) => d.status === "Selesai").length ?? 0, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" }
         ].map((item, idx) => (
           <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
             <div className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}>
