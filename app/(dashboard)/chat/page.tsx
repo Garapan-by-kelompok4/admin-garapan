@@ -171,8 +171,8 @@ export default function ChatPage() {
       
       {/* COLUMN 1: Session List (320px or Full Width) */}
       <div className={`${
-        activeSessionId ? "w-[320px]" : "w-full"
-      } border-r border-border flex flex-col h-full bg-white flex-shrink-0 transition-all duration-300 ${
+        activeSessionId ? "w-[320px] shadow-[4px_0_12px_rgba(15,23,41,0.03)] z-10 border-r border-border-strong" : "w-full"
+      } flex flex-col h-full bg-white flex-shrink-0 transition-all duration-300 ${
         activeSessionId && !showSessionList ? "w-0 overflow-hidden border-r-0" : ""
       }`}>
         
@@ -316,18 +316,6 @@ export default function ChatPage() {
             {/* Chat Room Header */}
             <div className="h-[60px] border-b border-border bg-white px-5 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowSessionList(!showSessionList)}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer mr-1 ${
-                    showSessionList 
-                      ? "bg-brand-50 text-brand-600 hover:bg-brand-100" 
-                      : "hover:bg-surface-3 text-ink-500"
-                  }`}
-                  title={showSessionList ? "Sembunyikan Daftar Chat" : "Tampilkan Daftar Chat"}
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
                 <div 
                   onClick={() => setShowUserInfo(!showUserInfo)}
                   className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
@@ -471,19 +459,19 @@ export default function ChatPage() {
 
             {/* Custom centered "Tutup Sesi" confirm modal overlay */}
             {showCloseConfirm && (
-              <div className="absolute inset-0 bg-ink-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 border border-border animate-in zoom-in-95 duration-250">
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-border/85 animate-in zoom-in-95 duration-200">
                   <h4 className="font-heading font-bold text-sm text-ink-900 mb-2">
                     Tutup Sesi Chat
                   </h4>
-                  <p className="text-xs text-ink-500 mb-5 leading-relaxed">
+                  <p className="text-xs text-ink-500 mb-6 leading-relaxed">
                     Apakah Anda yakin ingin mengakhiri sesi bantuan live support chat ini? Tindakan ini akan menutup sesi obrolan aktif.
                   </p>
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2.5">
                     <button
                       type="button"
                       onClick={() => setShowCloseConfirm(false)}
-                      className="px-3.5 py-2 border border-border bg-white text-ink-700 hover:bg-surface-2 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                      className="px-4 py-2 border border-border bg-white text-ink-700 hover:bg-surface-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                     >
                       Batal
                     </button>
@@ -494,7 +482,7 @@ export default function ChatPage() {
                         setActiveSessionId(null);
                         toast.success("Sesi bantuan ditutup");
                       }}
-                      className="px-3.5 py-2 bg-danger-600 hover:bg-danger-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
                     >
                       Ya, Akhiri Sesi
                     </button>
