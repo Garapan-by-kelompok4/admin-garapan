@@ -10,8 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IconButton } from "@/components/ui/icon-button";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useLogout } from "@/hooks/use-logout";
-import { avatarClass, initials } from "@/lib/avatar";
 import { pageTitle } from "@/lib/nav";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -43,21 +44,18 @@ export function TopBar() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <button
-          type="button"
-          title="Bantuan"
-          className="grid size-9 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-surface-3"
-        >
-          <CircleHelp className="size-[18px]" strokeWidth={1.75} />
-        </button>
-        <button
-          type="button"
+        <IconButton variant="ghost" size="lg" title="Bantuan">
+          <CircleHelp strokeWidth={1.75} />
+        </IconButton>
+        <IconButton
+          variant="ghost"
+          size="lg"
           title="Notifikasi"
-          className="relative grid size-9 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-surface-3"
+          className="relative"
         >
-          <Bell className="size-[18px]" strokeWidth={1.75} />
+          <Bell strokeWidth={1.75} />
           <span className="absolute right-2 top-2 size-1.5 rounded-full bg-danger-500" />
-        </button>
+        </IconButton>
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -68,11 +66,7 @@ export function TopBar() {
               />
             }
           >
-            <span
-              className={`grid size-7 place-items-center rounded-full text-[11px] font-bold text-white ${avatarClass(name)}`}
-            >
-              {initials(name)}
-            </span>
+            <UserAvatar name={name} size="sm" />
             <span className="max-w-[120px] truncate text-[13px] font-semibold text-ink-700">
               {name}
             </span>

@@ -58,9 +58,17 @@
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
   --color-border-strong: var(--border-strong);
+  --color-success-50: var(--success-50);
   --color-success-500: var(--success-500);
+  --color-success-700: var(--success-700);
+  --color-warn-50: var(--warn-50);
   --color-warn-500: var(--warn-500);
+  --color-warn-700: var(--warn-700);
+  --color-danger-50: var(--danger-50);
   --color-danger-500: var(--danger-500);
+  --color-danger-700: var(--danger-700);
+  --color-info-50: var(--info-50);
+  --color-info-500: var(--info-500);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
