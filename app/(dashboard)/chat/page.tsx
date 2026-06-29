@@ -26,14 +26,13 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"ALL" | "KLIEN" | "MAHASISWA" | "UNREAD">("ALL");
   const [showSessionList, setShowSessionList] = useState(true);
-  const [showUserInfo, setShowUserInfo] = useState(true);
+  const [showUserInfo, setShowUserInfo] = useState(false); // Collapsed by default
 
   // Set initial collapsible sidebar states based on client window width on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (window.innerWidth < 1200) {
-        setShowUserInfo(false);
-      }
+      // Keep User Info hidden by default
+      setShowUserInfo(false);
       if (window.innerWidth < 960) {
         setShowSessionList(false);
       }
@@ -57,7 +56,12 @@ export default function ChatPage() {
   // 2. Query messages for the active session (polls every 5 seconds when activeSessionId is set)
   const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
     queryKey: ["chatMessages", activeSessionId],
-    queryFn: () => chatApi.getMessages(activeSessionId!),
+    queryFn: async () => {
+      const msgs = await chatApi.getMessages(activeSessionId!);
+      // Aggressively mark as read on the backend in the background
+      chatApi.markAsRead(activeSessionId!);
+      return msgs;
+    },
     enabled: !!activeSessionId,
     refetchInterval: 5000, // poll messages every 5s when open
   });
@@ -164,9 +168,11 @@ export default function ChatPage() {
   return (
     <div className="flex h-[calc(100vh-140px)] border border-border rounded-xl bg-white shadow-sh-2 overflow-hidden select-none">
       
-      {/* COLUMN 1: Session List (320px Collapsible) */}
-      <div className={`w-[320px] border-r border-border flex flex-col h-full bg-white flex-shrink-0 transition-all duration-300 ${
-        !(activeSessionId === null || showSessionList) ? "w-0 overflow-hidden border-r-0" : ""
+      {/* COLUMN 1: Session List (320px or Full Width) */}
+      <div className={`${
+        activeSessionId ? "w-[320px]" : "w-full"
+      } border-r border-border flex flex-col h-full bg-white flex-shrink-0 transition-all duration-300 ${
+        activeSessionId && !showSessionList ? "w-0 overflow-hidden border-r-0" : ""
       }`}>
         
         {/* Search Bar */}
@@ -236,6 +242,9 @@ export default function ChatPage() {
                     setActiveSessionId(session.id);
                     setAdminNote(localStorage.getItem(`chat_note_${session.id}`) || "");
                     
+                    // Mark as read on the backend
+                    chatApi.markAsRead(session.id);
+
                     // Optimistically set unreadCount to 0 for this session in listSessions cache
                     queryClient.setQueryData(["chatSessions"], (old: any) => {
                       if (!Array.isArray(old)) return old;
@@ -299,10 +308,10 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* COLUMN 2: Active Chat Room (Flex-1) */}
-      <div className="flex-1 flex flex-col h-full bg-surface-2">
-        {activeSessionId ? (
-          <>
+      {activeSessionId && (
+        <>
+          {/* COLUMN 2: Active Chat Room (Flex-1) */}
+          <div className="flex-1 flex flex-col h-full bg-surface-2 min-w-0">
             {/* Chat Room Header */}
             <div className="h-[60px] border-b border-border bg-white px-5 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -318,26 +327,32 @@ export default function ChatPage() {
                 >
                   <Menu className="h-4 w-4" />
                 </button>
-                <div className="relative">
-                  <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(activeSession?.name || "")}`}>
-                    {initials(activeSession?.name || "")}
+                <div 
+                  onClick={() => setShowUserInfo(!showUserInfo)}
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  title="Klik untuk detail profile user"
+                >
+                  <div className="relative">
+                    <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(activeSession?.name || "")}`}>
+                      {initials(activeSession?.name || "")}
+                    </div>
+                    <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${
+                      activeSession?.isOnline ? "bg-success-500" : "bg-slate-400"
+                    }`} />
                   </div>
-                  <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${
-                    activeSession?.isOnline ? "bg-success-500" : "bg-slate-400"
-                  }`} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-ink-900 text-sm leading-tight">
-                    {activeSession?.name}
-                  </h3>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[10px] text-ink-400 font-medium">
-                      {activeSession?.isOnline ? "Online" : "Offline"}
-                    </span>
-                    <span className="text-ink-200 text-[10px]">•</span>
-                    <span className="text-[10px] text-ink-400 font-semibold uppercase">
-                      ID: {activeSession?.id}
-                    </span>
+                  <div>
+                    <h3 className="font-semibold text-ink-900 text-sm leading-tight hover:underline">
+                      {activeSession?.name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-ink-400 font-medium">
+                        {activeSession?.isOnline ? "Online" : "Offline"}
+                      </span>
+                      <span className="text-ink-200 text-[10px]">•</span>
+                      <span className="text-[10px] text-ink-400 font-semibold uppercase">
+                        ID: {activeSession?.id}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -469,115 +484,100 @@ export default function ChatPage() {
                 </button>
               </form>
             </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center space-y-3 select-none">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white border border-border text-ink-300 shadow-sm">
-              <MessageSquare className="h-6 w-6 text-brand-500" />
-            </div>
-            <h3 className="font-heading font-bold text-sm text-ink-900">Pilih Percakapan</h3>
-            <p className="text-xs text-ink-400 max-w-[280px] text-center">
-              Pilih salah satu sesi bantuan di sidebar kiri untuk mulai bertukar pesan dengan user.
-            </p>
           </div>
-        )}
-      </div>
 
-      {/* COLUMN 3: User Info Sidebar (280px Collapsible) */}
-      <div className={`w-[280px] border-l border-border flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto transition-all duration-300 ${
-        !(activeSessionId && showUserInfo) ? "w-0 overflow-hidden border-l-0" : ""
-      }`}>
-        {activeSessionId && activeSession ? (
-          <div className="p-5 space-y-6">
-            
-            {/* Header Profil */}
-            <div className="text-center space-y-3 border-b border-border pb-5">
-              <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto shadow-sm ${avatarClass(activeSession.name)}`}>
-                {initials(activeSession.name)}
-              </div>
-              <div>
-                <h4 className="font-heading font-bold text-base text-ink-900 leading-tight">
-                  {activeSession.name}
-                </h4>
-                <span className={`inline-block text-[9.5px] font-bold px-2 py-0.5 rounded border mt-2 ${
-                  activeSession.role === "KLIEN" 
-                    ? "bg-info-50 border-info-100 text-info-700" 
-                    : "bg-success-50 border-success-100 text-success-700"
-                }`}>
-                  {activeSession.role === "KLIEN" ? "User Klien" : "Freelancer Mahasiswa"}
-                </span>
-              </div>
+          {/* COLUMN 3: User Info Sidebar (280px Collapsible) */}
+          <div className={`w-[280px] border-l border-border flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto transition-all duration-300 ${
+            !showUserInfo ? "w-0 overflow-hidden border-l-0" : ""
+          }`}>
+            {activeSession && (
+              <div className="p-5 space-y-6">
+                
+                {/* Header Profil */}
+                <div className="text-center space-y-3 border-b border-border pb-5">
+                  <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto shadow-sm ${avatarClass(activeSession.name)}`}>
+                    {initials(activeSession.name)}
+                  </div>
+                  <div>
+                    <h4 className="font-heading font-bold text-base text-ink-900 leading-tight">
+                      {activeSession.name}
+                    </h4>
+                    <span className={`inline-block text-[9.5px] font-bold px-2 py-0.5 rounded border mt-2 ${
+                      activeSession.role === "KLIEN" 
+                        ? "bg-info-50 border-info-100 text-info-700" 
+                        : "bg-success-50 border-success-100 text-success-700"
+                    }`}>
+                      {activeSession.role === "KLIEN" ? "User Klien" : "Freelancer Mahasiswa"}
+                    </span>
+                  </div>
 
-              {/* Action buttons */}
-              <div className="flex justify-center gap-1.5 pt-2">
-                <button
-                  onClick={() => toast.info(`Navigasi ke profil user ${activeSession.id}`)}
-                  className="px-3 py-1.5 border border-border bg-white text-[11px] font-bold text-ink-700 rounded-lg hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
-                >
-                  Profil Saya
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm(`Apakah Anda yakin ingin memblokir ${activeSession.name}?`)) {
-                      toast.success("User berhasil diblokir");
-                    }
-                  }}
-                  className="px-3 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm"
-                >
-                  Blokir
-                </button>
-              </div>
-            </div>
-
-            {/* Info Kontak */}
-            <div className="space-y-3">
-              <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Info Kontak</h5>
-              <div className="rounded-lg border border-border bg-surface-2/40 p-3.5 space-y-3">
-                <div className="flex gap-2.5 items-center text-xs">
-                  <Mail className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                  <span className="font-medium text-ink-800 truncate" title={activeSession.id + "@garapan.test"}>
-                    {activeSession.id}@garapan.test
-                  </span>
+                  {/* Action buttons */}
+                  <div className="flex justify-center gap-1.5 pt-2">
+                    <button
+                      onClick={() => toast.info(`Navigasi ke profil user ${activeSession.id}`)}
+                      className="px-3 py-1.5 border border-border bg-white text-[11px] font-bold text-ink-700 rounded-lg hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
+                    >
+                      Profil Saya
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Apakah Anda yakin ingin memblokir ${activeSession.name}?`)) {
+                          toast.success("User berhasil diblokir");
+                        }
+                      }}
+                      className="px-3 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm"
+                    >
+                      Blokir
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2.5 items-center text-xs">
-                  <Phone className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                  <span className="font-semibold text-ink-800">+62 812-3456-789</span>
-                </div>
-                <div className="flex gap-2.5 items-center text-xs">
-                  <Calendar className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                  <span className="font-semibold text-ink-800">19 Apr 2026</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Catatan Admin */}
-            <div className="space-y-3 pt-2">
-              <div className="flex justify-between items-baseline">
-                <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Catatan Internal</h5>
-                <button
-                  onClick={handleSaveNote}
-                  className="text-[10px] text-brand-600 hover:text-brand-700 font-bold bg-transparent border-0 cursor-pointer"
-                >
-                  Simpan
-                </button>
+                {/* Info Kontak */}
+                <div className="space-y-3">
+                  <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Info Kontak</h5>
+                  <div className="rounded-lg border border-border bg-surface-2/40 p-3.5 space-y-3">
+                    <div className="flex gap-2.5 items-center text-xs">
+                      <Mail className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                      <span className="font-medium text-ink-800 truncate" title={activeSession.id + "@garapan.test"}>
+                        {activeSession.id}@garapan.test
+                      </span>
+                    </div>
+                    <div className="flex gap-2.5 items-center text-xs">
+                      <Phone className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                      <span className="font-semibold text-ink-800">+62 812-3456-789</span>
+                    </div>
+                    <div className="flex gap-2.5 items-center text-xs">
+                      <Calendar className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                      <span className="font-semibold text-ink-800">19 Apr 2026</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Catatan Admin */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex justify-between items-baseline">
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Catatan Internal</h5>
+                    <button
+                      onClick={handleSaveNote}
+                      className="text-[10px] text-brand-600 hover:text-brand-700 font-bold bg-transparent border-0 cursor-pointer"
+                    >
+                      Simpan
+                    </button>
+                  </div>
+                  <textarea
+                    rows={4}
+                    value={adminNote}
+                    onChange={(e) => setAdminNote(e.target.value)}
+                    placeholder="Tuliskan catatan internal mengenai user atau sesi kendala bantuan ini..."
+                    className="w-full p-2.5 bg-surface-2 border border-border rounded-lg text-xs placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-none"
+                  />
+                </div>
+                
               </div>
-              <textarea
-                rows={4}
-                value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
-                placeholder="Tuliskan catatan internal mengenai user atau sesi kendala bantuan ini..."
-                className="w-full p-2.5 bg-surface-2 border border-border rounded-lg text-xs placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-none"
-              />
-            </div>
-            
+            )}
           </div>
-        ) : (
-          <div className="p-8 text-center text-xs text-ink-400 font-medium py-16">
-            Detail user tidak tersedia.
-          </div>
-        )}
-      </div>
-
+        </>
+      )}
     </div>
   );
 }

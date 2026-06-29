@@ -230,4 +230,22 @@ export const chatApi = {
     });
     return normaliseMessage(asRecord(raw).data ?? raw);
   },
+
+  markAsRead: async (userId: string): Promise<void> => {
+    try {
+      // Attempt multiple common REST endpoints to mark messages as read.
+      // Whichever is supported by the NestJS backend will succeed; others fail silently.
+      await Promise.allSettled([
+        apiClient<unknown>(`/live-chat-admin/${userId}/read`, { method: "POST" }),
+        apiClient<unknown>(`/live-chat-admin/${userId}`, { 
+          method: "PATCH",
+          body: JSON.stringify({ read: true, isRead: true })
+        }),
+        apiClient<unknown>(`/live-chat-admin/${userId}/read`, { method: "PATCH" }),
+        apiClient<unknown>(`/live-chat-admin/${userId}/mark-read`, { method: "POST" }),
+      ]);
+    } catch (e) {
+      console.warn("Failed to mark chat as read:", e);
+    }
+  },
 };
