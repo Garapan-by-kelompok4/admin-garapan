@@ -142,6 +142,25 @@
   --sidebar-accent-foreground: var(--brand-700);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--brand-400);
+
+  /* Gradients — single source of truth, consumed via @utility below */
+  --gradient-hero: radial-gradient(
+    120% 80% at 0% 0%,
+    var(--brand-400) 0%,
+    var(--brand-600) 40%,
+    var(--brand-800) 100%
+  );
+  --gradient-brand-mark: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+
+  /* Avatar palette (av-0…av-7), seeded per-name in lib/avatar.ts */
+  --av-0: linear-gradient(135deg, #f7c38d, #e9765a);
+  --av-1: linear-gradient(135deg, #93c5fd, #2563eb);
+  --av-2: linear-gradient(135deg, #a7f3d0, #059669);
+  --av-3: linear-gradient(135deg, #fca5a5, #dc2626);
+  --av-4: linear-gradient(135deg, #c4b5fd, #7c3aed);
+  --av-5: linear-gradient(135deg, #fde68a, #d97706);
+  --av-6: linear-gradient(135deg, #f9a8d4, #db2777);
+  --av-7: linear-gradient(135deg, #a5f3fc, #0e7490);
 }
 
 .dark {
@@ -176,6 +195,38 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Gradient utilities — reference the tokens above; no raw values in components */
+@utility bg-hero-gradient {
+  background-image: var(--gradient-hero);
+}
+@utility bg-brand-mark {
+  background-image: var(--gradient-brand-mark);
+}
+@utility bg-avatar-0 {
+  background-image: var(--av-0);
+}
+@utility bg-avatar-1 {
+  background-image: var(--av-1);
+}
+@utility bg-avatar-2 {
+  background-image: var(--av-2);
+}
+@utility bg-avatar-3 {
+  background-image: var(--av-3);
+}
+@utility bg-avatar-4 {
+  background-image: var(--av-4);
+}
+@utility bg-avatar-5 {
+  background-image: var(--av-5);
+}
+@utility bg-avatar-6 {
+  background-image: var(--av-6);
+}
+@utility bg-avatar-7 {
+  background-image: var(--av-7);
 }
 
 @layer base {
