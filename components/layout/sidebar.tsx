@@ -40,7 +40,7 @@ export function Sidebar() {
 
   // Fetch dynamic unread chat sessions count
   const { data: chatSessions = [] } = useQuery({
-    queryKey: ["sidebarChatSessions"],
+    queryKey: ["chatSessions"],
     queryFn: () => chatApi.listSessions().catch(() => []),
     refetchInterval: 15000,
   });

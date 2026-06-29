@@ -7,6 +7,7 @@ export interface ChatMessage {
   senderRole: "ADMIN" | "MAHASISWA" | "KLIEN";
   message: string;
   createdAt: string;
+  isRead?: boolean;
 }
 
 export interface ChatSession {
@@ -75,9 +76,13 @@ function normaliseMessage(raw: unknown, index = 0): ChatMessage {
   const rawSender = asRecord(record.sender);
   const nested = record.message && typeof record.message === "object" ? asRecord(record.message) : record;
   const nestedSender = asRecord(nested.sender);
-  const senderRole = record.senderRole ?? rawSender.role ?? nested.senderRole ?? nestedSender.role;
+  
+  const rawRole = record.senderRole ?? rawSender.role ?? nested.senderRole ?? nestedSender.role;
+  const senderRole = typeof rawRole === "string" ? rawRole.toUpperCase() : "KLIEN";
+  
   const senderName = record.senderName ?? rawSender.name ?? nested.senderName ?? nestedSender.name;
   const createdAt = record.createdAt ?? nested.createdAt ?? record.time ?? nested.time ?? new Date().toISOString();
+  const isRead = booleanFromValue(record.isRead ?? record.read ?? nested.isRead ?? nested.read ?? false);
 
   return {
     id: String(record.id ?? nested.id ?? `${record.senderId ?? nested.senderId ?? "msg"}-${createdAt}-${index}`),
@@ -86,6 +91,7 @@ function normaliseMessage(raw: unknown, index = 0): ChatMessage {
     senderRole: senderRole === "ADMIN" || senderRole === "MAHASISWA" || senderRole === "KLIEN" ? senderRole : "KLIEN",
     message: textFromValue(record.message, textFromValue(nested.message ?? nested.text ?? nested.content ?? nested.body, "")),
     createdAt: String(createdAt),
+    isRead,
   };
 }
 
@@ -107,12 +113,15 @@ function normaliseSession(raw: unknown, index: number): ChatSession {
   const lastMessage = textFromValue(s.lastMessage ?? s.last ?? s.latestMessage, "");
   const lastMessageAt = String(s.lastMessageAt ?? s.time ?? latestMessage.createdAt ?? new Date().toISOString());
 
+  const rawRole = s.role ?? user.role;
+  const normalizedRole = typeof rawRole === "string" && rawRole.toUpperCase() === "MAHASISWA" ? "MAHASISWA" : "KLIEN";
+
   return {
     ...s,
     id,
     name,
     nama: textFromValue(s.nama ?? s.name ?? user.name ?? user.fullName, name),
-    role: s.role === "MAHASISWA" || user.role === "MAHASISWA" ? "MAHASISWA" : "KLIEN",
+    role: normalizedRole,
     lastMessage,
     last: textFromValue(s.last ?? s.lastMessage ?? s.latestMessage, lastMessage),
     lastMessageAt,
@@ -137,21 +146,25 @@ function participantFromMessage(raw: unknown, index: number): ChatSession {
   const participantName = isFromAdmin
     ? textFromValue(receiver.name ?? receiver.fullName ?? user.name ?? user.fullName, "User")
     : textFromValue(record.senderName ?? sender.name ?? sender.fullName ?? user.name ?? user.fullName, "User");
-  const participantRole = isFromAdmin
-    ? textFromValue(receiver.role ?? user.role, "KLIEN")
-    : textFromValue(record.senderRole ?? sender.role ?? user.role, "KLIEN");
+  
+  const rawRole = isFromAdmin
+    ? (receiver.role ?? user.role)
+    : (record.senderRole ?? sender.role ?? user.role);
+  const participantRole = typeof rawRole === "string" && rawRole.toUpperCase() === "MAHASISWA" ? "MAHASISWA" : "KLIEN";
+
+  const isUnread = !isFromAdmin && !msg.isRead;
 
   return {
     id: participantId,
     name: participantName,
     nama: participantName,
-    role: participantRole === "MAHASISWA" ? "MAHASISWA" : "KLIEN",
+    role: participantRole,
     lastMessage: msg.message,
     last: msg.message,
     lastMessageAt: msg.createdAt,
     time: msg.createdAt,
-    unreadCount: isFromAdmin ? 0 : 1,
-    unread: isFromAdmin ? 0 : 1,
+    unreadCount: isUnread ? 1 : 0,
+    unread: isUnread ? 1 : 0,
     isOnline: false,
     online: false,
   };

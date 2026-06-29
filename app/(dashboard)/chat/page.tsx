@@ -15,9 +15,11 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function ChatPage() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"ALL" | "KLIEN" | "MAHASISWA" | "UNREAD">("ALL");
@@ -207,13 +209,25 @@ export default function ChatPage() {
           ) : filteredSessions.length > 0 ? (
             filteredSessions.map((session, idx) => {
               const isActive = session.id === activeSessionId;
-              const hasUnread = session.unreadCount > 0;
+              const unreadCount = isActive ? 0 : session.unreadCount;
+              const hasUnread = unreadCount > 0;
               return (
                 <div
                   key={`${session.id}-${idx}`}
                   onClick={() => {
                     setActiveSessionId(session.id);
                     setAdminNote(localStorage.getItem(`chat_note_${session.id}`) || "");
+                    
+                    // Optimistically set unreadCount to 0 for this session in listSessions cache
+                    queryClient.setQueryData(["chatSessions"], (old: any) => {
+                      if (!Array.isArray(old)) return old;
+                      return old.map((s: any) => 
+                        s.id === session.id ? { ...s, unreadCount: 0, unread: 0 } : s
+                      );
+                    });
+                    
+                    // Invalidate chatSessions query to refetch updated count from backend
+                    queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
                   }}
                   className={`p-3.5 flex gap-3 cursor-pointer hover:bg-surface-2 transition-all relative ${
                     isActive 
@@ -243,7 +257,7 @@ export default function ChatPage() {
                       </p>
                       {hasUnread && (
                         <span className="h-5 min-w-[20px] rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
-                          {session.unreadCount}
+                          {unreadCount}
                         </span>
                       )}
                     </div>
@@ -319,7 +333,7 @@ export default function ChatPage() {
                 </div>
               ) : messages.length > 0 ? (
                 messages.map((msg, idx) => {
-                  const isMe = msg.senderRole === "ADMIN";
+                  const isMe = msg.senderRole === "ADMIN" || (user && msg.senderId === user.id);
                   
                   // Render a date separator if this is the first message of a day
                   const showDateSeparator = idx === 0 || 
