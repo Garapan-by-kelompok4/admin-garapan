@@ -114,7 +114,7 @@ Full spec: **ADR 002**.
 
 All admin endpoints are implemented on the NestJS backend: stats, users (list/detail/search/ban), orders, disputes (detail/filters/extended resolve), content, activity, skills/kategori, artikel (list/create/publish/unpublish/upload), analytics, admin me, and live-chat-admin (with unread/read tracking).
 
-Seed admin: `admin@garapan.test` / `Password123!` (`backend/prisma/seed.ts`).
+Seed admin: `admin@garapan.test` (local dev seed). The password is **not** documented here — it is read from `SEED_ADMIN_PASSWORD` in the backend (see `backend/prisma/seed.ts`); ask the team for local credentials. **Rotate the deployed admin password before any public release** — a previously committed default is still recoverable from git history, so rotation (not just deletion) is the real fix.
 
 ---
 
