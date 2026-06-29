@@ -22,6 +22,8 @@ export async function apiClient<T>(
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      "Cache-Control": "no-cache",
+      "Pragma": "no-cache",
       ...init.headers,
     },
   });

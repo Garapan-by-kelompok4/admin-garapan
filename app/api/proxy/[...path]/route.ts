@@ -57,6 +57,11 @@ async function handle(request: NextRequest, context: RouteContext) {
     responseHeaders.set("content-type", contentType);
   }
 
+  // Force disable browser and intermediate caching for all proxy requests
+  responseHeaders.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  responseHeaders.set("Pragma", "no-cache");
+  responseHeaders.set("Expires", "0");
+  
   return new NextResponse(upstream.body, {
     status: upstream.status,
     headers: responseHeaders,
