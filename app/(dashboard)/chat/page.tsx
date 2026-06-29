@@ -13,6 +13,8 @@ import {
   Mail,
   Calendar,
   Sparkles,
+  Menu,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth-store";
@@ -23,6 +25,20 @@ export default function ChatPage() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"ALL" | "KLIEN" | "MAHASISWA" | "UNREAD">("ALL");
+  const [showSessionList, setShowSessionList] = useState(true);
+  const [showUserInfo, setShowUserInfo] = useState(true);
+
+  // Set initial collapsible sidebar states based on client window width on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 1200) {
+        setShowUserInfo(false);
+      }
+      if (window.innerWidth < 960) {
+        setShowSessionList(false);
+      }
+    }
+  }, []);
   const [messageInput, setMessageInput] = useState("");
   const [adminNote, setAdminNote] = useState("");
 
@@ -148,8 +164,10 @@ export default function ChatPage() {
   return (
     <div className="flex h-[calc(100vh-140px)] border border-border rounded-xl bg-white shadow-sh-2 overflow-hidden select-none">
       
-      {/* COLUMN 1: Session List (320px) */}
-      <div className="w-[320px] border-r border-border flex flex-col h-full bg-white flex-shrink-0">
+      {/* COLUMN 1: Session List (320px Collapsible) */}
+      <div className={`w-[320px] border-r border-border flex flex-col h-full bg-white flex-shrink-0 transition-all duration-300 ${
+        !(activeSessionId === null || showSessionList) ? "w-0 overflow-hidden border-r-0" : ""
+      }`}>
         
         {/* Search Bar */}
         <div className="p-4 border-b border-border space-y-3">
@@ -288,6 +306,18 @@ export default function ChatPage() {
             {/* Chat Room Header */}
             <div className="h-[60px] border-b border-border bg-white px-5 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSessionList(!showSessionList)}
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer mr-1 ${
+                    showSessionList 
+                      ? "bg-brand-50 text-brand-600 hover:bg-brand-100" 
+                      : "hover:bg-surface-3 text-ink-500"
+                  }`}
+                  title={showSessionList ? "Sembunyikan Daftar Chat" : "Tampilkan Daftar Chat"}
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
                 <div className="relative">
                   <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(activeSession?.name || "")}`}>
                     {initials(activeSession?.name || "")}
@@ -312,17 +342,32 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  if (confirm("Apakah Anda yakin ingin menutup sesi support chat ini?")) {
-                    setActiveSessionId(null);
-                    toast.success("Sesi bantuan ditutup");
-                  }
-                }}
-                className="px-3 py-1.5 border border-danger-200 bg-danger-50/50 hover:bg-danger-55 hover:text-danger-700 text-xs font-bold text-danger-600 rounded-lg transition-colors cursor-pointer"
-              >
-                Tutup Sesi
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowUserInfo(!showUserInfo)}
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    showUserInfo 
+                      ? "bg-brand-50 text-brand-600 hover:bg-brand-100" 
+                      : "hover:bg-surface-3 text-ink-500"
+                  }`}
+                  title={showUserInfo ? "Sembunyikan Info User" : "Tampilkan Info User"}
+                >
+                  <Info className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm("Apakah Anda yakin ingin menutup sesi support chat ini?")) {
+                      setActiveSessionId(null);
+                      toast.success("Sesi bantuan ditutup");
+                    }
+                  }}
+                  className="px-3 py-1.5 border border-danger-200 bg-danger-50/50 hover:bg-danger-55 hover:text-danger-700 text-xs font-bold text-danger-600 rounded-lg transition-colors cursor-pointer"
+                >
+                  Tutup Sesi
+                </button>
+              </div>
             </div>
 
             {/* Chat Message Logs Area */}
@@ -438,8 +483,10 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* COLUMN 3: User Info Sidebar (280px) */}
-      <div className="w-[280px] border-l border-border flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto">
+      {/* COLUMN 3: User Info Sidebar (280px Collapsible) */}
+      <div className={`w-[280px] border-l border-border flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto transition-all duration-300 ${
+        !(activeSessionId && showUserInfo) ? "w-0 overflow-hidden border-l-0" : ""
+      }`}>
         {activeSessionId && activeSession ? (
           <div className="p-5 space-y-6">
             
