@@ -10,6 +10,11 @@ import { NAV_GROUPS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 
+import { useQuery } from "@tanstack/react-query";
+import { contentApi } from "@/lib/api/content";
+import { disputesApi } from "@/lib/api/disputes";
+import { chatApi } from "@/lib/api/chat";
+
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -18,6 +23,35 @@ export function Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
+
+  // Fetch dynamic pending moderation count
+  const { data: moderationRes } = useQuery({
+    queryKey: ["sidebarModerationCount"],
+    queryFn: () => contentApi.list({ page: 1, limit: 1 }).catch(() => ({ data: [], total: 0 })),
+    refetchInterval: 30000,
+  });
+
+  // Fetch dynamic disputes count
+  const { data: disputesRes } = useQuery({
+    queryKey: ["sidebarDisputesCount"],
+    queryFn: () => disputesApi.list({ page: 1, limit: 1 }).catch(() => ({ data: [], total: 0 })),
+    refetchInterval: 30000,
+  });
+
+  // Fetch dynamic unread chat sessions count
+  const { data: chatSessions = [] } = useQuery({
+    queryKey: ["sidebarChatSessions"],
+    queryFn: () => chatApi.listSessions().catch(() => []),
+    refetchInterval: 15000,
+  });
+
+  const unreadChatCount = chatSessions.reduce((acc, s) => acc + (s.unreadCount || 0), 0);
+
+  const badgeCounts = {
+    moderation: moderationRes?.total ?? 0,
+    disputes: disputesRes?.total ?? 0,
+    chat: unreadChatCount,
+  };
 
   return (
     <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col border-r border-border bg-surface">
@@ -35,7 +69,7 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-[10px] pb-5 pt-2">
+      <nav className="flex-1 overflow-y-auto px-[10px] pb-5 pt-2 select-none">
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-1">
             <div className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-ink-300">
@@ -44,6 +78,9 @@ export function Sidebar() {
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = isActive(pathname, item.href);
+              const badgeKey = item.badge;
+              const badgeValue = badgeKey ? badgeCounts[badgeKey] : 0;
+              
               return (
                 <Link
                   key={item.href}
@@ -56,7 +93,17 @@ export function Sidebar() {
                   )}
                 >
                   <Icon className="size-[18px] shrink-0" strokeWidth={1.75} />
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate flex-1">{item.label}</span>
+                  {badgeValue > 0 && (
+                    <span className={cn(
+                      "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white select-none shadow-sm animate-none",
+                      badgeKey === "chat" ? "bg-brand-500" :
+                      badgeKey === "disputes" ? "bg-danger-500" :
+                      "bg-warn-500"
+                    )}>
+                      {badgeValue}
+                    </span>
+                  )}
                 </Link>
               );
             })}
