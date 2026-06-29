@@ -60,8 +60,10 @@ export default function ChatPage() {
     queryKey: ["chatMessages", activeSessionId],
     queryFn: async () => {
       const msgs = await chatApi.getMessages(activeSessionId!);
-      // Aggressively mark as read on the backend in the background
-      chatApi.markAsRead(activeSessionId!);
+      // Await markAsRead to ensure the backend DB reflects the read status
+      await chatApi.markAsRead(activeSessionId!);
+      // Invalidate sessions list query so both Column 1 and Sidebar badges update instantly
+      queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
       return msgs;
     },
     enabled: !!activeSessionId,
@@ -254,13 +256,10 @@ export default function ChatPage() {
               return (
                 <div
                   key={`${session.id}-${idx}`}
-                  onClick={() => {
+                  onClick={async () => {
                     setActiveSessionId(session.id);
                     setAdminNote(localStorage.getItem(`chat_note_${session.id}`) || "");
                     
-                    // Mark as read on the backend
-                    chatApi.markAsRead(session.id);
-
                     // Optimistically set unreadCount to 0 for this session in listSessions cache
                     queryClient.setQueryData(["chatSessions"], (old: any) => {
                       if (!Array.isArray(old)) return old;
@@ -268,6 +267,13 @@ export default function ChatPage() {
                         s.id === session.id ? { ...s, unreadCount: 0, unread: 0 } : s
                       );
                     });
+
+                    try {
+                      // Mark as read on the backend and await database write
+                      await chatApi.markAsRead(session.id);
+                    } catch (e) {
+                      console.warn(e);
+                    }
                     
                     // Invalidate chatSessions query to refetch updated count from backend
                     queryClient.invalidateQueries({ queryKey: ["chatSessions"] });

@@ -220,7 +220,17 @@ export const chatApi = {
 
   getMessages: async (userId: string): Promise<ChatMessage[]> => {
     const response = await apiClient<unknown>(`/live-chat-admin/${userId}`);
-    return listFromResponse(response, ["messages", "chat", "data"]).map(normaliseMessage);
+    return listFromResponse(response, [
+      "messages",
+      "chats",
+      "chat",
+      "data",
+      "history",
+      "records",
+      "items",
+      "pesan",
+      "chatMessages",
+    ]).map(normaliseMessage);
   },
 
   sendMessage: async (userId: string, message: string): Promise<ChatMessage> => {
