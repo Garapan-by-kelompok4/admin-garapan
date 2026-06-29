@@ -27,6 +27,7 @@ export default function ChatPage() {
   const [roleFilter, setRoleFilter] = useState<"ALL" | "KLIEN" | "MAHASISWA" | "UNREAD">("ALL");
   const [showSessionList, setShowSessionList] = useState(true);
   const [showUserInfo, setShowUserInfo] = useState(false); // Collapsed by default
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   // Set initial collapsible sidebar states based on client window width on mount
   useEffect(() => {
@@ -311,7 +312,7 @@ export default function ChatPage() {
       {activeSessionId && (
         <>
           {/* COLUMN 2: Active Chat Room (Flex-1) */}
-          <div className="flex-1 flex flex-col h-full bg-surface-2 min-w-0">
+          <div className="flex-1 flex flex-col h-full bg-surface-2 min-w-0 relative">
             {/* Chat Room Header */}
             <div className="h-[60px] border-b border-border bg-white px-5 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -329,7 +330,7 @@ export default function ChatPage() {
                 </button>
                 <div 
                   onClick={() => setShowUserInfo(!showUserInfo)}
-                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
                   title="Klik untuk detail profile user"
                 >
                   <div className="relative">
@@ -360,24 +361,7 @@ export default function ChatPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowUserInfo(!showUserInfo)}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    showUserInfo 
-                      ? "bg-brand-50 text-brand-600 hover:bg-brand-100" 
-                      : "hover:bg-surface-3 text-ink-500"
-                  }`}
-                  title={showUserInfo ? "Sembunyikan Info User" : "Tampilkan Info User"}
-                >
-                  <Info className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm("Apakah Anda yakin ingin menutup sesi support chat ini?")) {
-                      setActiveSessionId(null);
-                      toast.success("Sesi bantuan ditutup");
-                    }
-                  }}
+                  onClick={() => setShowCloseConfirm(true)}
                   className="px-3 py-1.5 border border-danger-200 bg-danger-50/50 hover:bg-danger-55 hover:text-danger-700 text-xs font-bold text-danger-600 rounded-lg transition-colors cursor-pointer"
                 >
                   Tutup Sesi
@@ -484,6 +468,40 @@ export default function ChatPage() {
                 </button>
               </form>
             </div>
+
+            {/* Custom centered "Tutup Sesi" confirm modal overlay */}
+            {showCloseConfirm && (
+              <div className="absolute inset-0 bg-ink-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 border border-border animate-in zoom-in-95 duration-250">
+                  <h4 className="font-heading font-bold text-sm text-ink-900 mb-2">
+                    Tutup Sesi Chat
+                  </h4>
+                  <p className="text-xs text-ink-500 mb-5 leading-relaxed">
+                    Apakah Anda yakin ingin mengakhiri sesi bantuan live support chat ini? Tindakan ini akan menutup sesi obrolan aktif.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCloseConfirm(false)}
+                      className="px-3.5 py-2 border border-border bg-white text-ink-700 hover:bg-surface-2 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCloseConfirm(false);
+                        setActiveSessionId(null);
+                        toast.success("Sesi bantuan ditutup");
+                      }}
+                      className="px-3.5 py-2 bg-danger-600 hover:bg-danger-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                    >
+                      Ya, Akhiri Sesi
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* COLUMN 3: User Info Sidebar (280px Collapsible) */}
@@ -514,18 +532,12 @@ export default function ChatPage() {
                   {/* Action buttons */}
                   <div className="flex justify-center gap-1.5 pt-2">
                     <button
-                      onClick={() => toast.info(`Navigasi ke profil user ${activeSession.id}`)}
-                      className="px-3 py-1.5 border border-border bg-white text-[11px] font-bold text-ink-700 rounded-lg hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
-                    >
-                      Profil Saya
-                    </button>
-                    <button
                       onClick={() => {
                         if (confirm(`Apakah Anda yakin ingin memblokir ${activeSession.name}?`)) {
                           toast.success("User berhasil diblokir");
                         }
                       }}
-                      className="px-3 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm"
+                      className="px-4 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm w-full max-w-[120px]"
                     >
                       Blokir
                     </button>
