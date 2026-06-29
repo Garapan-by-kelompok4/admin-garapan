@@ -171,7 +171,7 @@ export default function ChatPage() {
       
       {/* COLUMN 1: Session List (320px or Full Width) */}
       <div className={`${
-        activeSessionId ? "w-[320px] shadow-[4px_0_12px_rgba(15,23,41,0.03)] z-10 border-r border-border-strong" : "w-full"
+        activeSessionId ? "w-[320px] border-r border-slate-200 shadow-[4px_0_12px_rgba(0,0,0,0.05)] z-10" : "w-full"
       } flex flex-col h-full bg-white flex-shrink-0 transition-all duration-300 ${
         activeSessionId && !showSessionList ? "w-0 overflow-hidden border-r-0" : ""
       }`}>
@@ -493,89 +493,89 @@ export default function ChatPage() {
           </div>
 
           {/* COLUMN 3: User Info Sidebar (280px Collapsible) */}
-          <div className={`w-[280px] border-l border-border flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto transition-all duration-300 ${
-            !showUserInfo ? "w-0 overflow-hidden border-l-0" : ""
-          }`}>
-            {activeSession && (
-              <div className="p-5 space-y-6">
-                
-                {/* Header Profil */}
-                <div className="text-center space-y-3 border-b border-border pb-5">
-                  <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto shadow-sm ${avatarClass(activeSession.name)}`}>
-                    {initials(activeSession.name)}
-                  </div>
-                  <div>
-                    <h4 className="font-heading font-bold text-base text-ink-900 leading-tight">
-                      {activeSession.name}
-                    </h4>
-                    <span className={`inline-block text-[9.5px] font-bold px-2 py-0.5 rounded border mt-2 ${
-                      activeSession.role === "KLIEN" 
-                        ? "bg-info-50 border-info-100 text-info-700" 
-                        : "bg-success-50 border-success-100 text-success-700"
-                    }`}>
-                      {activeSession.role === "KLIEN" ? "User Klien" : "Freelancer Mahasiswa"}
-                    </span>
-                  </div>
-
-                  {/* Action buttons */}
-                  <div className="flex justify-center gap-1.5 pt-2">
-                    <button
-                      onClick={() => {
-                        if (confirm(`Apakah Anda yakin ingin memblokir ${activeSession.name}?`)) {
-                          toast.success("User berhasil diblokir");
-                        }
-                      }}
-                      className="px-4 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm w-full max-w-[120px]"
-                    >
-                      Blokir
-                    </button>
-                  </div>
-                </div>
-
-                {/* Info Kontak */}
-                <div className="space-y-3">
-                  <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Info Kontak</h5>
-                  <div className="rounded-lg border border-border bg-surface-2/40 p-3.5 space-y-3">
-                    <div className="flex gap-2.5 items-center text-xs">
-                      <Mail className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                      <span className="font-medium text-ink-800 truncate" title={activeSession.id + "@garapan.test"}>
-                        {activeSession.id}@garapan.test
+          {showUserInfo && (
+            <div className="w-[280px] border-l border-border flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto transition-all duration-300 animate-in slide-in-from-right duration-200">
+              {activeSession && (
+                <div className="p-5 space-y-6">
+                  
+                  {/* Header Profil */}
+                  <div className="text-center space-y-3 border-b border-border pb-5">
+                    <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto shadow-sm ${avatarClass(activeSession.name)}`}>
+                      {initials(activeSession.name)}
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-bold text-base text-ink-900 leading-tight">
+                        {activeSession.name}
+                      </h4>
+                      <span className={`inline-block text-[9.5px] font-bold px-2 py-0.5 rounded border mt-2 ${
+                        activeSession.role === "KLIEN" 
+                          ? "bg-info-50 border-info-100 text-info-700" 
+                          : "bg-success-50 border-success-100 text-success-700"
+                      }`}>
+                        {activeSession.role === "KLIEN" ? "User Klien" : "Freelancer Mahasiswa"}
                       </span>
                     </div>
-                    <div className="flex gap-2.5 items-center text-xs">
-                      <Phone className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                      <span className="font-semibold text-ink-800">+62 812-3456-789</span>
-                    </div>
-                    <div className="flex gap-2.5 items-center text-xs">
-                      <Calendar className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                      <span className="font-semibold text-ink-800">19 Apr 2026</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Catatan Admin */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex justify-between items-baseline">
-                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Catatan Internal</h5>
-                    <button
-                      onClick={handleSaveNote}
-                      className="text-[10px] text-brand-600 hover:text-brand-700 font-bold bg-transparent border-0 cursor-pointer"
-                    >
-                      Simpan
-                    </button>
+                    {/* Action buttons */}
+                    <div className="flex justify-center gap-1.5 pt-2">
+                      <button
+                        onClick={() => {
+                          if (confirm(`Apakah Anda yakin ingin memblokir ${activeSession.name}?`)) {
+                            toast.success("User berhasil diblokir");
+                          }
+                        }}
+                        className="px-4 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm w-full max-w-[120px]"
+                      >
+                        Blokir
+                      </button>
+                    </div>
                   </div>
-                  <textarea
-                    rows={4}
-                    value={adminNote}
-                    onChange={(e) => setAdminNote(e.target.value)}
-                    placeholder="Tuliskan catatan internal mengenai user atau sesi kendala bantuan ini..."
-                    className="w-full p-2.5 bg-surface-2 border border-border rounded-lg text-xs placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-none"
-                  />
+
+                  {/* Info Kontak */}
+                  <div className="space-y-3">
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Info Kontak</h5>
+                    <div className="rounded-lg border border-border bg-surface-2/40 p-3.5 space-y-3">
+                      <div className="flex gap-2.5 items-center text-xs">
+                        <Mail className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                        <span className="font-medium text-ink-800 truncate" title={activeSession.id + "@garapan.test"}>
+                          {activeSession.id}@garapan.test
+                        </span>
+                      </div>
+                      <div className="flex gap-2.5 items-center text-xs">
+                        <Phone className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                        <span className="font-semibold text-ink-800">+62 812-3456-789</span>
+                      </div>
+                      <div className="flex gap-2.5 items-center text-xs">
+                        <Calendar className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                        <span className="font-semibold text-ink-800">19 Apr 2026</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Catatan Admin */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-baseline">
+                      <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Catatan Internal</h5>
+                      <button
+                        onClick={handleSaveNote}
+                        className="text-[10px] text-brand-600 hover:text-brand-700 font-bold bg-transparent border-0 cursor-pointer"
+                      >
+                        Simpan
+                      </button>
+                    </div>
+                    <textarea
+                      rows={4}
+                      value={adminNote}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                      placeholder="Tuliskan catatan internal mengenai user atau sesi kendala bantuan ini..."
+                      className="w-full p-2.5 bg-surface-2 border border-border rounded-lg text-xs placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-none"
+                    />
+                  </div>
+                  
                 </div>
-                
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
