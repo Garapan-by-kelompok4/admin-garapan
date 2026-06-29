@@ -5,7 +5,7 @@
 1. **This file** — stack, pages, API patterns, auth architecture
 2. **`../../docs/superpowers/specs/2026-04-27-garapan-design.md`** — full system design
 3. **`design_handoff_skillmahasiswa_admin/README.md`** — visual/UX source of truth for every screen
-4. **`.docs/adr/`** — accepted decisions (product scope, auth BFF, API gaps)
+4. **`.docs/adr/`** — accepted decisions (product scope, auth BFF)
 5. **`.docs/glossary.md`** — domain terms (Pesanan, Laporan, Jasa, etc.)
 
 Do not implement UI until items 1–3 are read. Check ADRs before making architectural choices.
@@ -182,14 +182,14 @@ Each page below lists **API wiring** (this doc). For **layout, components, and c
 ### Dashboard (`/dashboard`)
 - Stat cards, line chart, donut chart, recent activity, alerts panel
 - Primary data: `GET /admin/stats` (via proxy)
-- Charts/analytics may require `GET /admin/analytics` (backend extension)
+- Charts/analytics: `GET /admin/analytics`
 - Activity feed: `GET /admin/activity`
 
 ### Users (`/users`)
 - Tabs: Mahasiswa / Klien
 - `DataTable`: search, status filter, server-side pagination
 - Detail modal: profile, order history, laporan history
-- `GET /admin/users`, `GET /admin/users/:id` (backend extension), `PATCH /admin/users/:id/ban`
+- `GET /admin/users`, `GET /admin/users/:id`, `PATCH /admin/users/:id/ban`
 
 ### Moderation (`/moderation`)
 - Summary stat cards + flagged content table
@@ -215,11 +215,11 @@ Each page below lists **API wiring** (this doc). For **layout, components, and c
 ### Articles (`/articles`)
 - List view + editor view (toggle, not separate route)
 - Create, edit, publish, unpublish, thumbnail upload
-- `GET /admin/artikel` (backend extension), `POST /artikel`, `PATCH /artikel/:id`, `PATCH /artikel/:id/publish`, upload endpoint
+- `GET /admin/artikel`, `POST /artikel`, `PATCH /artikel/:id`, `PATCH /artikel/:id/publish`, upload endpoint
 
 ### Settings (`/settings`)
 - Sub-tabs: Informasi Profil, Keamanan, Notifikasi, Tim & Izin, Log Aktivitas
-- `GET/PATCH /admin/me` (backend extension), `GET /admin/activity`
+- `GET/PATCH /admin/me`, `GET /admin/activity`
 - Team/RBAC and notification prefs depend on backend scope decisions
 
 ---
@@ -337,27 +337,6 @@ NESTJS_API_URL=http://localhost:3000
 NEXT_PUBLIC_APP_URL=https://admin.yourdomain.com
 NESTJS_API_URL=https://your-railway-backend.up.railway.app
 ```
-
----
-
-## Backend Extensions Required
-
-The NestJS admin module covers core operations. Production UI from the design handoff needs these additions (build in `backend/` in parallel):
-
-| Endpoint / change | Purpose |
-|---|---|
-| `GET /admin/analytics` | Dashboard charts and period comparisons |
-| `GET /admin/users/:id` | User detail modal |
-| Extended user search | Search by name, university, company — not email only |
-| `GET /admin/artikel` + unpublish + image upload | Full article CMS |
-| `GET /admin/disputes?status=` | Filter disputes by status |
-| Dispute resolution note | Optional `resolutionNote` on resolve |
-| Richer `GET /admin/content` | Per-post report counts, mark-safe |
-| Live chat thread enrichment | User profile + unread counts in `listThreads` |
-| `GET/PATCH /admin/me` | Settings profile tab |
-| CORS (production) | `credentials: true` + explicit admin origin if needed |
-
-Mobile Bearer auth must remain unchanged.
 
 ---
 

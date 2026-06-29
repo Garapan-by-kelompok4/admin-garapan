@@ -17,8 +17,7 @@ Internal ops console for the GARAPAN IT Freelancer Marketplace. **Production sco
 3. `design_handoff_skillmahasiswa_admin/README.md` — visual/UX per screen
 4. `.docs/adr/001-product-scope.md` — product decisions (single admin, ban-only, deferrals)
 5. `.docs/adr/002-auth-bff.md` — httpOnly cookies + BFF Route Handlers
-6. `.docs/adr/003-api-gaps.md` — backend work tracker (GitHub #31–#45)
-7. `.docs/glossary.md` — Pesanan, Laporan, Jasa, escrow labels, etc.
+6. `.docs/glossary.md` — Pesanan, Laporan, Jasa, escrow labels, etc.
 
 Keep `design_handoff_skillmahasiswa_admin/admin.html` open in a browser when building UI.
 
@@ -113,11 +112,7 @@ Full spec: **ADR 002**.
 
 ## Backend API (summary)
 
-Full tracker: **ADR 003** → [epic #31](https://github.com/Garapan-by-kelompok4/backend-garapan/issues/31) (issues #32–#45).
-
-**Ready now:** `GET /admin/stats`, users, orders, disputes (PENDING), content, activity, skills/kategori, artikel create/publish, live-chat-admin.
-
-**Wait or stub until merged:** dispute detail/filters/extended resolve (#32–#34), user detail/search (#35–#36), admin artikel list/unpublish/upload (#37–#39), analytics (#40), admin me (#41–#42), chat unread (#43–#44).
+All admin endpoints are implemented on the NestJS backend: stats, users (list/detail/search/ban), orders, disputes (detail/filters/extended resolve), content, activity, skills/kategori, artikel (list/create/publish/unpublish/upload), analytics, admin me, and live-chat-admin (with unread/read tracking).
 
 Seed admin: `admin@garapan.test` / `Password123!` (`backend/prisma/seed.ts`).
 
@@ -146,7 +141,6 @@ Full spec: **ADR 001**.
 5. **shadcn/ui only** — no other UI libraries.
 6. Match design handoff layout/tokens; wire **real API data** (not `src/data.jsx` dummy data).
 7. Read ADRs before changing auth, scope, or API assumptions.
-8. Link backend PRs to GitHub issues #32–#45 when implementing missing APIs.
 
 ---
 
@@ -166,4 +160,4 @@ Production: set `NESTJS_API_URL` in Vercel (not `NEXT_PUBLIC_`). Client never ca
 
 See `admin-requirements.md` — Waves 1–5: foundation → core ops → content/chat → dashboard/settings → polish.
 
-Frontend can start Wave 1 (scaffold, auth BFF, shell, login) in parallel with backend P0 issues (#32–#39).
+Frontend can start Wave 1 (scaffold, auth BFF, shell, login) immediately; all backend endpoints are available.

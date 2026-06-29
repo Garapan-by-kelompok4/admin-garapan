@@ -81,7 +81,7 @@ refresh_token: httpOnly, Secure, SameSite=Lax, Path=/api/auth, Max-Age=604800
 - XSS cannot exfiltrate tokens from `localStorage` (tokens not stored client-side).
 - Cross-origin cookie issues avoided — cookies live on admin domain only.
 - Slight latency from proxy hop; acceptable for internal admin tool.
-- Production CORS on NestJS may need `credentials: true` for dev direct calls (GitHub #45).
+- Production CORS on NestJS may need `credentials: true` for dev direct calls.
 
 ## Related
 
