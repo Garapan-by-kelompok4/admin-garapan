@@ -17,37 +17,61 @@ export interface AdminProfile {
   role: string;
 }
 
-function normaliseProfile(raw: any): AdminProfile {
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === "object" ? value as UnknownRecord : {};
+}
+
+function valueToText(value: unknown, fallback = ""): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (!value) return fallback;
+  const record = asRecord(value);
+  return valueToText(record.name ?? record.title ?? record.label ?? record.message, fallback);
+}
+
+function normaliseProfile(raw: unknown): AdminProfile {
+  const record = asRecord(raw);
   return {
-    ...raw,
+    ...record,
     // Backend may return `name` instead of `fullName`
-    fullName: raw.fullName || raw.name || raw.displayName || "",
-    email: raw.email || "",
-    phone: raw.phone || raw.phoneNumber || raw.telp || "",
-    bio: raw.bio || raw.description || raw.about || "",
-    role: raw.role || "ADMIN",
+    id: String(record.id ?? ""),
+    fullName: valueToText(record.fullName ?? record.name ?? record.displayName, ""),
+    email: valueToText(record.email, ""),
+    phone: valueToText(record.phone ?? record.phoneNumber ?? record.telp, ""),
+    bio: valueToText(record.bio ?? record.description ?? record.about, ""),
+    avatarUrl: valueToText(record.avatarUrl, ""),
+    role: valueToText(record.role, "ADMIN"),
   };
 }
 
-function normaliseSkills(raw: any): SkillItem[] {
+function normaliseSkills(raw: unknown): SkillItem[] {
   if (!raw) return [];
-  const items = Array.isArray(raw) ? raw : (Array.isArray(raw.data) ? raw.data : (Array.isArray(raw.items) ? raw.items : []));
-  return items.map((s: any) => ({
-    id: s.id || s._id || String(Math.random()),
-    name: s.name || s.skillName || s.title || "",
-    category: s.category || s.kategori || s.type || "",
-    createdAt: s.createdAt || s.created_at || new Date().toISOString(),
-  }));
+  const record = asRecord(raw);
+  const data = asRecord(record.data);
+  const items = Array.isArray(raw)
+    ? raw
+    : (Array.isArray(record.data) ? record.data : (Array.isArray(record.items) ? record.items : (Array.isArray(data.items) ? data.items : [])));
+  return items.map((item, index: number) => {
+    const s = asRecord(item);
+    return {
+      id: String(s.id || s._id || `skill-${index}`),
+      name: valueToText(s.name || s.skillName || s.title, ""),
+      category: valueToText(s.category || s.kategori || s.type, ""),
+      createdAt: valueToText(s.createdAt || s.created_at, new Date().toISOString()),
+    };
+  });
 }
 
 export const settingsApi = {
   getProfile: async (): Promise<AdminProfile> => {
-    const raw = await apiClient<any>("/admin/me");
+    const raw = await apiClient<unknown>("/admin/me");
     return normaliseProfile(raw);
   },
 
   updateProfile: async (payload: Partial<AdminProfile>): Promise<AdminProfile> => {
-    const raw = await apiClient<any>("/admin/me", {
+    const raw = await apiClient<unknown>("/admin/me", {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
@@ -62,20 +86,21 @@ export const settingsApi = {
   },
 
   listSkills: async (): Promise<SkillItem[]> => {
-    const raw = await apiClient<any>("/admin/skills");
+    const raw = await apiClient<unknown>("/admin/skills");
     return normaliseSkills(raw);
   },
 
   createSkill: async (payload: { name: string; category: string }): Promise<SkillItem> => {
-    const raw = await apiClient<any>("/admin/skills", {
+    const raw = await apiClient<unknown>("/admin/skills", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    const item = asRecord(asRecord(raw).data ?? raw);
     return {
-      id: raw?.id || raw?._id || String(Math.random()),
-      name: raw?.name || payload.name,
-      category: raw?.category || payload.category,
-      createdAt: raw?.createdAt || new Date().toISOString(),
+      id: String(item.id || item._id || `skill-${Date.now()}`),
+      name: valueToText(item.name, payload.name),
+      category: valueToText(item.category || item.kategori, payload.category),
+      createdAt: valueToText(item.createdAt, new Date().toISOString()),
     };
   },
 

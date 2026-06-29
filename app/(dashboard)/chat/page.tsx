@@ -2,24 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { chatApi, ChatSession, ChatMessage } from "@/lib/api/chat";
+import { chatApi, ChatMessage } from "@/lib/api/chat";
 import { avatarClass, initials } from "@/lib/avatar";
 import { 
   Search, 
   X,
   Send,
   MessageSquare,
-  User,
-  Shield,
   Phone,
   Mail,
   Calendar,
-  AlertTriangle,
-  Clock,
   Sparkles,
-  Paperclip,
-  CheckCircle2,
-  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,7 +27,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 1. Query chat sessions list (polls every 5 seconds)
-  const { data: sessions = [], isLoading: isLoadingSessions, error: sessionsError } = useQuery({
+  const { data: sessions = [], isLoading: isLoadingSessions } = useQuery({
     queryKey: ["chatSessions"],
     queryFn: () => chatApi.listSessions(),
     refetchInterval: 5000, // poll sessions every 5s
@@ -56,14 +49,6 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Load / initialize admin note for the selected session
-  useEffect(() => {
-    if (activeSessionId) {
-      const storedNote = localStorage.getItem(`chat_note_${activeSessionId}`) || "";
-      setAdminNote(storedNote);
-    }
-  }, [activeSessionId]);
-
   // Mutation to Send a Message
   const sendMessageMutation = useMutation({
     mutationFn: ({ userId, message }: { userId: string; message: string }) =>
@@ -71,7 +56,7 @@ export default function ChatPage() {
     onSuccess: (newMessage) => {
       // Optimistically update message query state
       queryClient.setQueryData(["chatMessages", activeSessionId], (old: ChatMessage[] = []) => [
-        ...old,
+        ...(Array.isArray(old) ? old : []),
         newMessage,
       ]);
       // Clear input
@@ -79,8 +64,8 @@ export default function ChatPage() {
       // Invalidate sessions query to update last message preview
       queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Gagal mengirim pesan");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Gagal mengirim pesan");
     },
   });
 
@@ -186,15 +171,15 @@ export default function ChatPage() {
 
           {/* Quick Filters */}
           <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-thin">
-            {[
+            {([
               { id: "ALL", label: "Semua" },
               { id: "UNREAD", label: "Belum Dibaca" },
               { id: "KLIEN", label: "Klien" },
               { id: "MAHASISWA", label: "Mahasiswa" }
-            ].map((f) => (
+            ] as const).map((f) => (
               <button
                 key={f.id}
-                onClick={() => setRoleFilter(f.id as any)}
+                onClick={() => setRoleFilter(f.id)}
                 className={`px-2.5 py-1 text-[10.5px] font-bold rounded-md border transition-all whitespace-nowrap cursor-pointer ${
                   roleFilter === f.id
                     ? "bg-brand-500 border-brand-500 text-white shadow-sm"
@@ -220,13 +205,16 @@ export default function ChatPage() {
               </div>
             ))
           ) : filteredSessions.length > 0 ? (
-            filteredSessions.map((session) => {
+            filteredSessions.map((session, idx) => {
               const isActive = session.id === activeSessionId;
               const hasUnread = session.unreadCount > 0;
               return (
                 <div
-                  key={session.id}
-                  onClick={() => setActiveSessionId(session.id)}
+                  key={`${session.id}-${idx}`}
+                  onClick={() => {
+                    setActiveSessionId(session.id);
+                    setAdminNote(localStorage.getItem(`chat_note_${session.id}`) || "");
+                  }}
                   className={`p-3.5 flex gap-3 cursor-pointer hover:bg-surface-2 transition-all relative ${
                     isActive 
                       ? "bg-brand-50/70 border-l-[3px] border-brand-500 pl-[11px]" 
@@ -338,7 +326,7 @@ export default function ChatPage() {
                     new Date(messages[idx - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
                   
                   return (
-                    <React.Fragment key={msg.id}>
+                    <React.Fragment key={`${msg.id}-${msg.createdAt}-${idx}`}>
                       {showDateSeparator && (
                         <div className="flex items-center justify-center my-3">
                           <span className="px-3 py-0.5 rounded border border-border bg-white text-[10px] font-bold text-ink-400 shadow-sm">
