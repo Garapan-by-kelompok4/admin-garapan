@@ -18,6 +18,7 @@ Internal ops console for the GARAPAN IT Freelancer Marketplace. **Production sco
 4. `.docs/adr/001-product-scope.md` — product decisions (single admin, ban-only, deferrals)
 5. `.docs/adr/002-auth-bff.md` — httpOnly cookies + BFF Route Handlers
 6. `.docs/glossary.md` — Pesanan, Laporan, Jasa, escrow labels, etc.
+7. `.docs/specs/2026-06-29-design-system.md` — Design System (tokens + component kit)
 
 Keep `design_handoff_skillmahasiswa_admin/admin.html` open in a browser when building UI.
 
@@ -84,10 +85,11 @@ app/
     ├── auth/             # login, logout, refresh, me
     └── proxy/[...path]/  # Bearer from cookie → NestJS
 
-components/ui/            # shadcn (do not edit manually)
+components/ui/            # shadcn primitives + design-system primitives (StatusPill, UserAvatar, IconButton, Field, EmptyState)
 components/layout/        # Sidebar, TopBar, Shell
-components/data-table/    # shared DataTable
-components/charts/
+components/data-table/    # shared DataTable, Pagination, cell renderers
+components/shared/        # page patterns (PageHeader, StatCard, FilterBar, SegmentedControl, SearchInput, Modal)
+components/charts/        # Recharts wrappers (Wave 4)
 
 lib/api/                  # typed clients → /api/proxy only
 lib/auth/                 # server-only cookie helpers
@@ -95,6 +97,35 @@ lib/validators/           # Zod schemas
 store/auth-store.ts
 proxy.ts                  # route protection (Next.js 16 `proxy`, formerly `middleware`)
 ```
+
+---
+
+## Design System
+
+The reusable component layer is the **GARAPAN Admin Design System**. Full spec: `.docs/specs/2026-06-29-design-system.md`. Visual source of truth: the design handoff **Component Inventory** + `src/shell.jsx`.
+
+Layering — don't skip a layer or hardcode values:
+
+```
+Tokens (app/globals.css)  →  Primitives (components/ui)  →  Composites (components/data-table, components/shared)  →  Pages
+```
+
+**Tokens** live only in `app/globals.css`:
+
+- Colors: `brand-*`, `ink-*`, `surface-*`, feedback `success/warn/danger/info-*` — used as Tailwind utilities (`bg-brand-500`, `text-success-700`).
+- Gradients: tokens + `@utility` classes (`bg-hero-gradient`, `bg-brand-mark`, `bg-avatar-0..7`). Never write raw hex / `linear-gradient` in a component — add a token + `@utility` and reference it by name.
+
+**Primitives** (`components/ui/`): `Button` (CVA — variants primary/secondary/success/danger/ghost/outline, sizes 38/32/26px), `StatusPill`, `UserAvatar`, `IconButton`, `Field`, `EmptyState`, plus the shadcn set.
+
+**Composites:** `DataTable` + `Pagination` + cell renderers (`components/data-table/`); `PageHeader`, `StatCard`, `FilterBar`, `SegmentedControl`, `SearchInput`, `Modal` (`components/shared/`).
+
+Conventions:
+
+- Build on **shadcn/ui only**; extend via **CVA**, merge classes with `cn()`.
+- Components are **presentational** — no data fetching inside (the page owns the query).
+- Use **`StatusPill`** for every status label, **`DataTable`** for every list, **`Modal`** for every detail dialog, **`UserAvatar`** for every avatar.
+- Reach for an existing kit component before writing bespoke markup; if a shared pattern appears twice, promote it into the kit.
+- Out of v1: charts (`components/charts/`, Wave 4) and the article editor (Wave 3).
 
 ---
 
@@ -138,9 +169,10 @@ Full spec: **ADR 001**.
 2. All API calls in **`lib/api/`** → `/api/proxy` — no fetch in page components.
 3. Never store JWT in Zustand, `localStorage`, or `sessionStorage`.
 4. Server state in **TanStack Query**; `invalidateQueries` after mutations.
-5. **shadcn/ui only** — no other UI libraries.
-6. Match design handoff layout/tokens; wire **real API data** (not `src/data.jsx` dummy data).
-7. Read ADRs before changing auth, scope, or API assumptions.
+5. **shadcn/ui only** — no other UI libraries. Use the **Design System** kit (see above); extend via CVA, don't hand-roll one-offs.
+6. **Tokens, not raw values** — colors/gradients come from `app/globals.css` utilities; no raw hex in components.
+7. Match design handoff layout/tokens; wire **real API data** (not `src/data.jsx` dummy data).
+8. Read ADRs before changing auth, scope, or API assumptions.
 
 ---
 
