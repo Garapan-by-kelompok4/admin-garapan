@@ -8,8 +8,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AuthError, login } from "@/lib/api/auth";
 import { loginSchema, type LoginInput } from "@/lib/validators/auth";
 import { useAuthStore } from "@/store/auth-store";
@@ -62,8 +63,7 @@ export function LoginForm() {
       </p>
 
       <form className="mt-7 space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+        <Field label="Email" htmlFor="email" error={errors.email?.message}>
           <div className="relative">
             <Mail
               className="pointer-events-none absolute left-3 top-2.5 size-[18px] text-ink-400"
@@ -79,13 +79,9 @@ export function LoginForm() {
               {...register("email")}
             />
           </div>
-          {errors.email && (
-            <p className="text-xs text-danger-500">{errors.email.message}</p>
-          )}
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
+        <Field label="Password" htmlFor="password" error={errors.password?.message}>
           <div className="relative">
             <Lock
               className="pointer-events-none absolute left-3 top-2.5 size-[18px] text-ink-400"
@@ -100,24 +96,17 @@ export function LoginForm() {
               aria-invalid={Boolean(errors.password)}
               {...register("password")}
             />
-            <button
-              type="button"
+            <IconButton
+              variant="ghost"
               onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
               aria-pressed={showPassword}
-              className="absolute right-1.5 top-1.5 grid size-8 place-items-center rounded-md text-ink-400 transition-colors hover:bg-surface-3 hover:text-ink-700"
+              className="absolute right-1.5 top-1.5"
             >
-              {showPassword ? (
-                <EyeOff className="size-[18px]" strokeWidth={1.75} />
-              ) : (
-                <Eye className="size-[18px]" strokeWidth={1.75} />
-              )}
-            </button>
+              {showPassword ? <EyeOff /> : <Eye />}
+            </IconButton>
           </div>
-          {errors.password && (
-            <p className="text-xs text-danger-500">{errors.password.message}</p>
-          )}
-        </div>
+        </Field>
 
         <Button
           type="submit"

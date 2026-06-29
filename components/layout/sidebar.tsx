@@ -4,8 +4,9 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { IconButton } from "@/components/ui/icon-button";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useLogout } from "@/hooks/use-logout";
-import { avatarClass, initials } from "@/lib/avatar";
 import { NAV_GROUPS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
@@ -66,28 +67,16 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="flex items-center gap-3 border-t border-border p-3">
-        <div
-          className={cn(
-            "grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
-            avatarClass(user?.name ?? "Admin"),
-          )}
-        >
-          {initials(user?.name ?? "Admin")}
-        </div>
+        <UserAvatar name={user?.name ?? "Admin"} size="md" />
         <div className="min-w-0 flex-1 leading-tight">
           <div className="truncate text-[13px] font-semibold text-ink-900">
             {user?.name ?? "Admin"}
           </div>
           <div className="truncate text-xs text-ink-400">Administrator</div>
         </div>
-        <button
-          type="button"
-          onClick={() => void logout()}
-          title="Keluar"
-          className="grid size-8 place-items-center rounded-[7px] border border-border bg-surface text-ink-500 transition-colors hover:bg-surface-3 hover:text-danger-500"
-        >
-          <LogOut className="size-4" strokeWidth={1.75} />
-        </button>
+        <IconButton variant="danger" title="Keluar" onClick={() => void logout()}>
+          <LogOut strokeWidth={1.75} />
+        </IconButton>
       </div>
     </aside>
   );
