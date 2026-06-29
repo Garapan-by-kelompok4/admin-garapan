@@ -93,7 +93,7 @@ lib/api/                  # typed clients → /api/proxy only
 lib/auth/                 # server-only cookie helpers
 lib/validators/           # Zod schemas
 store/auth-store.ts
-middleware.ts
+proxy.ts                  # route protection (Next.js 16 `proxy`, formerly `middleware`)
 ```
 
 ---
@@ -105,7 +105,7 @@ Full spec: **ADR 002**.
 - Client calls `/api/proxy/...` with `credentials: 'include'` — never `NESTJS_API_URL` directly.
 - BFF proxies `POST /auth/login`, checks `role === ADMIN`, sets httpOnly cookies.
 - Login: **email + password only** (no Google SSO). **No admin 2FA v1.**
-- `middleware.ts` guards `(dashboard)/*`; missing cookie → `/login`.
+- `proxy.ts` guards `(dashboard)/*`; missing cookie → `/login`.
 - Mobile keeps Bearer JWT — do not change backend auth for mobile.
 
 ---
