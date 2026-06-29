@@ -108,7 +108,7 @@ admin/
 ├── hooks/                          # useDebounce, query key factories, etc.
 ├── store/
 │   └── auth-store.ts               # Zustand: { user, status } — no tokens
-└── middleware.ts                   # Redirect unauthenticated users
+└── proxy.ts                        # Redirect unauthenticated users (Next.js 16 `proxy`, formerly `middleware`)
 ```
 
 ---
@@ -276,7 +276,10 @@ Active route highlighted. Use Next.js `Link` + `usePathname()`.
 
 ## Auth & Route Protection
 
-### Middleware (`middleware.ts`)
+### Route protection (`proxy.ts`)
+
+> Next.js 16 renamed the `middleware.ts` convention to `proxy.ts` (exported function `proxy`, Node.js runtime). Same responsibilities.
+
 
 - Protected: all `(dashboard)` routes
 - Public: `/login`
@@ -344,7 +347,7 @@ NESTJS_API_URL=https://your-railway-backend.up.railway.app
 
 **Wave 1 — Foundation**
 1. `pnpm create next-app@latest` + TypeScript + Tailwind + `pnpm dlx shadcn@latest init` with GARAPAN theme tokens
-2. Auth BFF routes + middleware + Zustand auth store
+2. Auth BFF routes + `proxy.ts` route protection + Zustand auth store
 3. Dashboard shell: `(dashboard)/layout.tsx` — Sidebar + TopBar per design handoff
 4. Login page
 
@@ -372,7 +375,7 @@ NESTJS_API_URL=https://your-railway-backend.up.railway.app
 2. All list pages use shared `DataTable` — never build a custom table per page
 3. All API calls go through `lib/api/` → `/api/proxy` — no direct NestJS calls from client components
 4. Never store access or refresh tokens in Zustand, localStorage, or sessionStorage
-5. All `(dashboard)` routes protected by middleware + session cookie
+5. All `(dashboard)` routes protected by `proxy.ts` + session cookie
 6. Use shadcn/ui components only — do not install other UI libraries
 7. Server state in TanStack Query; Zustand for auth UI state only
 8. Forms use React Hook Form + Zod

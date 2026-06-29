@@ -40,13 +40,24 @@ Mobile continues using `Authorization: Bearer` from the existing `POST /auth/log
 ### Cookie attributes (production)
 
 ```
-access_token:  httpOnly, Secure, SameSite=Lax, Path=/, Max-Age=900
+access_token:  httpOnly, Secure, SameSite=Lax, Path=/, Max-Age=604800
 refresh_token: httpOnly, Secure, SameSite=Lax, Path=/api/auth, Max-Age=604800
 ```
 
+**Access cookie lifetime vs JWT lifetime.** The access *JWT* still expires in
+**15m** (enforced by NestJS). The access *cookie* is given the full session
+window (**7d**) so that route gating in `proxy.ts` reflects the real session.
+If the cookie expired at 15m, a hard navigation after any idle period would
+bounce an otherwise-valid session to `/login`, even though the refresh token is
+good for 7 days (and is path-scoped to `/api/auth`, so `proxy.ts` cannot see
+it). With the cookie outliving the JWT, the proxy/refresh flow swaps in a fresh
+access token when the 15m JWT has expired; an expired-JWT cookie carries no
+authority on its own — NestJS rejects it. `Secure` is omitted in development so
+cookies work over `http://localhost`.
+
 ### Route protection
 
-- **`middleware.ts`**: no session cookie on `(dashboard)/*` → redirect `/login`.
+- **`proxy.ts`** (Next.js 16 route protection, formerly `middleware.ts`): no session cookie on `(dashboard)/*` → redirect `/login`.
 - Authenticated user on `/login` → redirect `/dashboard`.
 - API calls from client: `/api/proxy/[...path]` with `credentials: 'include'`.
 - BFF attaches `Authorization: Bearer <access_token>` to NestJS server-side.

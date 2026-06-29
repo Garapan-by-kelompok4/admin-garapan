@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Reference-only design mockup (gitignored, not production source).
+    "design_handoff_skillmahasiswa_admin/**",
   ]),
 ]);
 
