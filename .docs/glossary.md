@@ -73,8 +73,8 @@ Domain terms used across the admin panel, mobile app, and NestJS backend. UI lab
 | Status | Description |
 |--------|-------------|
 | `PENDING` | Open; awaiting admin action |
-| `RESOLVED` | Closed with RELEASE or REFUND (and extensions per #34) |
-| `REJECTED` | Planned — dismissed without fund movement (#34) |
+| `RESOLVED` | Closed with RELEASE, REFUND, or PARTIAL_REFUND |
+| `REJECTED` | Dismissed without fund movement |
 
 ### Dispute resolution outcomes
 
@@ -82,8 +82,8 @@ Domain terms used across the admin panel, mobile app, and NestJS backend. UI lab
 |---------|--------|
 | **RELEASE** | Credit Mahasiswa wallet; order → `COMPLETED` |
 | **REFUND** | Credit Klien wallet; order → `CANCELLED` |
-| **PARTIAL_REFUND** | Planned — partial amount to Klien (#34) |
-| **REJECT** | Planned — close report; no wallet change (#34) |
+| **PARTIAL_REFUND** | Partial amount to Klien |
+| **REJECT** | Close report; no wallet change |
 
 ---
 
@@ -129,5 +129,4 @@ Domain terms used across the admin panel, mobile app, and NestJS backend. UI lab
 
 - `.docs/adr/001-product-scope.md`
 - `.docs/adr/002-auth-bff.md`
-- `.docs/adr/003-api-gaps.md`
 - `.docs/requirements/admin-requirements.md`

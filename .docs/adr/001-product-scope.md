@@ -53,7 +53,7 @@ The GARAPAN admin panel is a **desktop-first internal ops console** for a **sing
 
 - All disputes are **order-linked** (`pesananId` required) — matches mobile `POST /laporan`.
 - Mobile submits **text reason only** — no evidence upload; **hide evidence UI** in admin until mobile + API support files.
-- **Extend backend** for richer resolution (see ADR 003 / GitHub #34).
+- Backend supports richer resolution outcomes (RELEASE, REFUND, PARTIAL_REFUND, REJECT) with `resolutionNote`.
 - Priority in UI: **derived** (age + order amount), not a DB field v1.
 
 ### Moderation (`/moderation`)
@@ -71,7 +71,7 @@ The GARAPAN admin panel is a **desktop-first internal ops console** for a **sing
 ### Articles (`/articles`)
 
 - **WYSIWYG** editor (TipTap) storing HTML in `Artikel.content`.
-- Requires new admin artikel endpoints (GitHub #37–#39).
+- Backed by admin artikel endpoints (list, create, publish, unpublish, image upload).
 - Defer categories, tags, and view counts v1.
 
 ### Settings (`/settings`)
@@ -93,11 +93,10 @@ The GARAPAN admin panel is a **desktop-first internal ops console** for a **sing
 ## Consequences
 
 - Admin UI can ship without team/RBAC complexity.
-- Some design handoff screens are simplified where backend or mobile lack data.
-- Backend work tracked in GitHub epic [#31](https://github.com/Garapan-by-kelompok4/backend-garapan/issues/31).
+- Some design handoff screens are simplified where mobile lacks data.
 
 ## Related
 
 - `admin-requirements.md`
 - `design_handoff_skillmahasiswa_admin/README.md`
-- ADR 002 (auth), ADR 003 (API gaps)
+- ADR 002 (auth)
