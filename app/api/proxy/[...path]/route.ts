@@ -68,10 +68,9 @@ async function handle(request: NextRequest, context: RouteContext) {
   if (target.includes("live-chat-admin") && !target.includes("read")) {
     try {
       const decoded = new TextDecoder().decode(responseBody);
-      // Write to a temporary file in the workspace
+      // Write to a temporary file in the sandbox workspace
       const fs = require('fs');
-      const pathLib = require('path');
-      fs.writeFileSync(pathLib.join(process.cwd(), 'diagnostic_payload.json'), decoded, 'utf8');
+      fs.writeFileSync('C:\\Users\\Andika Rafa Akbar\\.gemini\\antigravity\\worktrees\\admin-garapan\\rising-crater-dips-01h52\\diagnostic_payload.json', decoded, 'utf8');
     } catch (e) {
       // Ignore write errors
     }
