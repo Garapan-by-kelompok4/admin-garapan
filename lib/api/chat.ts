@@ -27,6 +27,13 @@ export interface ChatSession {
   online?: boolean;
 }
 
+export interface ChatThreadPage {
+  messages: ChatMessage[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 type UnknownRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): UnknownRecord {
@@ -219,8 +226,25 @@ export const chatApi = {
   },
 
   getMessages: async (userId: string): Promise<ChatMessage[]> => {
-    const response = await apiClient<unknown>(`/live-chat-admin/${userId}`);
-    return listFromResponse(response, [
+    const { messages } = await chatApi.getThreadPage(userId);
+    return messages;
+  },
+
+  /**
+   * Fetch one page of a thread. `page` 1 is the newest `limit` messages
+   * (the backend serves newest-first then reverses); higher pages walk
+   * backwards into older history for reverse infinite scroll.
+   */
+  getThreadPage: async (
+    userId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<ChatThreadPage> => {
+    const response = await apiClient<unknown>(
+      `/live-chat-admin/${userId}?page=${page}&limit=${limit}`,
+    );
+    const record = asRecord(response);
+    const messages = listFromResponse(response, [
       "messages",
       "chats",
       "chat",
@@ -231,6 +255,12 @@ export const chatApi = {
       "pesan",
       "chatMessages",
     ]).map(normaliseMessage);
+    return {
+      messages,
+      total: numberFromValue(record.total, messages.length),
+      page: numberFromValue(record.page, page),
+      limit: numberFromValue(record.limit, limit),
+    };
   },
 
   sendMessage: async (userId: string, message: string): Promise<ChatMessage> => {

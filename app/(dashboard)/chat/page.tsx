@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { chatApi, ChatMessage } from "@/lib/api/chat";
+import { chatApi, ChatMessage, ChatThreadPage } from "@/lib/api/chat";
+
+// One page of thread history. Page 1 is the newest batch; scrolling to the top
+// of the log pulls older pages and prepends them (reverse infinite scroll).
+const MESSAGE_PAGE_SIZE = 20;
 import { avatarClass, initials } from "@/lib/avatar";
 import { 
   Search, 
@@ -28,7 +32,13 @@ export default function ChatPage() {
   const [showSessionList, setShowSessionList] = useState(true);
   const [showUserInfo, setShowUserInfo] = useState(false); // Collapsed by default
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  // `localMessages` holds the live (newest) page, kept fresh by polling.
+  // `olderMessages` accumulates earlier pages fetched via scroll-up.
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
+  const [olderMessages, setOlderMessages] = useState<ChatMessage[]>([]);
+  const [oldestPageLoaded, setOldestPageLoaded] = useState(1);
+  const [totalMessages, setTotalMessages] = useState(0);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
 
   // Set initial collapsible sidebar states based on client window width on mount
   useEffect(() => {
@@ -44,6 +54,7 @@ export default function ChatPage() {
   const [adminNote, setAdminNote] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // 1. Query chat sessions list (polls every 5 seconds)
   const { data: sessions = [], isLoading: isLoadingSessions } = useQuery({
@@ -55,16 +66,16 @@ export default function ChatPage() {
   // Get active session details from list
   const activeSession = sessions.find((s) => s.id === activeSessionId) || null;
 
-  // 2. Query messages for the active session (polls every 5 seconds when activeSessionId is set)
-  const { data: messages, isLoading: isLoadingMessages, isSuccess: isMessagesSuccess } = useQuery({
+  // 2. Query the newest page of messages (polls every 5 seconds when activeSessionId is set)
+  const { data: livePage, isLoading: isLoadingMessages, isSuccess: isMessagesSuccess } = useQuery({
     queryKey: ["chatMessages", activeSessionId],
     queryFn: async () => {
-      const msgs = await chatApi.getMessages(activeSessionId!);
+      const page = await chatApi.getThreadPage(activeSessionId!, 1, MESSAGE_PAGE_SIZE);
       // Await markAsRead to ensure the backend DB reflects the read status
       await chatApi.markAsRead(activeSessionId!);
       // Invalidate sessions list query so both Column 1 and Sidebar badges update instantly
       queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
-      return msgs;
+      return page;
     },
     enabled: !!activeSessionId,
     refetchInterval: 5000, // poll messages every 5s when open
@@ -72,17 +83,68 @@ export default function ChatPage() {
 
   // Sync query data into local state only on success, preventing wipes during upstream 500 drops
   useEffect(() => {
-    if (isMessagesSuccess && messages) {
-      setLocalMessages(messages);
+    if (isMessagesSuccess && livePage) {
+      setLocalMessages(livePage.messages);
+      setTotalMessages(livePage.total);
     }
-  }, [messages, isMessagesSuccess]);
+  }, [livePage, isMessagesSuccess]);
 
-  // Clear local messages when switching chat sessions
+  // Reset all paged state when switching chat sessions
   useEffect(() => {
     setLocalMessages([]);
+    setOlderMessages([]);
+    setOldestPageLoaded(1);
+    setTotalMessages(0);
   }, [activeSessionId]);
 
-  // Scroll to bottom on new messages
+  // Merge older history + live tail, de-duplicated by id and ordered oldest -> newest.
+  // De-duping by id absorbs any offset drift caused by new messages arriving mid-scroll.
+  const allMessages = useMemo(() => {
+    const byId = new Map<string, ChatMessage>();
+    for (const m of olderMessages) byId.set(m.id, m);
+    for (const m of localMessages) byId.set(m.id, m);
+    return Array.from(byId.values()).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+  }, [olderMessages, localMessages]);
+
+  const hasMoreMessages = allMessages.length < totalMessages;
+
+  // Load the next older page and prepend it, preserving the user's scroll position
+  const loadOlderMessages = useCallback(async () => {
+    if (!activeSessionId || isLoadingOlder || !hasMoreMessages) return;
+    const container = messagesContainerRef.current;
+    const prevHeight = container?.scrollHeight ?? 0;
+    const prevTop = container?.scrollTop ?? 0;
+    setIsLoadingOlder(true);
+    try {
+      const nextPage = oldestPageLoaded + 1;
+      const res = await chatApi.getThreadPage(activeSessionId, nextPage, MESSAGE_PAGE_SIZE);
+      setOlderMessages((prev) => {
+        const byId = new Map(prev.map((m) => [m.id, m]));
+        for (const m of res.messages) byId.set(m.id, m);
+        return Array.from(byId.values());
+      });
+      setOldestPageLoaded(nextPage);
+      setTotalMessages(res.total);
+      // Keep the same message under the user's eyes after older content is prepended
+      requestAnimationFrame(() => {
+        const c = messagesContainerRef.current;
+        if (c) c.scrollTop = c.scrollHeight - prevHeight + prevTop;
+      });
+    } catch (e) {
+      console.warn("Failed to load older messages", e);
+    } finally {
+      setIsLoadingOlder(false);
+    }
+  }, [activeSessionId, isLoadingOlder, hasMoreMessages, oldestPageLoaded]);
+
+  const handleMessagesScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (e.currentTarget.scrollTop <= 40) loadOlderMessages();
+  };
+
+  // Scroll to bottom only when the live tail changes (new/sent messages), not when
+  // older history is prepended above.
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [localMessages]);
@@ -92,13 +154,15 @@ export default function ChatPage() {
     mutationFn: ({ userId, message }: { userId: string; message: string }) =>
       chatApi.sendMessage(userId, message),
     onSuccess: (newMessage) => {
-      // Optimistically update message query state
-      queryClient.setQueryData(["chatMessages", activeSessionId], (old: ChatMessage[] = []) => [
-        ...(Array.isArray(old) ? old : []),
-        newMessage,
-      ]);
+      // Optimistically update the cached live page
+      queryClient.setQueryData<ChatThreadPage>(["chatMessages", activeSessionId], (old) =>
+        old
+          ? { ...old, messages: [...old.messages, newMessage], total: old.total + 1 }
+          : old,
+      );
       // Optimistically update local messages list instantly
       setLocalMessages((prev) => [...prev, newMessage]);
+      setTotalMessages((prev) => prev + 1);
       // Clear input
       setMessageInput("");
       // Invalidate sessions query to update last message preview
@@ -379,18 +443,35 @@ export default function ChatPage() {
             </div>
 
             {/* Chat Message Logs Area */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              {isLoadingMessages ? (
+            <div
+              ref={messagesContainerRef}
+              onScroll={handleMessagesScroll}
+              className="flex-1 overflow-y-auto p-5 space-y-4"
+            >
+              {isLoadingMessages && allMessages.length === 0 ? (
                 <div className="p-8 text-center text-xs text-ink-400 font-medium">
                   Memuat riwayat chat...
                 </div>
-              ) : localMessages.length > 0 ? (
-                localMessages.map((msg, idx) => {
+              ) : allMessages.length > 0 ? (
+                <>
+                {hasMoreMessages && (
+                  <div className="flex items-center justify-center py-1">
+                    <span className="text-[10px] font-bold text-ink-400">
+                      {isLoadingOlder ? "Memuat pesan lama..." : "Gulir ke atas untuk pesan lama"}
+                    </span>
+                  </div>
+                )}
+                {!hasMoreMessages && (
+                  <div className="flex items-center justify-center py-1">
+                    <span className="text-[10px] font-bold text-ink-300">Awal percakapan</span>
+                  </div>
+                )}
+                {allMessages.map((msg, idx) => {
                   const isMe = msg.senderRole === "ADMIN" || (user && msg.senderId === user.id);
-                  
+
                   // Render a date separator if this is the first message of a day
-                  const showDateSeparator = idx === 0 || 
-                    new Date(localMessages[idx - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+                  const showDateSeparator = idx === 0 ||
+                    new Date(allMessages[idx - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
                   
                   return (
                     <React.Fragment key={`${msg.id}-${msg.createdAt}-${idx}`}>
@@ -423,7 +504,8 @@ export default function ChatPage() {
                       </div>
                     </React.Fragment>
                   );
-                })
+                })}
+                </>
               ) : (
                 <div className="p-8 text-center text-xs text-ink-400 font-medium">
                   Sesi dimulai. Silakan kirim pesan balasan pertama Anda untuk membantu user.
