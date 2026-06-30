@@ -42,7 +42,9 @@ export function Sidebar() {
   const { data: chatSessions = [] } = useQuery({
     queryKey: ["chatSessions"],
     queryFn: () => chatApi.listSessions().catch(() => []),
-    refetchInterval: 15000,
+    refetchInterval: 5000, // match the chat page so the badge isn't ~15s behind
+    refetchIntervalInBackground: true, // keep updating when the tab isn't focused
+    refetchOnWindowFocus: true, // instant catch-up when returning to the tab
   });
 
   const unreadChatCount = chatSessions.reduce((acc, s) => acc + (s.unreadCount || 0), 0);
