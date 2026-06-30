@@ -118,7 +118,32 @@ function normaliseSession(raw: unknown, index: number): ChatSession {
   const id = String(s.userId ?? s.user_id ?? user.id ?? s.id ?? `session-${index}`);
   const name = textFromValue(s.name ?? s.nama ?? user.displayName ?? user.display_name ?? user.name ?? user.fullName ?? user.full_name, "User");
   const lastMessage = textFromValue(s.lastMessage ?? s.last_message ?? s.last ?? s.latestMessage ?? s.latest_message, "");
-  const lastMessageAt = String(s.lastMessageAt ?? s.last_message_at ?? s.time ?? latestMessage.createdAt ?? latestMessage.created_at ?? new Date().toISOString());
+
+  // Safe message list timestamp comparison (independent of array sorting order)
+  let arrayMessageAt = "";
+  if (Array.isArray(s.messages) && s.messages.length > 0) {
+    const firstMsg = s.messages[0];
+    const lastMsg = s.messages[s.messages.length - 1];
+    const firstTime = new Date(firstMsg?.createdAt || firstMsg?.created_at || 0).getTime();
+    const lastTime = new Date(lastMsg?.createdAt || lastMsg?.created_at || 0).getTime();
+    arrayMessageAt = firstTime >= lastTime 
+      ? (firstMsg?.createdAt || firstMsg?.created_at || "") 
+      : (lastMsg?.createdAt || lastMsg?.created_at || "");
+  }
+
+  const lastMessageAt = String(
+    s.lastMessageAt ?? 
+    s.last_message_at ?? 
+    s.time ?? 
+    latestMessage.createdAt ?? 
+    latestMessage.created_at ?? 
+    s.updatedAt ??
+    s.updated_at ??
+    s.createdAt ??
+    s.created_at ??
+    arrayMessageAt ??
+    ""
+  );
 
   const rawRole = s.role ?? user.role;
   const normalizedRole = typeof rawRole === "string" && rawRole.toUpperCase() === "MAHASISWA" ? "MAHASISWA" : "KLIEN";
