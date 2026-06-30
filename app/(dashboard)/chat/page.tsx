@@ -81,21 +81,29 @@ export default function ChatPage() {
     refetchInterval: 5000, // poll messages every 5s when open
   });
 
-  // Sync query data into local state only on success, preventing wipes during upstream 500 drops
+  // Reset all paged state and sync cache when switching chat sessions
   useEffect(() => {
+    if (!activeSessionId) {
+      setLocalMessages([]);
+      setOlderMessages([]);
+      setOldestPageLoaded(1);
+      setTotalMessages(0);
+      return;
+    }
+
+    // Reset list state
+    setOlderMessages([]);
+    setOldestPageLoaded(1);
+
+    // If there is cached data for this active session, load it immediately, otherwise reset
     if (isMessagesSuccess && livePage) {
       setLocalMessages(livePage.messages);
       setTotalMessages(livePage.total);
+    } else {
+      setLocalMessages([]);
+      setTotalMessages(0);
     }
-  }, [livePage, isMessagesSuccess]);
-
-  // Reset all paged state when switching chat sessions
-  useEffect(() => {
-    setLocalMessages([]);
-    setOlderMessages([]);
-    setOldestPageLoaded(1);
-    setTotalMessages(0);
-  }, [activeSessionId]);
+  }, [activeSessionId, livePage, isMessagesSuccess]);
 
   // Merge older history + live tail, de-duplicated by id and ordered oldest -> newest.
   // De-duping by id absorbs any offset drift caused by new messages arriving mid-scroll.
@@ -143,11 +151,30 @@ export default function ChatPage() {
     if (e.currentTarget.scrollTop <= 40) loadOlderMessages();
   };
 
+  // Scroll helper with delay to allow rendering and paint to complete
+  const scrollToBottom = useCallback((behavior: "smooth" | "auto" = "auto") => {
+    setTimeout(() => {
+      const container = messagesContainerRef.current;
+      if (!container) return;
+      if (behavior === "smooth") {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: "smooth",
+        });
+      } else {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 60); // 60ms delay ensures React finished render & browser finished layout/paint
+  }, []);
+
   // Scroll to bottom only when the live tail changes (new/sent messages), not when
   // older history is prepended above.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [localMessages]);
+    if (localMessages.length > 0) {
+      const isInitialLoad = olderMessages.length === 0;
+      scrollToBottom(isInitialLoad ? "auto" : "smooth");
+    }
+  }, [localMessages, olderMessages.length, scrollToBottom]);
 
   // Mutation to Send a Message
   const sendMessageMutation = useMutation({
