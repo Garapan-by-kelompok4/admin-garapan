@@ -114,7 +114,7 @@ function isMessageRecord(item: unknown): boolean {
 function normaliseSession(raw: unknown, index: number): ChatSession {
   const s = asRecord(raw);
   const user = asRecord(s.user);
-  const latestMessage = asRecord(s.latestMessage ?? s.latest_message);
+  const latestMessage = asRecord(s.lastMessage ?? s.last_message ?? s.latestMessage ?? s.latest_message);
   const id = String(s.userId ?? s.user_id ?? user.id ?? s.id ?? `session-${index}`);
   const name = textFromValue(s.name ?? s.nama ?? user.displayName ?? user.display_name ?? user.name ?? user.fullName ?? user.full_name, "User");
   const lastMessage = textFromValue(s.lastMessage ?? s.last_message ?? s.last ?? s.latestMessage ?? s.latest_message, "");
