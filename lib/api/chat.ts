@@ -160,8 +160,8 @@ function normaliseSession(raw: unknown, index: number): ChatSession {
     time: String(s.time ?? s.lastMessageAt ?? s.last_message_at ?? latestMessage.createdAt ?? latestMessage.created_at ?? lastMessageAt),
     unreadCount: numberFromValue(s.unreadCount ?? s.unread_count, numberFromValue(s.unread)),
     unread: numberFromValue(s.unread, numberFromValue(s.unreadCount ?? s.unread_count)),
-    isOnline: booleanFromValue(s.isOnline ?? s.is_online, booleanFromValue(s.online)),
-    online: booleanFromValue(s.online, booleanFromValue(s.isOnline ?? s.is_online)),
+    isOnline: booleanFromValue(s.isOnline ?? s.is_online ?? s.online ?? user.online ?? user.isOnline ?? user.is_online, false),
+    online: booleanFromValue(s.online ?? s.isOnline ?? s.is_online ?? user.online ?? user.isOnline ?? user.is_online, false),
   };
 }
 
