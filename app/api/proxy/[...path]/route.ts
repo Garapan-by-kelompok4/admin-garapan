@@ -42,11 +42,12 @@ async function handle(request: NextRequest, context: RouteContext) {
   headers.set("Authorization", `Bearer ${accessToken}`);
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  const bodyBuffer = hasBody ? await request.arrayBuffer() : undefined;
 
   const upstream = await fetch(target, {
     method: request.method,
     headers,
-    body: hasBody ? await request.arrayBuffer() : undefined,
+    body: bodyBuffer,
     redirect: "manual",
     cache: "no-store",
   });
@@ -61,8 +62,22 @@ async function handle(request: NextRequest, context: RouteContext) {
   responseHeaders.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   responseHeaders.set("Pragma", "no-cache");
   responseHeaders.set("Expires", "0");
+
+  const responseBody = await upstream.arrayBuffer();
+
+  if (target.includes("live-chat-admin") && !target.includes("read")) {
+    try {
+      const decoded = new TextDecoder().decode(responseBody);
+      // Write to a temporary file in the workspace
+      const fs = require('fs');
+      const pathLib = require('path');
+      fs.writeFileSync(pathLib.join(process.cwd(), 'diagnostic_payload.json'), decoded, 'utf8');
+    } catch (e) {
+      // Ignore write errors
+    }
+  }
   
-  return new NextResponse(upstream.body, {
+  return new NextResponse(responseBody, {
     status: upstream.status,
     headers: responseHeaders,
   });
