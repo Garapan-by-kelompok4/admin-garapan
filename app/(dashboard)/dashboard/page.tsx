@@ -45,7 +45,7 @@ export default function DashboardPage() {
   // Query Analytics Charts Data
   const { data: analytics, isLoading: isLoadingCharts } = useQuery<AnalyticsResponse>({
     queryKey: ["dashboardAnalytics", period],
-    queryFn: () => dashboardApi.getChartData(),
+    queryFn: () => dashboardApi.getChartData(period),
   });
 
   // Query Activity Logs

@@ -87,8 +87,10 @@ export const dashboardApi = {
     return apiClient<DashboardStats>("/admin/stats");
   },
 
-  getChartData: async (): Promise<AnalyticsResponse> => {
-    return apiClient<AnalyticsResponse>("/admin/analytics");
+  getChartData: async (period?: string): Promise<AnalyticsResponse> => {
+    const daysMap: Record<string, number> = { "7H": 7, "30H": 30, "90H": 90, "1T": 365 };
+    const days = period ? daysMap[period] ?? 30 : 30;
+    return apiClient<AnalyticsResponse>(`/admin/analytics?days=${days}`);
   },
 
   getActivityLog: async (): Promise<ActivityItem[]> => {
