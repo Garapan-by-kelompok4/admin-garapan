@@ -68,12 +68,14 @@ export const usersApi = {
   ban: async (id: string): Promise<void> => {
     return apiClient<void>(`/admin/users/${id}/ban`, {
       method: "PATCH",
+      body: JSON.stringify({ banned: true }),
     });
   },
-  
+
   unban: async (id: string): Promise<void> => {
-    return apiClient<void>(`/admin/users/${id}/unban`, {
+    return apiClient<void>(`/admin/users/${id}/ban`, {
       method: "PATCH",
+      body: JSON.stringify({ banned: false }),
     });
   }
 };
