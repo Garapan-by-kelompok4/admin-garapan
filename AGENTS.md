@@ -161,3 +161,15 @@ Production: set `NESTJS_API_URL` in Vercel (not `NEXT_PUBLIC_`). Client never ca
 See `admin-requirements.md` — Waves 1–5: foundation → core ops → content/chat → dashboard/settings → polish.
 
 Frontend can start Wave 1 (scaffold, auth BFF, shell, login) immediately; all backend endpoints are available.
+
+---
+
+## Cursor Cloud specific instructions
+
+Dependencies are already installed by the startup update script (`pnpm install`). Node ≥20 and `pnpm@10.33.0` are available.
+
+- **This repo is the admin frontend only.** The NestJS backend and its PostgreSQL DB live in the separate `garapan/backend` repo and are **not** present here. Login and every `/api/proxy/*` call needs a reachable backend via server-only `NESTJS_API_URL` (see `.env.local`).
+- **`.env.local` is required and gitignored** — copy `.env.local.example`. Set `NESTJS_API_URL` to the deployed backend URL (shared live data) **or** a local backend on `:3001`. Keep the admin on `:3000` (`NEXT_PUBLIC_APP_URL`); despite older docs suggesting `:3000` for both, they cannot share a port.
+- **No real backend available?** To exercise the auth BFF end-to-end without the backend repo, run a tiny mock on `:3001` that returns `{ accessToken, refreshToken }` for `POST /auth/login` and an `ADMIN` profile (`{ id, email, role: "ADMIN", displayName }`) for `GET /admin/me` (Bearer-guarded); point `NESTJS_API_URL` at it. Without any backend, only the login page and route protection (`proxy.ts`) render — the dashboard feature pages are `ComingSoon` stubs regardless.
+- **Commands:** `pnpm dev` (Turbopack, port 3000), `pnpm lint`, `pnpm build`. In dev the first navigation to a route (e.g. `/dashboard`) is compiled on demand, so the shell/sidebar can appear a beat after login — this is Turbopack lazy compilation, not a bug.
+- **Tests:** `@playwright/test` is a dependency but there is currently no Playwright config or test files, so there is no test suite to run yet.
