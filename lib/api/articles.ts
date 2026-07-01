@@ -115,14 +115,12 @@ export const articlesApi = {
 
   uploadThumbnail: async (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("image", file);
 
-    return apiClient<{ url: string }>("/artikel/upload", {
+    return apiClient<{ url: string }>("/admin/artikel/upload", {
       method: "POST",
       // Let fetch set the boundary header for FormData automatically
-      headers: {
-        // Do not set Content-Type, browser will set it with multipart boundary
-      },
+      headers: {},
       body: formData,
     });
   },
