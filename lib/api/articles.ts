@@ -44,6 +44,21 @@ export interface CreateArticlePayload {
 
 export interface UpdateArticlePayload extends Partial<CreateArticlePayload> {}
 
+function normaliseArticle(art: any): Article {
+  return {
+    id: art.id,
+    title: art.title ?? art.judul ?? "Tanpa Judul",
+    content: art.content ?? "",
+    thumbnailUrl: art.thumbnailUrl ?? art.imageUrl ?? art.thumbnail_url ?? "",
+    category: art.category ?? art.kategori ?? "Umum",
+    status: art.published === true ? "Published" : art.published === false ? "Draft" : (art.status || "Draft"),
+    createdAt: art.createdAt ?? art.tanggal ?? art.created_at ?? new Date().toISOString(),
+    views: typeof art.views === "number" ? art.views : 0,
+    tags: art.tags ?? [],
+    seoDescription: art.seoDescription ?? art.seo_description ?? "",
+  };
+}
+
 export const articlesApi = {
   list: async (params: ListArticlesParams = {}): Promise<ListArticlesResponse> => {
     const query = new URLSearchParams();
@@ -55,50 +70,46 @@ export const articlesApi = {
 
     const queryString = query.toString();
     const path = `/admin/artikel${queryString ? `?${queryString}` : ""}`;
-    const res = await apiClient<ListArticlesResponse>(path);
-    
-    // Normalise fields to match the UI requirements and support both forms
+    const res = await apiClient<any>(path);
+
     return {
-      ...res,
-      data: res.data.map((art) => ({
-        ...art,
-        title: art.title || art.judul || "Tanpa Judul",
-        judul: art.judul || art.title || "Tanpa Judul",
-        createdAt: art.createdAt || art.tanggal || new Date().toISOString(),
-        tanggal: art.tanggal || art.createdAt || new Date().toISOString(),
-        category: art.category || art.kategori || "Umum",
-        kategori: art.kategori || art.category || "Umum",
-        status: art.status || "Draft",
-        views: typeof art.views === "number" ? art.views : 0,
-      })),
+      data: (res.data ?? []).map(normaliseArticle),
+      total: res.total ?? 0,
+      page: res.page ?? 1,
+      limit: res.limit ?? 10,
     };
   },
 
   getById: async (id: string): Promise<Article> => {
-    const art = await apiClient<Article>(`/admin/artikel/${id}`);
-    return {
-      ...art,
-      title: art.title || art.judul || "Tanpa Judul",
-      judul: art.judul || art.title || "Tanpa Judul",
-      createdAt: art.createdAt || art.tanggal || new Date().toISOString(),
-      tanggal: art.tanggal || art.createdAt || new Date().toISOString(),
-      category: art.category || art.kategori || "Umum",
-      kategori: art.kategori || art.category || "Umum",
-    };
+    const art = await apiClient<any>(`/admin/artikel/${id}`);
+    return normaliseArticle(art);
   },
 
   create: async (payload: CreateArticlePayload): Promise<Article> => {
-    return apiClient<Article>("/artikel", {
+    const body: Record<string, unknown> = {
+      title: payload.title,
+      content: payload.content,
+    };
+    if (payload.thumbnailUrl) body.imageUrl = payload.thumbnailUrl;
+
+    const res = await apiClient<any>("/artikel", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
+    return normaliseArticle(res);
   },
 
   update: async (id: string, payload: UpdateArticlePayload): Promise<Article> => {
-    return apiClient<Article>(`/artikel/${id}`, {
+    const body: Record<string, unknown> = {};
+    if (payload.title) body.title = payload.title;
+    if (payload.content) body.content = payload.content;
+    if (payload.thumbnailUrl) body.imageUrl = payload.thumbnailUrl;
+
+    const res = await apiClient<any>(`/admin/artikel/${id}`, {
       method: "PATCH",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
+    return normaliseArticle(res);
   },
 
   publish: async (id: string): Promise<void> => {
@@ -108,7 +119,7 @@ export const articlesApi = {
   },
 
   unpublish: async (id: string): Promise<void> => {
-    return apiClient<void>(`/artikel/${id}/unpublish`, {
+    return apiClient<void>(`/admin/artikel/${id}/unpublish`, {
       method: "PATCH",
     });
   },
@@ -119,7 +130,6 @@ export const articlesApi = {
 
     return apiClient<{ url: string }>("/admin/artikel/upload", {
       method: "POST",
-      // Let fetch set the boundary header for FormData automatically
       headers: {},
       body: formData,
     });
