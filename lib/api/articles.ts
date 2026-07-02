@@ -51,7 +51,7 @@ function normaliseArticle(art: any): Article {
     content: art.content ?? "",
     thumbnailUrl: art.thumbnailUrl ?? art.imageUrl ?? art.thumbnail_url ?? "",
     category: art.category ?? art.kategori ?? "Umum",
-    status: art.published === true ? "Published" : art.published === false ? "Draft" : (art.status || "Draft"),
+    status: art.publishedAt ? "Published" : "Draft",
     createdAt: art.createdAt ?? art.tanggal ?? art.created_at ?? new Date().toISOString(),
     views: typeof art.views === "number" ? art.views : 0,
     tags: art.tags ?? [],
