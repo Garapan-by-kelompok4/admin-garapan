@@ -198,7 +198,7 @@ export default function DisputesPage() {
       payload: {
         outcome,
         resolutionNote,
-        refundAmount: outcome === "PARTIAL_REFUND" ? Number(refundAmount) : undefined,
+        refundAmount: outcome === "PARTIAL_REFUND" ? String(refundAmount) : undefined,
       }
     });
   };
