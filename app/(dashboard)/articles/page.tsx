@@ -232,7 +232,7 @@ export default function ArticlesPage() {
         title,
         content,
       };
-      if (finalThumbnailUrl) body.imageUrl = finalThumbnailUrl;
+      if (finalThumbnailUrl) body.thumbnailUrl = finalThumbnailUrl;
 
       if (editingArticleId) {
         return articlesApi.update(editingArticleId, body as any);

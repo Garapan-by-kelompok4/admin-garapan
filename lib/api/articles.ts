@@ -128,10 +128,11 @@ export const articlesApi = {
     const formData = new FormData();
     formData.append("image", file);
 
-    return apiClient<{ url: string }>("/admin/artikel/upload", {
+    const raw = await apiClient<any>("/admin/artikel/upload", {
       method: "POST",
       headers: {},
       body: formData,
     });
+    return { url: raw.imageUrl };
   },
 };
