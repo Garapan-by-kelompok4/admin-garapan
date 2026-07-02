@@ -40,37 +40,60 @@ export interface ListOrdersResponse {
   limit: number;
 }
 
-/** Normalise an order/transaction item — maps possible backend field names */
-function normaliseOrder(raw: any): OrderTransaction {
-  return {
-    ...raw,
-    // Map alternative field names for client/student names
-    clientName: raw.clientName || raw.client?.name || raw.buyerName || raw.klienName || "-",
-    clientId: raw.clientId || raw.client?.id || raw.buyerId || raw.klienId || "-",
-    studentName: raw.studentName || raw.student?.name || raw.sellerName || raw.mahasiswaName || raw.freelancerName || "-",
-    studentId: raw.studentId || raw.student?.id || raw.sellerId || raw.mahasiswaId || raw.freelancerId || "-",
-    serviceTitle: raw.serviceTitle || raw.service?.title || raw.title || raw.jasaTitle || "-",
-    // Map alternative field names for amount
-    amount: raw.amount ?? raw.totalAmount ?? raw.price ?? raw.total ?? raw.value ?? 0,
-    // Map alternative field names for escrow status
-    escrowStatus: raw.escrowStatus || raw.status || "Ditahan",
-    createdAt: raw.createdAt || raw.date || raw.createdDate || new Date().toISOString(),
-  } as OrderTransaction;
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
-function normaliseListResponse(raw: any, page = 1, limit = 10): ListOrdersResponse {
+function mapEscrowStatus(status: string): EscrowStatus {
+  if (status === "COMPLETED") return "Dicairkan";
+  if (status === "DISPUTED" || status === "CANCELLED") return "Refund";
+  return "Ditahan";
+}
+
+function normaliseOrder(raw: unknown): OrderTransaction {
+  const r = asRecord(raw);
+  const klien = asRecord(r.klien);
+  const klienUser = asRecord(klien.user);
+  const mahasiswa = asRecord(r.mahasiswa);
+  const mahasiswaUser = asRecord(mahasiswa.user);
+  const jasa = asRecord(r.jasa);
+  const project = asRecord(r.project);
+
+  return {
+    id: String(r.id ?? ""),
+    clientName: String(
+      klien.companyName ?? klienUser.fullName ?? klienUser.displayName ??
+      r.clientName ?? r.buyerName ?? r.klienName ?? "-"
+    ),
+    clientId: String(klien.id ?? r.clientId ?? r.buyerId ?? r.klienId ?? "-"),
+    studentName: String(
+      mahasiswaUser.fullName ?? mahasiswaUser.displayName ??
+      r.studentName ?? r.sellerName ?? r.mahasiswaName ?? r.freelancerName ?? "-"
+    ),
+    studentId: String(mahasiswa.id ?? r.studentId ?? r.sellerId ?? r.mahasiswaId ?? r.freelancerId ?? "-"),
+    serviceTitle: String(jasa.title ?? project.title ?? r.serviceTitle ?? r.title ?? r.jasaTitle ?? "-"),
+    amount: Number(r.totalPrice ?? r.amount ?? r.totalAmount ?? r.price ?? r.total ?? r.value ?? 0),
+    escrowStatus: (r.escrowStatus || mapEscrowStatus(String(r.status ?? ""))) as EscrowStatus,
+    createdAt: String(r.createdAt ?? r.date ?? r.createdDate ?? new Date().toISOString()),
+  };
+}
+
+function normaliseListResponse(raw: unknown, page = 1, limit = 10): ListOrdersResponse {
   if (!raw) return { data: [], total: 0, page, limit };
 
-  let items: any[] = [];
-  if (Array.isArray(raw.data)) items = raw.data;
-  else if (Array.isArray(raw.items)) items = raw.items;
+  const r = asRecord(raw);
+  let items: unknown[] = [];
+  if (Array.isArray(r.data)) items = r.data;
+  else if (Array.isArray(r.items)) items = r.items;
   else if (Array.isArray(raw)) items = raw;
 
   return {
     data: items.map(normaliseOrder),
-    total: raw.total ?? raw.count ?? items.length,
-    page: raw.page ?? page,
-    limit: raw.limit ?? limit,
+    total: Number(r.total ?? r.count ?? items.length),
+    page: Number(r.page ?? page),
+    limit: Number(r.limit ?? limit),
   };
 }
 
@@ -84,12 +107,12 @@ export const ordersApi = {
 
     const queryString = query.toString();
     const path = `/admin/orders${queryString ? `?${queryString}` : ""}`;
-    const raw = await apiClient<any>(path);
+    const raw = await apiClient<unknown>(path);
     return normaliseListResponse(raw, params.page, params.limit);
   },
 
   getById: async (id: string): Promise<OrderDetail> => {
-    const raw = await apiClient<any>(`/admin/orders/${id}`);
+    const raw = await apiClient<unknown>(`/admin/orders/${id}`);
     return normaliseOrder(raw) as OrderDetail;
   },
 };
