@@ -43,16 +43,20 @@ export async function apiClient<T>(
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const detail = typeof error.message === "string"
-      ? error.message
-      : Array.isArray(error.message)
-        ? error.message.join("; ")
-        : JSON.stringify(error);
+    const text = await response.text().catch(() => "");
+    let detail = "";
+    try {
+      const error = JSON.parse(text);
+      detail = typeof error.message === "string"
+        ? error.message
+        : Array.isArray(error.message)
+          ? error.message.join("; ")
+          : "";
+    } catch {
+      detail = text.slice(0, 500);
+    }
     throw new Error(
-      detail.length > 0 && detail !== "{}"
-        ? detail
-        : `Request failed with status ${response.status}`,
+      detail.length > 0 ? detail : `Request failed with status ${response.status}`,
     );
   }
 
