@@ -13,10 +13,6 @@ const STRIPPED_REQUEST_HEADERS = new Set([
   "content-length",
 ]);
 
-// Bodyless methods must not carry content-type upstream —
-// NestJS body-parser will try to deserialise the (absent) body and return 500.
-const BODYLESS_METHODS = new Set(["GET", "HEAD", "DELETE", "OPTIONS"]);
-
 /**
  * Authenticated passthrough to NestJS. The client calls `/api/proxy/<path>`
  * with `credentials: 'include'`; we attach `Authorization: Bearer <access>` from
@@ -38,34 +34,23 @@ async function handle(request: NextRequest, context: RouteContext) {
     .join("/")}${request.nextUrl.search}`;
 
   const headers = new Headers();
-  const isBodyless = BODYLESS_METHODS.has(request.method);
   request.headers.forEach((value, key) => {
-    const k = key.toLowerCase();
-    if (STRIPPED_REQUEST_HEADERS.has(k)) return;
-    if (isBodyless && k === "content-type") return;
-    headers.set(key, value);
+    if (!STRIPPED_REQUEST_HEADERS.has(key.toLowerCase())) {
+      headers.set(key, value);
+    }
   });
   headers.set("Authorization", `Bearer ${accessToken}`);
 
   const hasBody = ["POST", "PUT", "PATCH"].includes(request.method);
   const bodyBuffer = hasBody ? await request.arrayBuffer() : undefined;
 
-  let upstream: Response;
-  try {
-    upstream = await fetch(target, {
-      method: request.method,
-      headers,
-      body: bodyBuffer,
-      redirect: "manual",
-      cache: "no-store",
-    });
-  } catch (err) {
-    console.error("Proxy fetch failed:", err);
-    return NextResponse.json(
-      { message: "Gagal menghubungi server backend" },
-      { status: 502 },
-    );
-  }
+  const upstream = await fetch(target, {
+    method: request.method,
+    headers,
+    body: bodyBuffer,
+    redirect: "manual",
+    cache: "no-store",
+  });
 
   const responseHeaders = new Headers();
   const contentType = upstream.headers.get("content-type");
