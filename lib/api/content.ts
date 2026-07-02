@@ -38,60 +38,57 @@ export interface ListContentResponse {
   limit: number;
 }
 
-/** Normalise any list response shape into {data, total, page, limit} */
-function normaliseListResponse<T>(raw: any, page = 1, limit = 10): { data: T[]; total: number; page: number; limit: number } {
-  if (!raw) return { data: [], total: 0, page, limit };
+type UnknownRecord = Record<string, unknown>;
 
-  // Already correct shape
-  if (Array.isArray(raw.data)) {
-    return {
-      data: raw.data as T[],
-      total: raw.total ?? raw.count ?? raw.data.length,
-      page: raw.page ?? page,
-      limit: raw.limit ?? limit,
-    };
-  }
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === "object" ? (value as UnknownRecord) : {};
+}
 
-  // Backend uses `items` key
-  if (Array.isArray(raw.items)) {
-    return {
-      data: raw.items as T[],
-      total: raw.total ?? raw.count ?? raw.items.length,
-      page: raw.page ?? page,
-      limit: raw.limit ?? limit,
-    };
-  }
+function normaliseFlaggedItem(raw: UnknownRecord, type: "jasa" | "project"): FlaggedContent {
+  const owner = type === "jasa"
+    ? asRecord(asRecord(raw.mahasiswa).user)
+    : asRecord(asRecord(raw.klien).user);
 
-  // Backend returns plain array
-  if (Array.isArray(raw)) {
-    return { data: raw as T[], total: raw.length, page, limit };
-  }
-
-  return { data: [], total: 0, page, limit };
+  return {
+    id: String(raw.id ?? ""),
+    title: String(raw.title ?? ""),
+    description: "",
+    category: "",
+    reportCount: 0,
+    status: "Ditinjau",
+    createdAt: new Date().toISOString(),
+    owner: {
+      id: String(owner.id ?? ""),
+      fullName: String(owner.fullName ?? owner.displayName ?? ""),
+      email: String(owner.email ?? ""),
+      avatarUrl: String(owner.avatarUrl ?? ""),
+    },
+  };
 }
 
 export const contentApi = {
-  list: async (params: ListContentParams = {}): Promise<ListContentResponse> => {
-    const query = new URLSearchParams();
-    if (params.page) query.set("page", String(params.page));
-    if (params.limit) query.set("limit", String(params.limit));
-    if (params.status) query.set("status", params.status);
-    if (params.search) query.set("search", params.search);
+  list: async (_params: ListContentParams = {}): Promise<ListContentResponse> => {
+    const raw = await apiClient<unknown>("/admin/content");
+    const record = asRecord(raw);
 
-    const queryString = query.toString();
-    const path = `/admin/content${queryString ? `?${queryString}` : ""}`;
-    const raw = await apiClient<any>(path);
-    return normaliseListResponse<FlaggedContent>(raw, params.page, params.limit);
+    const jasaItems = (record.jasa ?? []) as UnknownRecord[];
+    const projectItems = (record.projects ?? []) as UnknownRecord[];
+
+    const data: FlaggedContent[] = [
+      ...jasaItems.map((item) => normaliseFlaggedItem(item, "jasa")),
+      ...projectItems.map((item) => normaliseFlaggedItem(item, "project")),
+    ];
+
+    return {
+      data,
+      total: data.length,
+      page: _params.page ?? 1,
+      limit: _params.limit ?? data.length,
+    };
   },
 
   remove: async (id: string): Promise<void> => {
     return apiClient<void>(`/admin/content/${id}/remove`, {
-      method: "PATCH",
-    });
-  },
-
-  markSafe: async (id: string): Promise<void> => {
-    return apiClient<void>(`/admin/content/${id}/safe`, {
       method: "PATCH",
     });
   },

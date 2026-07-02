@@ -16,7 +16,6 @@ import {
   FileText,
   Calendar,
   User,
-  ShieldCheck,
   Tag
 } from "lucide-react";
 import {
@@ -78,19 +77,6 @@ export default function ModerationPage() {
     },
     onError: (err: any) => {
       toast.error(err.message || "Gagal menghapus jasa");
-    }
-  });
-
-  // Mutation to Mark Safe (Tandai Aman)
-  const markSafeMutation = useMutation({
-    mutationFn: (id: string) => contentApi.markSafe(id),
-    onSuccess: () => {
-      toast.success("Konten ditandai aman");
-      queryClient.invalidateQueries({ queryKey: ["content"] });
-      setSelectedContentId(null);
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Gagal memperbarui status konten");
     }
   });
 
@@ -234,7 +220,7 @@ export default function ModerationPage() {
         {[
           { label: "Perlu Ditinjau", val: pendingItems, icon: AlertTriangle, color: "text-warn-500 bg-warn-50 border-warn-100" },
           { label: "Total Flagged", val: totalItems, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" },
-          { label: "Ditandai Aman", val: data?.data?.filter((c) => c.status === "Aman").length ?? 0, icon: ShieldCheck, color: "text-success-500 bg-success-50 border-success-100" },
+          { label: "Ditandai Aman", val: data?.data?.filter((c) => c.status === "Aman").length ?? 0, icon: CheckCircle, color: "text-success-500 bg-success-50 border-success-100" },
           { label: "Dihapus / Sembunyi", val: data?.data?.filter((c) => c.status === "Dihapus" || c.status === "Disembunyikan").length ?? 0, icon: Trash2, color: "text-danger-500 bg-danger-50 border-danger-100" }
         ].map((item, idx) => (
           <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
@@ -444,14 +430,6 @@ export default function ModerationPage() {
                     className="px-4 py-2 text-sm font-semibold bg-danger-500 hover:bg-danger-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
                   >
                     <Trash2 className="h-4 w-4" /> Hapus Jasa
-                  </button>
-                  <button
-                    onClick={() => {
-                      markSafeMutation.mutate(contentDetail.id);
-                    }}
-                    className="px-4 py-2 text-sm font-semibold bg-success-500 hover:bg-success-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
-                  >
-                    <ShieldCheck className="h-4 w-4" /> Tandai Aman
                   </button>
                 </div>
               </div>
