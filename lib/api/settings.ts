@@ -83,17 +83,23 @@ export const settingsApi = {
   },
 
   updateProfile: async (payload: Partial<AdminProfile>): Promise<AdminProfile> => {
+    const body: Record<string, unknown> = {};
+    if (payload.fullName !== undefined) body.displayName = payload.fullName;
+
     const raw = await apiClient<unknown>("/admin/me", {
       method: "PATCH",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
     return normaliseProfile(raw);
   },
 
   changePassword: async (payload: { oldPassword: string; newPassword: string }): Promise<void> => {
-    return apiClient<void>("/admin/me/password", {
-      method: "PATCH",
-      body: JSON.stringify(payload),
+    return apiClient<void>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({
+        currentPassword: payload.oldPassword,
+        newPassword: payload.newPassword,
+      }),
     });
   },
 
