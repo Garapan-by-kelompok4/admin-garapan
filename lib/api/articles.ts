@@ -105,7 +105,7 @@ export const articlesApi = {
     if (payload.content) body.content = payload.content;
     if (payload.thumbnailUrl) body.imageUrl = payload.thumbnailUrl;
 
-    const res = await apiClient<any>(`/admin/artikel/${id}`, {
+    const res = await apiClient<any>(`/artikel/${id}`, {
       method: "PATCH",
       body: JSON.stringify(body),
     });

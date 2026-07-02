@@ -227,21 +227,26 @@ export default function ArticlesPage() {
         }
       }
 
-      const payload: CreateArticlePayload = {
+      // Build minimal payload matching backend DTO (title, content, imageUrl)
+      const body: Record<string, unknown> = {
         title,
         content,
-        category,
-        tags,
-        seoDescription,
-        thumbnailUrl: finalThumbnailUrl || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800", // fallback default
-        status: publishStatus
       };
+      if (finalThumbnailUrl) body.imageUrl = finalThumbnailUrl;
 
       if (editingArticleId) {
-        return articlesApi.update(editingArticleId, payload);
-      } else {
-        return articlesApi.create(payload);
+        return articlesApi.update(editingArticleId, body as any);
       }
+
+      // Create the article first (always draft)
+      const created = await articlesApi.create(body as any);
+
+      // If user clicked "Publikasikan", publish after create
+      if (publishStatus === "Published") {
+        await articlesApi.publish(created.id);
+      }
+
+      return created;
     },
     onSuccess: (savedArticle) => {
       toast.success(
