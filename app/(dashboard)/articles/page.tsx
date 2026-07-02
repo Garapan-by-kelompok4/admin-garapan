@@ -222,6 +222,7 @@ export default function ArticlesPage() {
           finalThumbnailUrl = uploadRes.url;
         } catch (err) {
           toast.error("Gagal mengunggah gambar thumbnail. Menggunakan gambar default.");
+          finalThumbnailUrl = "";
         } finally {
           setIsUploading(false);
         }
