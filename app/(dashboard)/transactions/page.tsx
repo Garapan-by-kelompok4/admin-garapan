@@ -40,10 +40,15 @@ export default function TransactionsPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["transactions", page, search, statusFilter],
     queryFn: async () => {
+      let apiStatus: string | undefined = undefined;
+      if (statusFilter === "Ditahan") apiStatus = "PAID";
+      else if (statusFilter === "Dicairkan") apiStatus = "COMPLETED";
+      else if (statusFilter === "Refund") apiStatus = "CANCELLED";
+
       const res = await ordersApi.list({
         page,
         limit,
-        status: statusFilter === "Semua" ? undefined : statusFilter,
+        status: apiStatus,
         search: search || undefined
       });
       return res;

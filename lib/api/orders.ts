@@ -69,7 +69,7 @@ function normaliseOrder(raw: unknown): OrderTransaction {
     ),
     clientId: String(klien.id ?? r.clientId ?? r.buyerId ?? r.klienId ?? "-"),
     studentName: String(
-      mahasiswaUser.fullName ?? mahasiswaUser.displayName ??
+      mahasiswaUser.fullName ?? mahasiswaUser.displayName ?? mahasiswaUser.email ??
       r.studentName ?? r.sellerName ?? r.mahasiswaName ?? r.freelancerName ?? "-"
     ),
     studentId: String(mahasiswa.id ?? r.studentId ?? r.sellerId ?? r.mahasiswaId ?? r.freelancerId ?? "-"),
