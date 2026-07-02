@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { settingsApi, AdminProfile, SkillItem } from "@/lib/api/settings";
+import { settingsApi, AdminProfile, SkillItem, KategoriItem } from "@/lib/api/settings";
 import { dashboardApi, ActivityItem } from "@/lib/api/dashboard";
 import { avatarClass, initials } from "@/lib/avatar";
 import { 
@@ -48,7 +48,7 @@ export default function SettingsPage() {
   // --- TAB 4: MASTER DATA STATE ---
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
   const [newSkillName, setNewSkillName] = useState("");
-  const [newSkillCategory, setNewSkillCategory] = useState("Web Dev");
+  const [newSkillCategoryId, setNewSkillCategoryId] = useState<string | undefined>(undefined);
 
   // 1. Fetch current profile
   const { data: profile, isLoading: isLoadingProfile } = useQuery<AdminProfile, Error>({
@@ -69,6 +69,12 @@ export default function SettingsPage() {
   const { data: skills = [], isLoading: isLoadingSkills } = useQuery<SkillItem[]>({
     queryKey: ["masterSkills"],
     queryFn: () => settingsApi.listSkills(),
+    enabled: activeTab === "master",
+  });
+
+  const { data: kategoriList = [] } = useQuery<KategoriItem[]>({
+    queryKey: ["masterKategori"],
+    queryFn: () => settingsApi.listKategori(),
     enabled: activeTab === "master",
   });
 
@@ -108,12 +114,13 @@ export default function SettingsPage() {
 
   // Add Skill Mutation
   const addSkillMutation = useMutation({
-    mutationFn: (payload: { name: string; category: string }) =>
+    mutationFn: (payload: { name: string; kategoriId?: string }) =>
       settingsApi.createSkill(payload),
     onSuccess: () => {
       toast.success("Kompetensi master berhasil ditambahkan");
       queryClient.invalidateQueries({ queryKey: ["masterSkills"] });
       setNewSkillName("");
+      setNewSkillCategoryId(undefined);
       setIsAddSkillOpen(false);
     },
     onError: (err: any) => {
@@ -158,7 +165,7 @@ export default function SettingsPage() {
       toast.error("Nama kompetensi wajib diisi");
       return;
     }
-    addSkillMutation.mutate({ name: newSkillName.trim(), category: newSkillCategory });
+    addSkillMutation.mutate({ name: newSkillName.trim(), kategoriId: newSkillCategoryId });
   };
 
   const formatDate = (dateStr: string) => {
@@ -543,7 +550,13 @@ export default function SettingsPage() {
             )}
 
             {/* Modal Tambah Kompetensi */}
-            <Dialog open={isAddSkillOpen} onOpenChange={(open) => !open && setIsAddSkillOpen(false)}>
+            <Dialog open={isAddSkillOpen} onOpenChange={(open) => {
+              if (!open) {
+                setIsAddSkillOpen(false);
+                setNewSkillName("");
+                setNewSkillCategoryId(undefined);
+              }
+            }}>
               <DialogContent className="max-w-[400px] rounded-xl p-5 border-border bg-white shadow-sh-3">
                 <DialogHeader className="border-b border-border pb-3">
                   <DialogTitle className="font-heading font-bold text-base text-ink-900">
@@ -565,15 +578,14 @@ export default function SettingsPage() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-ink-700">Kategori Jasa</label>
                     <select
-                      value={newSkillCategory}
-                      onChange={(e) => setNewSkillCategory(e.target.value)}
+                      value={newSkillCategoryId || ""}
+                      onChange={(e) => setNewSkillCategoryId(e.target.value || undefined)}
                       className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-xs font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
                     >
-                      <option value="Web Dev">Web Dev</option>
-                      <option value="Mobile">Mobile</option>
-                      <option value="UI/UX">UI/UX</option>
-                      <option value="Digital Mkt">Digital Mkt</option>
-                      <option value="Lainnya">Lainnya</option>
+                      <option value="">Pilih Kategori (opsional)</option>
+                      {kategoriList.map((kat) => (
+                        <option key={kat.id} value={kat.id}>{kat.name}</option>
+                      ))}
                     </select>
                   </div>
 

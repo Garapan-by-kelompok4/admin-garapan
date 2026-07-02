@@ -41,7 +41,7 @@ async function handle(request: NextRequest, context: RouteContext) {
   });
   headers.set("Authorization", `Bearer ${accessToken}`);
 
-  const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  const hasBody = ["POST", "PUT", "PATCH"].includes(request.method);
   const bodyBuffer = hasBody ? await request.arrayBuffer() : undefined;
 
   const upstream = await fetch(target, {
@@ -65,17 +65,6 @@ async function handle(request: NextRequest, context: RouteContext) {
 
   const responseBody = await upstream.arrayBuffer();
 
-  if (target.includes("live-chat-admin") && !target.includes("read")) {
-    try {
-      const decoded = new TextDecoder().decode(responseBody);
-      // Write to a temporary file in the sandbox workspace
-      const fs = require('fs');
-      fs.writeFileSync('C:\\Users\\Andika Rafa Akbar\\.gemini\\antigravity\\worktrees\\admin-garapan\\rising-crater-dips-01h52\\diagnostic_payload.json', decoded, 'utf8');
-    } catch (e) {
-      // Ignore write errors
-    }
-  }
-  
   return new NextResponse(responseBody, {
     status: upstream.status,
     headers: responseHeaders,

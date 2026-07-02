@@ -7,6 +7,12 @@ export interface SkillItem {
   createdAt: string;
 }
 
+export interface KategoriItem {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 export interface AdminProfile {
   id: string;
   fullName: string;
@@ -55,10 +61,16 @@ function normaliseSkills(raw: unknown): SkillItem[] {
     : (Array.isArray(record.data) ? record.data : (Array.isArray(record.items) ? record.items : (Array.isArray(data.items) ? data.items : [])));
   return items.map((item, index: number) => {
     const s = asRecord(item);
+    const kategoriObj = asRecord(s.kategori);
     return {
       id: String(s.id || s._id || `skill-${index}`),
       name: valueToText(s.name || s.skillName || s.title, ""),
-      category: valueToText(s.category || s.kategori || s.type, ""),
+      category: valueToText(
+        Object.keys(kategoriObj).length > 0
+          ? kategoriObj.name
+          : s.category || s.kategori || s.type,
+        ""
+      ),
       createdAt: valueToText(s.createdAt || s.created_at, new Date().toISOString()),
     };
   });
@@ -85,21 +97,40 @@ export const settingsApi = {
     });
   },
 
+  listKategori: async (): Promise<KategoriItem[]> => {
+    const raw = await apiClient<unknown>("/admin/kategori");
+    if (Array.isArray(raw)) return raw as KategoriItem[];
+    const record = asRecord(raw);
+    const items = record.data;
+    if (Array.isArray(items)) return items as KategoriItem[];
+    return [];
+  },
+
   listSkills: async (): Promise<SkillItem[]> => {
     const raw = await apiClient<unknown>("/admin/skills");
     return normaliseSkills(raw);
   },
 
-  createSkill: async (payload: { name: string; category: string }): Promise<SkillItem> => {
+  createSkill: async (payload: { name: string; kategoriId?: string }): Promise<SkillItem> => {
     const raw = await apiClient<unknown>("/admin/skills", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        name: payload.name,
+        kategoriId: payload.kategoriId || undefined,
+      }),
     });
-    const item = asRecord(asRecord(raw).data ?? raw);
+    // Backend NestJS returns the skill object directly: { id, name, kategoriId, kategori }
+    const item = asRecord(raw);
+    const kategoriObj = asRecord(item.kategori);
     return {
-      id: String(item.id || item._id || `skill-${Date.now()}`),
+      id: String(item.id || ""),
       name: valueToText(item.name, payload.name),
-      category: valueToText(item.category || item.kategori, payload.category),
+      category: valueToText(
+        Object.keys(kategoriObj).length > 0
+          ? kategoriObj.name
+          : item.category || item.kategori,
+        ""
+      ),
       createdAt: valueToText(item.createdAt, new Date().toISOString()),
     };
   },
