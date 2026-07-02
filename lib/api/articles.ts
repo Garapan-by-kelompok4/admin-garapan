@@ -65,7 +65,7 @@ export const articlesApi = {
     if (params.page) query.set("page", String(params.page));
     if (params.limit) query.set("limit", String(params.limit));
     if (params.search) query.set("search", params.search);
-    if (params.status) query.set("status", params.status);
+    if (params.status) query.set("status", params.status.toLowerCase());
     if (params.category) query.set("category", params.category);
 
     const queryString = query.toString();
@@ -128,11 +128,22 @@ export const articlesApi = {
     const formData = new FormData();
     formData.append("image", file);
 
-    const raw = await apiClient<any>("/admin/artikel/upload", {
+    const response = await fetch("/api/proxy/admin/artikel/upload", {
       method: "POST",
-      headers: {},
+      credentials: "include",
       body: formData,
     });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(
+        typeof error.message === "string"
+          ? error.message
+          : `Upload failed with status ${response.status}`,
+      );
+    }
+
+    const raw = await response.json();
     return { url: raw.imageUrl };
   },
 };
