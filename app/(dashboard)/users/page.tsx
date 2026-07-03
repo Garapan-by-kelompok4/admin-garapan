@@ -19,6 +19,8 @@ import {
   Mail,
   Phone,
   Building,
+  GraduationCap,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Dialog,
@@ -394,46 +396,47 @@ export default function UsersPage() {
           ) : userDetail ? (
             <div className="flex flex-col h-full max-h-[85vh]">
               {/* Modal Header */}
-              <div className="p-6 border-b border-border bg-surface-2/40 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border-2 border-white shadow-sm ${avatarClass(userDetail.fullName)}`}
-                  >
-                    {initials(userDetail.fullName)}
-                  </div>
-                  <div>
-                    <h2 className="font-heading font-bold text-lg text-ink-900 tracking-tight leading-tight">
-                      {userDetail.fullName || "User"}
-                    </h2>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span className="text-xs text-ink-400 font-medium flex items-center gap-1">
-                        <Mail className="h-3 w-3" /> {userDetail.email}
-                      </span>
-                      <span className="text-ink-200">•</span>
-                      <span className="text-xs text-ink-400 font-medium select-none">
-                        {userDetail.role === "MAHASISWA"
-                          ? "Mahasiswa"
-                          : "Klien"}
-                      </span>
+              <div className="px-5 py-4 border-b border-border bg-surface-2/50">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div
+                      className={`h-12 w-12 rounded-full flex items-center justify-center text-white text-base font-bold border-2 border-white shadow-sm flex-shrink-0 ${avatarClass(userDetail.fullName)}`}
+                    >
+                      {initials(userDetail.fullName)}
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="font-heading font-bold text-[15px] text-ink-900 tracking-tight leading-tight truncate">
+                        {userDetail.fullName || "User"}
+                      </h2>
+                      <div className="flex items-center gap-1.5 mt-1 text-[11px] text-ink-400 font-medium">
+                        <Mail className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{userDetail.email}</span>
+                        <span>•</span>
+                        <span className="select-none">
+                          {userDetail.role === "MAHASISWA"
+                            ? "Mahasiswa"
+                            : "Klien"}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <div className="flex-shrink-0">{renderStatusPill(userDetail)}</div>
                 </div>
-                <div>{renderStatusPill(userDetail)}</div>
               </div>
 
               {/* Modal Body */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Info Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-4">
-                    <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-2.5">
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
                       Informasi Profil
                     </h3>
-                    <div className="rounded-lg border border-border bg-white p-4 space-y-3">
+                    <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 space-y-3">
                       {userDetail.role === "MAHASISWA" && (
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-ink-400 font-medium">
-                            Universitas
+                          <span className="text-ink-400 font-medium flex items-center gap-1.5">
+                            <GraduationCap className="h-3.5 w-3.5" /> Universitas
                           </span>
                           <span className="font-semibold text-ink-900 text-right">
                             {userDetail.university || "-"}
@@ -443,8 +446,7 @@ export default function UsersPage() {
                       {userDetail.role === "KLIEN" && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-ink-400 font-medium flex items-center gap-1.5">
-                            <Building className="h-4 w-4 text-ink-400" />{" "}
-                            Perusahaan
+                            <Building className="h-3.5 w-3.5" /> Perusahaan
                           </span>
                           <span className="font-semibold text-ink-900">
                             {userDetail.company || "-"}
@@ -453,7 +455,7 @@ export default function UsersPage() {
                       )}
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-ink-400 font-medium flex items-center gap-1.5">
-                          <Phone className="h-4 w-4 text-ink-400" /> No. Telepon
+                          <Phone className="h-3.5 w-3.5" /> No. Telepon
                         </span>
                         <span className="font-semibold text-ink-900">
                           {userDetail.phone || "-"}
@@ -461,8 +463,7 @@ export default function UsersPage() {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-ink-400 font-medium flex items-center gap-1.5">
-                          <Calendar className="h-4 w-4 text-ink-400" /> Tanggal
-                          Daftar
+                          <Calendar className="h-3.5 w-3.5" /> Tanggal Daftar
                         </span>
                         <span className="font-semibold text-ink-900">
                           {formatDate(userDetail.createdAt)}
@@ -471,24 +472,22 @@ export default function UsersPage() {
                       {userDetail.role === "MAHASISWA" && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-ink-400 font-medium flex items-center gap-1.5">
-                            <Star className="h-4 w-4 text-ink-400" /> Rating
-                            Platform
+                            <Star className="h-3.5 w-3.5" /> Rating
                           </span>
                           <span className="font-semibold text-ink-900 flex items-center gap-1">
-                            <Star className="h-3.5 w-3.5 fill-amber-400 stroke-amber-500 text-amber-500" />
-                            {(userDetail.rating || 0).toFixed(1)} (
-                            {userDetail.jobs || 0})
+                            <Star className="h-3 w-3 fill-amber-400 stroke-amber-500 text-amber-500" />
+                            {(userDetail.rating || 0).toFixed(1)} ({userDetail.jobs || 0})
                           </span>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider">
+                  <div className="space-y-2.5">
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
                       Bio Singkat
                     </h3>
-                    <div className="rounded-lg border border-border bg-white p-4 h-[138px] overflow-y-auto">
+                    <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 h-[140px] overflow-y-auto">
                       <p className="text-sm text-ink-700 leading-relaxed font-medium">
                         {userDetail.bio ||
                           "Tidak ada biodata diri yang dicantumkan."}
@@ -498,84 +497,83 @@ export default function UsersPage() {
                 </div>
 
                 {/* Riwayat Transaksi */}
-                <div className="space-y-3">
-                  <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <TrendingUp className="h-4 w-4 text-ink-400" /> Riwayat
-                    Transaksi Terbaru
+                <div className="space-y-2.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
+                    <TrendingUp className="h-3.5 w-3.5" /> Riwayat Transaksi Terbaru
                   </h3>
-                  <div className="rounded-lg border border-border bg-surface-2 divide-y divide-border overflow-hidden">
-                    {userDetail.orderHistory &&
-                    userDetail.orderHistory.length > 0 ? (
-                      userDetail.orderHistory.map((order) => (
-                        <div
-                          key={order.id}
-                          className="p-3 bg-white flex justify-between items-center hover:bg-surface-2 transition-all"
-                        >
-                          <div>
-                            <div className="text-sm font-semibold text-ink-900">
-                              {order.title}
+                  <div className="rounded-lg border border-border bg-white shadow-sh-1 overflow-hidden">
+                    {userDetail.orderHistory && userDetail.orderHistory.length > 0 ? (
+                      <div className="divide-y divide-border">
+                        {userDetail.orderHistory.map((order) => (
+                          <div
+                            key={order.id}
+                            className="px-4 py-3 flex justify-between items-center hover:bg-surface-2/40 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-ink-900 truncate">
+                                {order.title}
+                              </div>
+                              <div className="text-[11px] text-ink-400 mt-0.5 font-medium flex gap-2">
+                                <span className="font-mono">{order.id.slice(0, 8)}…</span>
+                                <span>•</span>
+                                <span>{formatDate(order.date)}</span>
+                              </div>
                             </div>
-                            <div className="text-[11px] text-ink-400 mt-1 font-medium flex gap-2">
-                              <span>ID: {order.id}</span>
-                              <span>•</span>
-                              <span>{formatDate(order.date)}</span>
+                            <div className="text-right flex items-center gap-3 flex-shrink-0 ml-3">
+                              <span className="text-sm font-bold text-ink-900">
+                                {formatCurrency(order.amount)}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full select-none ${
+                                  order.status === "Selesai" || order.status === "COMPLETED"
+                                    ? "bg-success-50 text-success-700"
+                                    : order.status === "Dibatalkan" || order.status === "CANCELLED"
+                                      ? "bg-danger-50 text-danger-700"
+                                      : "bg-warn-50 text-warn-700"
+                                }`}
+                              >
+                                {order.status}
+                              </span>
                             </div>
                           </div>
-                          <div className="text-right flex items-center gap-3">
-                            <span className="text-sm font-bold text-ink-900">
-                              {formatCurrency(order.amount)}
-                            </span>
-                            <span
-                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full select-none ${
-                                order.status === "Selesai" ||
-                                order.status === "COMPLETED"
-                                  ? "bg-success-50 text-success-700"
-                                  : order.status === "Dibatalkan" ||
-                                      order.status === "CANCELLED"
-                                    ? "bg-danger-50 text-danger-700"
-                                    : "bg-warn-50 text-warn-700"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     ) : (
-                      <div className="p-6 text-center text-xs text-ink-400 font-medium bg-white">
-                        Belum ada riwayat transaksi.
+                      <div className="text-center py-8">
+                        <TrendingUp className="h-8 w-8 text-ink-300 mx-auto mb-2" />
+                        <p className="text-xs text-ink-400 font-medium">
+                          Belum ada riwayat transaksi.
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Riwayat Laporan */}
-                <div className="space-y-3">
-                  <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <AlertTriangle className="h-4 w-4 text-ink-400" /> Riwayat
-                    Laporan
+                <div className="space-y-2.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Riwayat Laporan
                   </h3>
-                  <div className="rounded-lg border border-border bg-surface-2 divide-y divide-border overflow-hidden">
-                    {userDetail.reportHistory &&
-                    userDetail.reportHistory.length > 0 ? (
-                      userDetail.reportHistory.map((rep) => (
-                        <div
-                          key={rep.id}
-                          className="p-3 bg-white flex justify-between items-center hover:bg-surface-2 transition-all"
-                        >
-                          <div>
-                            <div className="text-sm font-semibold text-ink-900">
-                              {rep.type}
+                  <div className="rounded-lg border border-border bg-white shadow-sh-1 overflow-hidden">
+                    {userDetail.reportHistory && userDetail.reportHistory.length > 0 ? (
+                      <div className="divide-y divide-border">
+                        {userDetail.reportHistory.map((rep) => (
+                          <div
+                            key={rep.id}
+                            className="px-4 py-3 flex justify-between items-center hover:bg-surface-2/40 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-ink-900 truncate">
+                                {rep.type}
+                              </div>
+                              <div className="text-[11px] text-ink-400 mt-0.5 font-medium flex gap-2">
+                                <span className="font-mono">{rep.id.slice(0, 8)}…</span>
+                                <span>•</span>
+                                <span>{formatDate(rep.date)}</span>
+                              </div>
                             </div>
-                            <div className="text-[11px] text-ink-400 mt-1 font-medium flex gap-2">
-                              <span>ID: {rep.id}</span>
-                              <span>•</span>
-                              <span>{formatDate(rep.date)}</span>
-                            </div>
-                          </div>
-                          <div>
                             <span
-                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full select-none ${
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full select-none flex-shrink-0 ml-3 ${
                                 rep.status === "Selesai"
                                   ? "bg-success-50 text-success-700"
                                   : rep.status === "Ditolak"
@@ -586,11 +584,14 @@ export default function UsersPage() {
                               {rep.status}
                             </span>
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     ) : (
-                      <div className="p-6 text-center text-xs text-ink-400 font-medium bg-white">
-                        Bersih, tidak ada laporan yang ditujukan pada user ini.
+                      <div className="text-center py-8">
+                        <ShieldCheck className="h-8 w-8 text-ink-300 mx-auto mb-2" />
+                        <p className="text-xs text-ink-400 font-medium">
+                          Bersih, tidak ada laporan yang ditujukan pada user ini.
+                        </p>
                       </div>
                     )}
                   </div>
@@ -598,12 +599,12 @@ export default function UsersPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 border-t border-border bg-surface-2/40 flex justify-end gap-2">
+              <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end gap-2.5">
                 <button
                   onClick={() => setSelectedUserId(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
+                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
                 >
-                  Tutup
+                  <X className="h-3.5 w-3.5" /> Tutup
                 </button>
                 {userDetail.bannedAt !== null ? (
                   <button
@@ -618,11 +619,7 @@ export default function UsersPage() {
                   <button
                     onClick={() => {
                       const nameToBan = userDetail.fullName || "User";
-                      if (
-                        confirm(
-                          `Apakah Anda yakin ingin memblokir ${nameToBan}?`,
-                        )
-                      ) {
+                      if (confirm(`Apakah Anda yakin ingin memblokir ${nameToBan}?`)) {
                         banMutation.mutate(userDetail.id);
                       }
                     }}
