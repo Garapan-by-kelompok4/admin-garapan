@@ -355,61 +355,75 @@ export default function TransactionsPage() {
           ) : orderDetail ? (
             <div className="flex flex-col h-full max-h-[85vh]">
               {/* Modal Header */}
-              <div className="p-5 border-b border-border bg-surface-2/40 flex justify-between items-center">
-                <div>
-                  <h2 className="font-heading font-bold text-base text-ink-900 tracking-tight leading-tight">
-                    Detail Transaksi Escrow: {orderDetail.id}
-                  </h2>
-                  <p className="text-xs text-ink-400 font-medium mt-1">
-                    Transaksi dibuat pada {formatDate(orderDetail.createdAt)}
-                  </p>
+              <div className="px-5 py-4 border-b border-border bg-surface-2/50">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="font-heading font-bold text-[15px] text-ink-900 tracking-tight leading-tight">
+                        Detail Transaksi Escrow
+                      </h2>
+                      {renderStatusPill(orderDetail.escrowStatus)}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-ink-400 font-medium">
+                      <span className="font-mono text-ink-500 bg-surface-3 px-1.5 py-0.5 rounded select-all">
+                        {orderDetail.id.slice(0, 8)}…
+                      </span>
+                      <span>•</span>
+                      <span>Dibuat {formatDate(orderDetail.createdAt)}</span>
+                    </div>
+                  </div>
                 </div>
-                <div>{renderStatusPill(orderDetail.escrowStatus)}</div>
               </div>
 
               {/* Modal Body */}
               <div className="flex-1 overflow-y-auto p-5 space-y-5">
                 {/* Client & Student Side-by-Side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Client Card */}
-                  <div className="rounded-lg border border-border p-4 bg-surface-2/30 space-y-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
-                      Pembayar (Klien)
-                    </span>
+                  <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-500" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                        Pembayar (Klien)
+                      </span>
+                    </div>
                     <div className="flex items-center gap-3">
                       <div
-                        className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm ${avatarClass(orderDetail.clientName)}`}
+                        className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm flex-shrink-0 ${avatarClass(orderDetail.clientName)}`}
                       >
                         {initials(orderDetail.clientName)}
                       </div>
-                      <div>
-                        <div className="text-xs font-bold text-ink-900 leading-tight">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-ink-900 truncate">
                           {orderDetail.clientName}
                         </div>
-                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium">
-                          ID: {orderDetail.clientId}
+                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium font-mono">
+                          {orderDetail.clientId}
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Student Card */}
-                  <div className="rounded-lg border border-border p-4 bg-surface-2/30 space-y-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
-                      Penerima (Mahasiswa)
-                    </span>
+                  <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-warn-500" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                        Penerima (Mahasiswa)
+                      </span>
+                    </div>
                     <div className="flex items-center gap-3">
                       <div
-                        className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm ${avatarClass(orderDetail.studentName)}`}
+                        className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm flex-shrink-0 ${avatarClass(orderDetail.studentName)}`}
                       >
                         {initials(orderDetail.studentName)}
                       </div>
-                      <div>
-                        <div className="text-xs font-bold text-ink-900 leading-tight">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-ink-900 truncate">
                           {orderDetail.studentName}
                         </div>
-                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium">
-                          ID: {orderDetail.studentId}
+                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium font-mono">
+                          {orderDetail.studentId}
                         </div>
                       </div>
                     </div>
@@ -417,26 +431,29 @@ export default function TransactionsPage() {
                 </div>
 
                 {/* Package & Service details */}
-                <div className="rounded-lg border border-border p-4 bg-white space-y-3">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-400">
-                    Detail Layanan Jasa
-                  </span>
+                <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-success-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                      Detail Layanan Jasa
+                    </span>
+                  </div>
                   <div className="flex justify-between items-start gap-4">
-                    <div>
+                    <div className="min-w-0">
                       <h4 className="text-sm font-semibold text-ink-900 leading-tight">
                         {orderDetail.serviceTitle}
                       </h4>
                       <p className="text-xs text-ink-500 font-medium mt-1">
                         Paket:{" "}
-                        <span className="font-semibold text-ink-850">
+                        <span className="font-semibold text-ink-800">
                           {orderDetail.packageName || "Default"}
-                        </span>{" "}
+                        </span>
                         {orderDetail.packageDescription &&
-                          `— ${orderDetail.packageDescription}`}
+                          ` — ${orderDetail.packageDescription}`}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <span className="text-base font-extrabold text-ink-900">
+                    <div className="text-right flex-shrink-0">
+                      <span className="text-lg font-extrabold text-ink-900 tracking-tight">
                         {formatCurrency(orderDetail.amount)}
                       </span>
                     </div>
@@ -444,26 +461,26 @@ export default function TransactionsPage() {
                 </div>
 
                 {/* Interactive Escrow Timeline */}
-                <div className="space-y-3">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-400">
+                <div className="space-y-2.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                     Escrow Timeline Tracker
                   </span>
-                  <div className="rounded-lg border border-border bg-white p-5 space-y-5">
+                  <div className="rounded-lg border border-border bg-white p-5 shadow-sh-1">
                     {orderDetail.timeline && orderDetail.timeline.length > 0 ? (
-                      <div className="relative border-l-2 border-border ml-2.5 pl-6 space-y-5">
+                      <div className="relative border-l-2 border-border ml-2.5 pl-6 space-y-6">
                         {orderDetail.timeline.map((step, idx) => {
                           const isActive = step.isCompleted;
                           return (
                             <div key={idx} className="relative">
                               <span
-                                className={`absolute -left-[32px] top-0.5 h-4.5 w-4.5 rounded-full border-2 border-white flex items-center justify-center shadow-sm transition-all ${
+                                className={`absolute -left-[33px] top-0.5 h-4 w-4 rounded-full border-2 border-white flex items-center justify-center shadow-sm transition-all ${
                                   isActive
                                     ? "bg-success-500 text-white"
                                     : "bg-surface-3 text-ink-300"
                                 }`}
                               >
                                 {isActive && (
-                                  <CheckCircle2 className="h-3 w-3 fill-success-500 text-white" />
+                                  <CheckCircle2 className="h-2.5 w-2.5 fill-success-500 text-white" />
                                 )}
                               </span>
 
@@ -477,8 +494,8 @@ export default function TransactionsPage() {
                                   {step.description}
                                 </p>
                                 {step.completedAt && (
-                                  <span className="inline-block text-[10px] text-ink-400 font-medium bg-surface-2 px-1.5 py-0.5 rounded border border-border/40 mt-1.5">
-                                    Selesai pada {formatDate(step.completedAt)}
+                                  <span className="inline-block text-[10px] text-ink-400 font-medium bg-surface-2 px-2 py-0.5 rounded border border-border/40 mt-2">
+                                    Selesai {formatDate(step.completedAt)}
                                   </span>
                                 )}
                               </div>
@@ -487,7 +504,7 @@ export default function TransactionsPage() {
                         })}
                       </div>
                     ) : (
-                      <div className="relative border-l-2 border-border ml-2.5 pl-6 space-y-5">
+                      <div className="relative border-l-2 border-border ml-2.5 pl-6 space-y-6">
                         {[
                           {
                             step: "Pembayaran Escrow Diterima",
@@ -522,14 +539,14 @@ export default function TransactionsPage() {
                         ].map((step, idx) => (
                           <div key={idx} className="relative">
                             <span
-                              className={`absolute -left-[32px] top-0.5 h-4.5 w-4.5 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${
+                              className={`absolute -left-[33px] top-0.5 h-4 w-4 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${
                                 step.completed
                                   ? "bg-success-500 text-white"
                                   : "bg-surface-3 text-ink-300"
                               }`}
                             >
                               {step.completed && (
-                                <CheckCircle2 className="h-3 w-3 fill-success-500 text-white" />
+                                <CheckCircle2 className="h-2.5 w-2.5 fill-success-500 text-white" />
                               )}
                             </span>
                             <div>
@@ -542,7 +559,7 @@ export default function TransactionsPage() {
                                 {step.desc}
                               </p>
                               {step.date && (
-                                <span className="inline-block text-[10px] text-ink-400 font-medium bg-surface-2 px-1.5 py-0.5 rounded border border-border/40 mt-1.5">
+                                <span className="inline-block text-[10px] text-ink-400 font-medium bg-surface-2 px-2 py-0.5 rounded border border-border/40 mt-2">
                                   {formatDate(step.date)}
                                 </span>
                               )}
@@ -556,12 +573,12 @@ export default function TransactionsPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 border-t border-border bg-surface-2/40 flex justify-end">
+              <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end">
                 <button
                   onClick={() => setSelectedOrderId(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
+                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
                 >
-                  Tutup
+                  <X className="h-3.5 w-3.5" /> Tutup
                 </button>
               </div>
             </div>
