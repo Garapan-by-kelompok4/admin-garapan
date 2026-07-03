@@ -32,14 +32,6 @@ function listFromResponse(raw: unknown, keys: string[] = []): unknown[] {
   return [];
 }
 
-function textFromValue(value: unknown, fallback = ""): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  if (!value) return fallback;
-  const record = asRecord(value);
-  return textFromValue(record.message ?? record.name ?? record.title ?? record.label, fallback);
-}
-
 function normaliseActivity(raw: unknown, index: number): ActivityItem {
   const record = asRecord(raw);
   const meta = asRecord(record.meta);
@@ -60,7 +52,12 @@ function normaliseActivity(raw: unknown, index: number): ActivityItem {
     actorRole: "ADMIN",
     action,
     message,
-    createdAt: String(record.createdAt ?? record.created_at ?? record.timestamp ?? new Date().toISOString()),
+    createdAt: String(
+      record.createdAt ??
+        record.created_at ??
+        record.timestamp ??
+        new Date().toISOString(),
+    ),
   };
 }
 
@@ -91,8 +88,17 @@ export interface CategoryDonutPoint {
 export interface AnalyticsResponse {
   period: { days: number; start: string; end: string };
   timeSeries: Array<{ date: string; orderCount: number; revenue: number }>;
-  categoryBreakdown: Array<{ kategoriId: string; name: string; count: number; revenue: number }>;
-  deltas?: { orders: number | null; revenue: number | null; users: number | null };
+  categoryBreakdown: Array<{
+    kategoriId: string;
+    name: string;
+    count: number;
+    revenue: number;
+  }>;
+  deltas?: {
+    orders: number | null;
+    revenue: number | null;
+    users: number | null;
+  };
   ordersLine: OrderChartPoint[];
   categoriesDonut: CategoryDonutPoint[];
 }
@@ -102,19 +108,26 @@ function normaliseAnalytics(raw: unknown): AnalyticsResponse {
   const timeSeries = (r.timeSeries ?? []) as UnknownRecord[];
   const categoryBreakdown = (r.categoryBreakdown ?? []) as UnknownRecord[];
 
-  const totalOrders = timeSeries.reduce((sum, p) => sum + Number(p.orderCount ?? 0), 0);
+  const totalOrders = timeSeries.reduce(
+    (sum, p) => sum + Number(p.orderCount ?? 0),
+    0,
+  );
 
   const ordersLine: OrderChartPoint[] = timeSeries.map((p) => ({
     name: String(p.date ?? ""),
     orders: Number(p.orderCount ?? 0),
     value: Number(p.revenue ?? 0),
-    average: timeSeries.length > 0 ? Math.round(totalOrders / timeSeries.length) : 0,
+    average:
+      timeSeries.length > 0 ? Math.round(totalOrders / timeSeries.length) : 0,
   }));
 
   const categoriesDonut: CategoryDonutPoint[] = categoryBreakdown.map((c) => ({
     name: String(c.name ?? ""),
     value: Number(c.count ?? 0),
-    percentage: totalOrders > 0 ? Math.round((Number(c.count ?? 0) / totalOrders) * 100) : 0,
+    percentage:
+      totalOrders > 0
+        ? Math.round((Number(c.count ?? 0) / totalOrders) * 100)
+        : 0,
   }));
 
   return {
@@ -153,14 +166,26 @@ export const dashboardApi = {
   },
 
   getChartData: async (period?: string): Promise<AnalyticsResponse> => {
-    const daysMap: Record<string, number> = { "7H": 7, "30H": 30, "90H": 90, "1T": 365 };
+    const daysMap: Record<string, number> = {
+      "7H": 7,
+      "30H": 30,
+      "90H": 90,
+      "1T": 365,
+    };
     const days = period ? (daysMap[period] ?? 30) : 30;
-    const raw = await apiClient<unknown>(`/admin/analytics?days=${days}&includeDeltas=true`);
+    const raw = await apiClient<unknown>(
+      `/admin/analytics?days=${days}&includeDeltas=true`,
+    );
     return normaliseAnalytics(raw);
   },
 
   getActivityLog: async (): Promise<ActivityItem[]> => {
     const raw = await apiClient<unknown>("/admin/activity");
-    return listFromResponse(raw, ["activities", "activity", "logs", "auditLogs"]).map(normaliseActivity);
+    return listFromResponse(raw, [
+      "activities",
+      "activity",
+      "logs",
+      "auditLogs",
+    ]).map(normaliseActivity);
   },
 };

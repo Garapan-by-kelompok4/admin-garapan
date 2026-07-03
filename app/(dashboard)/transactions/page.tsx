@@ -6,26 +6,20 @@ import { ordersApi, OrderTransaction, EscrowStatus } from "@/lib/api/orders";
 import { DataTable } from "@/components/data-table/data-table";
 import { avatarClass, initials } from "@/lib/avatar";
 import { ColumnDef } from "@tanstack/react-table";
-import { 
-  AlertTriangle, 
-  Search, 
+import {
+  AlertTriangle,
+  Search,
   X,
-  FileText,
-  Calendar,
-  User,
   Eye,
   Wallet,
   CheckCircle2,
   DollarSign,
   Undo2,
-  ArrowRight,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 
 export default function TransactionsPage() {
@@ -49,15 +43,15 @@ export default function TransactionsPage() {
         page,
         limit,
         status: apiStatus,
-        search: search || undefined
+        search: search || undefined,
       });
       return res;
-    }
+    },
   });
 
   // Derive stats from real query data (after useQuery)
-  const totalVolume = data?.data?.reduce((sum, t) => sum + (t.amount ?? 0), 0) ?? 0;
-  const totalCount = data?.total ?? 0;
+  const totalVolume =
+    data?.data?.reduce((sum, t) => sum + (t.amount ?? 0), 0) ?? 0;
 
   // Query transaction detail
   const { data: orderDetail, isLoading: isLoadingDetail } = useQuery({
@@ -120,9 +114,9 @@ export default function TransactionsPage() {
     {
       accessorKey: "id",
       header: "ID Transaksi",
-      cell: ({ getValue }: any) => (
+      cell: ({ getValue }) => (
         <span className="font-mono font-bold text-xs text-ink-900 select-all">
-          {getValue()}
+          {String(getValue())}
         </span>
       ),
     },
@@ -131,12 +125,18 @@ export default function TransactionsPage() {
       header: "Klien",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <div className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.clientName)}`}>
+          <div
+            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.clientName)}`}
+          >
             {initials(row.original.clientName)}
           </div>
           <div>
-            <div className="font-semibold text-ink-900 leading-none">{row.original.clientName}</div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">ID: {row.original.clientId}</div>
+            <div className="font-semibold text-ink-900 leading-none">
+              {row.original.clientName}
+            </div>
+            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
+              ID: {row.original.clientId}
+            </div>
           </div>
         </div>
       ),
@@ -146,12 +146,18 @@ export default function TransactionsPage() {
       header: "Mahasiswa",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <div className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.studentName)}`}>
+          <div
+            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.studentName)}`}
+          >
             {initials(row.original.studentName)}
           </div>
           <div>
-            <div className="font-semibold text-ink-900 leading-none">{row.original.studentName}</div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">ID: {row.original.studentId}</div>
+            <div className="font-semibold text-ink-900 leading-none">
+              {row.original.studentName}
+            </div>
+            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
+              ID: {row.original.studentId}
+            </div>
           </div>
         </div>
       ),
@@ -159,30 +165,30 @@ export default function TransactionsPage() {
     {
       accessorKey: "serviceTitle",
       header: "Jasa",
-      cell: ({ getValue }: any) => (
+      cell: ({ getValue }) => (
         <span className="font-semibold text-ink-700 text-sm leading-snug truncate max-w-[200px] block">
-          {getValue()}
+          {String(getValue())}
         </span>
       ),
     },
     {
       accessorKey: "amount",
       header: "Nominal",
-      cell: ({ getValue }: any) => (
+      cell: ({ getValue }) => (
         <span className="font-extrabold text-ink-900 text-sm">
-          {formatCurrency(getValue())}
+          {formatCurrency(Number(getValue()))}
         </span>
       ),
     },
     {
       accessorKey: "escrowStatus",
       header: "Status Escrow",
-      cell: ({ getValue }: any) => renderStatusPill(getValue()),
+      cell: ({ getValue }) => renderStatusPill(getValue() as EscrowStatus),
     },
     {
       accessorKey: "createdAt",
       header: "Tanggal Transaksi",
-      cell: ({ getValue }: any) => formatDate(getValue()),
+      cell: ({ getValue }) => formatDate(getValue() as string),
     },
     {
       id: "actions",
@@ -206,18 +212,59 @@ export default function TransactionsPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Volume Transaksi (GTV)", val: formatCurrency(totalVolume), icon: TrendingUp, color: "text-success-500 bg-success-50 border-success-100" },
-          { label: "Escrow Ditahan", val: formatCurrency(data?.data?.filter((t) => t.escrowStatus === "Ditahan").reduce((s, t) => s + t.amount, 0) ?? 0), icon: Wallet, color: "text-warn-500 bg-warn-50 border-warn-100" },
-          { label: "Dana Dicairkan", val: formatCurrency(data?.data?.filter((t) => t.escrowStatus === "Dicairkan").reduce((s, t) => s + t.amount, 0) ?? 0), icon: DollarSign, color: "text-brand-500 bg-brand-50 border-brand-100" },
-          { label: "Total Pengembalian (Refund)", val: formatCurrency(data?.data?.filter((t) => t.escrowStatus === "Refund").reduce((s, t) => s + t.amount, 0) ?? 0), icon: Undo2, color: "text-danger-500 bg-danger-50 border-danger-100" }
+          {
+            label: "Volume Transaksi (GTV)",
+            val: formatCurrency(totalVolume),
+            icon: TrendingUp,
+            color: "text-success-500 bg-success-50 border-success-100",
+          },
+          {
+            label: "Escrow Ditahan",
+            val: formatCurrency(
+              data?.data
+                ?.filter((t) => t.escrowStatus === "Ditahan")
+                .reduce((s, t) => s + t.amount, 0) ?? 0,
+            ),
+            icon: Wallet,
+            color: "text-warn-500 bg-warn-50 border-warn-100",
+          },
+          {
+            label: "Dana Dicairkan",
+            val: formatCurrency(
+              data?.data
+                ?.filter((t) => t.escrowStatus === "Dicairkan")
+                .reduce((s, t) => s + t.amount, 0) ?? 0,
+            ),
+            icon: DollarSign,
+            color: "text-brand-500 bg-brand-50 border-brand-100",
+          },
+          {
+            label: "Total Pengembalian (Refund)",
+            val: formatCurrency(
+              data?.data
+                ?.filter((t) => t.escrowStatus === "Refund")
+                .reduce((s, t) => s + t.amount, 0) ?? 0,
+            ),
+            icon: Undo2,
+            color: "text-danger-500 bg-danger-50 border-danger-100",
+          },
         ].map((item, idx) => (
-          <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
-            <div className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}>
+          <div
+            key={idx}
+            className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1"
+          >
+            <div
+              className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}
+            >
               <item.icon className={`h-5 w-5 ${item.color.split(" ")[0]}`} />
             </div>
             <div>
-              <div className="text-xs text-ink-400 font-semibold">{item.label}</div>
-              <div className="text-xl font-extrabold text-ink-900 mt-1 leading-none tracking-tight">{item.val}</div>
+              <div className="text-xs text-ink-400 font-semibold">
+                {item.label}
+              </div>
+              <div className="text-xl font-extrabold text-ink-900 mt-1 leading-none tracking-tight">
+                {item.val}
+              </div>
             </div>
           </div>
         ))}
@@ -250,7 +297,9 @@ export default function TransactionsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-500 font-semibold select-none">Status Escrow:</span>
+          <span className="text-xs text-ink-500 font-semibold select-none">
+            Status Escrow:
+          </span>
           <select
             value={statusFilter}
             onChange={(e) => {
@@ -271,8 +320,12 @@ export default function TransactionsPage() {
       {error ? (
         <div className="p-8 border border-border rounded-xl bg-white text-center">
           <AlertTriangle className="h-8 w-8 text-danger-500 mx-auto" />
-          <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">Gagal memuat data</h3>
-          <p className="text-xs text-ink-400 mt-1">{(error as any).message || "Terjadi kesalahan koneksi"}</p>
+          <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">
+            Gagal memuat data
+          </h3>
+          <p className="text-xs text-ink-400 mt-1">
+            {(error as Error).message || "Terjadi kesalahan koneksi"}
+          </p>
         </div>
       ) : (
         <DataTable
@@ -287,12 +340,17 @@ export default function TransactionsPage() {
       )}
 
       {/* Detail Modal / Timeline Tracker */}
-      <Dialog open={!!selectedOrderId} onOpenChange={(open) => !open && setSelectedOrderId(null)}>
+      <Dialog
+        open={!!selectedOrderId}
+        onOpenChange={(open) => !open && setSelectedOrderId(null)}
+      >
         <DialogContent className="max-w-[800px] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3">
           {isLoadingDetail ? (
             <div className="p-12 text-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent mx-auto" />
-              <p className="text-xs text-ink-500 mt-2 font-medium">Memuat detail transaksi...</p>
+              <p className="text-xs text-ink-500 mt-2 font-medium">
+                Memuat detail transaksi...
+              </p>
             </div>
           ) : orderDetail ? (
             <div className="flex flex-col h-full max-h-[85vh]">
@@ -315,28 +373,44 @@ export default function TransactionsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Client Card */}
                   <div className="rounded-lg border border-border p-4 bg-surface-2/30 space-y-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Pembayar (Klien)</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                      Pembayar (Klien)
+                    </span>
                     <div className="flex items-center gap-3">
-                      <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm ${avatarClass(orderDetail.clientName)}`}>
+                      <div
+                        className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm ${avatarClass(orderDetail.clientName)}`}
+                      >
                         {initials(orderDetail.clientName)}
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-ink-900 leading-tight">{orderDetail.clientName}</div>
-                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium">ID: {orderDetail.clientId}</div>
+                        <div className="text-xs font-bold text-ink-900 leading-tight">
+                          {orderDetail.clientName}
+                        </div>
+                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium">
+                          ID: {orderDetail.clientId}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Student Card */}
                   <div className="rounded-lg border border-border p-4 bg-surface-2/30 space-y-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Penerima (Mahasiswa)</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                      Penerima (Mahasiswa)
+                    </span>
                     <div className="flex items-center gap-3">
-                      <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm ${avatarClass(orderDetail.studentName)}`}>
+                      <div
+                        className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white shadow-sm ${avatarClass(orderDetail.studentName)}`}
+                      >
                         {initials(orderDetail.studentName)}
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-ink-900 leading-tight">{orderDetail.studentName}</div>
-                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium">ID: {orderDetail.studentId}</div>
+                        <div className="text-xs font-bold text-ink-900 leading-tight">
+                          {orderDetail.studentName}
+                        </div>
+                        <div className="text-[10.5px] text-ink-400 mt-0.5 font-medium">
+                          ID: {orderDetail.studentId}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -344,13 +418,21 @@ export default function TransactionsPage() {
 
                 {/* Package & Service details */}
                 <div className="rounded-lg border border-border p-4 bg-white space-y-3">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-400">Detail Layanan Jasa</span>
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-400">
+                    Detail Layanan Jasa
+                  </span>
                   <div className="flex justify-between items-start gap-4">
                     <div>
-                      <h4 className="text-sm font-semibold text-ink-900 leading-tight">{orderDetail.serviceTitle}</h4>
+                      <h4 className="text-sm font-semibold text-ink-900 leading-tight">
+                        {orderDetail.serviceTitle}
+                      </h4>
                       <p className="text-xs text-ink-500 font-medium mt-1">
-                        Paket: <span className="font-semibold text-ink-850">{orderDetail.packageName || "Default"}</span>{" "}
-                        {orderDetail.packageDescription && `— ${orderDetail.packageDescription}`}
+                        Paket:{" "}
+                        <span className="font-semibold text-ink-850">
+                          {orderDetail.packageName || "Default"}
+                        </span>{" "}
+                        {orderDetail.packageDescription &&
+                          `— ${orderDetail.packageDescription}`}
                       </p>
                     </div>
                     <div className="text-right">
@@ -363,7 +445,9 @@ export default function TransactionsPage() {
 
                 {/* Interactive Escrow Timeline */}
                 <div className="space-y-3">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-400">Escrow Timeline Tracker</span>
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-ink-400">
+                    Escrow Timeline Tracker
+                  </span>
                   <div className="rounded-lg border border-border bg-white p-5 space-y-5">
                     {orderDetail.timeline && orderDetail.timeline.length > 0 ? (
                       <div className="relative border-l-2 border-border ml-2.5 pl-6 space-y-5">
@@ -371,16 +455,22 @@ export default function TransactionsPage() {
                           const isActive = step.isCompleted;
                           return (
                             <div key={idx} className="relative">
-                              <span className={`absolute -left-[32px] top-0.5 h-4.5 w-4.5 rounded-full border-2 border-white flex items-center justify-center shadow-sm transition-all ${
-                                isActive 
-                                  ? "bg-success-500 text-white" 
-                                  : "bg-surface-3 text-ink-300"
-                              }`}>
-                                {isActive && <CheckCircle2 className="h-3 w-3 fill-success-500 text-white" />}
+                              <span
+                                className={`absolute -left-[32px] top-0.5 h-4.5 w-4.5 rounded-full border-2 border-white flex items-center justify-center shadow-sm transition-all ${
+                                  isActive
+                                    ? "bg-success-500 text-white"
+                                    : "bg-surface-3 text-ink-300"
+                                }`}
+                              >
+                                {isActive && (
+                                  <CheckCircle2 className="h-3 w-3 fill-success-500 text-white" />
+                                )}
                               </span>
-                              
+
                               <div>
-                                <h5 className={`text-xs font-bold ${isActive ? "text-ink-900" : "text-ink-400"}`}>
+                                <h5
+                                  className={`text-xs font-bold ${isActive ? "text-ink-900" : "text-ink-400"}`}
+                                >
                                   {step.step}
                                 </h5>
                                 <p className="text-[11.5px] text-ink-400 font-medium mt-0.5">
@@ -399,21 +489,53 @@ export default function TransactionsPage() {
                     ) : (
                       <div className="relative border-l-2 border-border ml-2.5 pl-6 space-y-5">
                         {[
-                          { step: "Pembayaran Escrow Diterima", desc: "Klien telah mentransfer dana ke escrow platform.", completed: true, date: orderDetail.createdAt },
-                          { step: "Pekerjaan Mulai Dikerjakan", desc: "Freelancer menyetujui penugasan dan mulai bekerja.", completed: true, date: orderDetail.createdAt },
-                          { step: "Freelancer Mengirimkan Hasil", desc: "Pekerjaan diserahkan kepada Klien untuk direview.", completed: orderDetail.escrowStatus !== "Ditahan", date: orderDetail.escrowStatus !== "Ditahan" ? orderDetail.createdAt : null },
-                          { step: "Dana Dicairkan / Refund", desc: "Dana ditransfer ke freelancer setelah persetujuan klien atau diselesaikan admin.", completed: orderDetail.escrowStatus !== "Ditahan", date: orderDetail.escrowStatus !== "Ditahan" ? orderDetail.createdAt : null }
+                          {
+                            step: "Pembayaran Escrow Diterima",
+                            desc: "Klien telah mentransfer dana ke escrow platform.",
+                            completed: true,
+                            date: orderDetail.createdAt,
+                          },
+                          {
+                            step: "Pekerjaan Mulai Dikerjakan",
+                            desc: "Freelancer menyetujui penugasan dan mulai bekerja.",
+                            completed: true,
+                            date: orderDetail.createdAt,
+                          },
+                          {
+                            step: "Freelancer Mengirimkan Hasil",
+                            desc: "Pekerjaan diserahkan kepada Klien untuk direview.",
+                            completed: orderDetail.escrowStatus !== "Ditahan",
+                            date:
+                              orderDetail.escrowStatus !== "Ditahan"
+                                ? orderDetail.createdAt
+                                : null,
+                          },
+                          {
+                            step: "Dana Dicairkan / Refund",
+                            desc: "Dana ditransfer ke freelancer setelah persetujuan klien atau diselesaikan admin.",
+                            completed: orderDetail.escrowStatus !== "Ditahan",
+                            date:
+                              orderDetail.escrowStatus !== "Ditahan"
+                                ? orderDetail.createdAt
+                                : null,
+                          },
                         ].map((step, idx) => (
                           <div key={idx} className="relative">
-                            <span className={`absolute -left-[32px] top-0.5 h-4.5 w-4.5 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${
-                              step.completed 
-                                ? "bg-success-500 text-white" 
-                                : "bg-surface-3 text-ink-300"
-                            }`}>
-                              {step.completed && <CheckCircle2 className="h-3 w-3 fill-success-500 text-white" />}
+                            <span
+                              className={`absolute -left-[32px] top-0.5 h-4.5 w-4.5 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${
+                                step.completed
+                                  ? "bg-success-500 text-white"
+                                  : "bg-surface-3 text-ink-300"
+                              }`}
+                            >
+                              {step.completed && (
+                                <CheckCircle2 className="h-3 w-3 fill-success-500 text-white" />
+                              )}
                             </span>
                             <div>
-                              <h5 className={`text-xs font-bold ${step.completed ? "text-ink-900" : "text-ink-400"}`}>
+                              <h5
+                                className={`text-xs font-bold ${step.completed ? "text-ink-900" : "text-ink-400"}`}
+                              >
                                 {step.step}
                               </h5>
                               <p className="text-[11.5px] text-ink-400 font-medium mt-0.5">

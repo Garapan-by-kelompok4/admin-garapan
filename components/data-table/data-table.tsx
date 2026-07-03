@@ -54,15 +54,15 @@ export function DataTable<TData, TValue>({
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
-    
+
     let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
     let endPage = startPage + maxVisible - 1;
-    
+
     if (endPage > totalPages) {
       endPage = totalPages;
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -75,7 +75,10 @@ export function DataTable<TData, TValue>({
         <Table className="border-collapse separate border-spacing-0">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border">
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-b border-border"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
@@ -86,7 +89,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -98,9 +101,15 @@ export function DataTable<TData, TValue>({
             {isLoading ? (
               // Loading Skeleton State
               Array.from({ length: limit }).map((_, idx) => (
-                <TableRow key={idx} className="border-b border-border last:border-b-0">
+                <TableRow
+                  key={idx}
+                  className="border-b border-border last:border-b-0"
+                >
                   {columns.map((_, cellIdx) => (
-                    <TableCell key={cellIdx} className="py-[14px] px-[18px] first:pl-[22px] last:pr-[22px]">
+                    <TableCell
+                      key={cellIdx}
+                      className="py-[14px] px-[18px] first:pl-[22px] last:pr-[22px]"
+                    >
                       <Skeleton className="h-4 w-full bg-surface-3" />
                     </TableCell>
                   ))}
@@ -114,8 +123,14 @@ export function DataTable<TData, TValue>({
                   className="hover:bg-[#F7F8FB] border-b border-border last:border-b-0 transition-all duration-100"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-[14px] px-[18px] text-[14px] text-ink-700 first:pl-[22px] last:pr-[22px]">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className="py-[14px] px-[18px] text-[14px] text-ink-700 first:pl-[22px] last:pr-[22px]"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -131,9 +146,12 @@ export function DataTable<TData, TValue>({
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-2 text-ink-400">
                       <ChevronLeft className="h-6 w-6 rotate-45 stroke-[1.5]" />
                     </div>
-                    <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">Tidak ada hasil</h3>
+                    <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">
+                      Tidak ada hasil
+                    </h3>
                     <p className="text-xs text-ink-400 max-w-[280px]">
-                      Coba sesuaikan kata kunci pencarian Anda atau periksa filter yang sedang aktif.
+                      Coba sesuaikan kata kunci pencarian Anda atau periksa
+                      filter yang sedang aktif.
                     </p>
                   </div>
                 </TableCell>
@@ -147,11 +165,12 @@ export function DataTable<TData, TValue>({
       {data.length > 0 && onPageChange && (
         <div className="flex items-center justify-between px-2 select-none">
           <div className="text-xs text-ink-400 font-medium">
-            Menampilkan <span className="font-semibold text-ink-700">{startIdx}</span>-
+            Menampilkan{" "}
+            <span className="font-semibold text-ink-700">{startIdx}</span>-
             <span className="font-semibold text-ink-700">{endIdx}</span> dari{" "}
             <span className="font-semibold text-ink-700">{total}</span> data
           </div>
-          
+
           <div className="flex items-center gap-1">
             <button
               onClick={() => onPageChange(page - 1)}
@@ -160,7 +179,7 @@ export function DataTable<TData, TValue>({
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            
+
             {getPageNumbers().map((p) => (
               <button
                 key={p}
@@ -174,7 +193,7 @@ export function DataTable<TData, TValue>({
                 {p}
               </button>
             ))}
-            
+
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={!hasNextPage}

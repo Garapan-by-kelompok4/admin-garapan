@@ -60,12 +60,17 @@ function normaliseUser(raw: unknown): User {
   const klien = asRecord(r.klien);
   return {
     id: String(r.id ?? ""),
-    fullName: String(mahasiswa.fullName ?? klien.companyName ?? r.fullName ?? r.name ?? ""),
+    fullName: String(
+      mahasiswa.fullName ?? klien.companyName ?? r.fullName ?? r.name ?? "",
+    ),
     email: String(r.email ?? ""),
     role: String(r.role ?? "MAHASISWA") as UserRole,
     university: mahasiswa.university ? String(mahasiswa.university) : undefined,
     company: klien.companyName ? String(klien.companyName) : undefined,
-    rating: typeof mahasiswa.rating === "number" ? Number(mahasiswa.rating) : undefined,
+    rating:
+      typeof mahasiswa.rating === "number"
+        ? Number(mahasiswa.rating)
+        : undefined,
     bannedAt: r.bannedAt ? String(r.bannedAt) : null,
     emailVerified: Boolean(r.emailVerified),
     createdAt: String(r.createdAt ?? ""),
@@ -121,7 +126,9 @@ export const usersApi = {
     const path = `/admin/users${queryString ? `?${queryString}` : ""}`;
     const raw = await apiClient<unknown>(path);
     const record = asRecord(raw);
-    const data = (record.data ?? record.items ?? (Array.isArray(raw) ? raw : [])) as UnknownRecord[];
+    const data = (record.data ??
+      record.items ??
+      (Array.isArray(raw) ? raw : [])) as UnknownRecord[];
     const total = Number(record.total ?? record.count ?? data.length);
     return {
       data: data.map(normaliseUser),

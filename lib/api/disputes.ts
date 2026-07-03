@@ -92,10 +92,14 @@ function normaliseDispute(raw: unknown): Dispute {
     id: String(r.id ?? ""),
     orderId: String(r.pesananId ?? pesanan.id ?? ""),
     reporterId: String(reporter.id ?? r.reporterId ?? ""),
-    reporterName: String(reporter.fullName ?? reporter.displayName ?? reporter.email ?? "-"),
+    reporterName: String(
+      reporter.fullName ?? reporter.displayName ?? reporter.email ?? "-",
+    ),
     reporterEmail: String(reporter.email ?? "-"),
     reportedId: String(target.id ?? r.targetId ?? ""),
-    reportedName: String(target.fullName ?? target.displayName ?? target.email ?? "-"),
+    reportedName: String(
+      target.fullName ?? target.displayName ?? target.email ?? "-",
+    ),
     reportedEmail: String(target.email ?? "-"),
     issueType: String(r.reason ?? "-"),
     description: String(r.reason ?? ""),
@@ -106,7 +110,11 @@ function normaliseDispute(raw: unknown): Dispute {
   };
 }
 
-function normaliseListResponse(raw: unknown, page = 1, limit = 10): ListDisputesResponse {
+function normaliseListResponse(
+  raw: unknown,
+  page = 1,
+  limit = 10,
+): ListDisputesResponse {
   if (!raw) return { data: [], total: 0, page, limit };
 
   const r = asRecord(raw);
@@ -124,7 +132,9 @@ function normaliseListResponse(raw: unknown, page = 1, limit = 10): ListDisputes
 }
 
 export const disputesApi = {
-  list: async (params: ListDisputesParams = {}): Promise<ListDisputesResponse> => {
+  list: async (
+    params: ListDisputesParams = {},
+  ): Promise<ListDisputesResponse> => {
     const query = new URLSearchParams();
     if (params.page) query.set("page", String(params.page));
     if (params.limit) query.set("limit", String(params.limit));
@@ -156,7 +166,10 @@ export const disputesApi = {
     };
   },
 
-  resolve: async (id: string, payload: ResolveDisputePayload): Promise<void> => {
+  resolve: async (
+    id: string,
+    payload: ResolveDisputePayload,
+  ): Promise<void> => {
     return apiClient<void>(`/admin/disputes/${id}/resolve`, {
       method: "PATCH",
       body: JSON.stringify(payload),

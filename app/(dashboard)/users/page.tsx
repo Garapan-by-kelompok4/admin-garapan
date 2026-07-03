@@ -2,36 +2,35 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usersApi, User, UserRole } from "@/lib/api/users";
+import { usersApi, User } from "@/lib/api/users";
 import { DataTable } from "@/components/data-table/data-table";
 import { avatarClass, initials } from "@/lib/avatar";
 import { ColumnDef } from "@tanstack/react-table";
-import { 
-  Star, 
-  Eye, 
-  Ban, 
-  Search, 
-  X, 
-  Unlock, 
-  Calendar, 
-  TrendingUp, 
+import {
+  Star,
+  Eye,
+  Ban,
+  Search,
+  X,
+  Unlock,
+  Calendar,
+  TrendingUp,
   AlertTriangle,
   Mail,
   Phone,
-  Building
+  Building,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"MAHASISWA" | "KLIEN">("MAHASISWA");
+  const [activeTab, setActiveTab] = useState<"MAHASISWA" | "KLIEN">(
+    "MAHASISWA",
+  );
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Semua");
   const [page, setPage] = useState(1);
@@ -56,7 +55,7 @@ export default function UsersPage() {
         const filtered = res.data.filter((u) => {
           const isBanned = u.bannedAt !== null;
           const isPending = !u.emailVerified;
-          
+
           if (statusFilter === "Suspended") return isBanned;
           if (statusFilter === "Pending") return isPending && !isBanned;
           if (statusFilter === "Aktif") return !isBanned && !isPending;
@@ -86,9 +85,11 @@ export default function UsersPage() {
     onSuccess: () => {
       toast.success("User berhasil diblokir");
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["userDetail", selectedUserId] });
+      queryClient.invalidateQueries({
+        queryKey: ["userDetail", selectedUserId],
+      });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Gagal memblokir user");
     },
   });
@@ -99,9 +100,11 @@ export default function UsersPage() {
     onSuccess: () => {
       toast.success("Aktivasi user berhasil dipulihkan");
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["userDetail", selectedUserId] });
+      queryClient.invalidateQueries({
+        queryKey: ["userDetail", selectedUserId],
+      });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Gagal memulihkan user");
     },
   });
@@ -163,12 +166,18 @@ export default function UsersPage() {
       header: activeTab === "MAHASISWA" ? "Mahasiswa" : "Klien",
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(row.original.fullName || (row.original as any).name)}`}>
-            {initials(row.original.fullName || (row.original as any).name)}
+          <div
+            className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(row.original.fullName)}`}
+          >
+            {initials(row.original.fullName)}
           </div>
           <div>
-            <div className="font-semibold text-ink-900 leading-tight">{row.original.fullName || (row.original as any).name || "User"}</div>
-            <div className="text-xs text-ink-400 mt-1 font-medium">{row.original.email}</div>
+            <div className="font-semibold text-ink-900 leading-tight">
+              {row.original.fullName || "User"}
+            </div>
+            <div className="text-xs text-ink-400 mt-1 font-medium">
+              {row.original.email}
+            </div>
           </div>
         </div>
       ),
@@ -178,8 +187,8 @@ export default function UsersPage() {
           {
             accessorKey: "company",
             header: "Perusahaan",
-            cell: ({ getValue }: any) => getValue() || "-",
-          },
+            cell: ({ getValue }) => getValue() || "-",
+          } as ColumnDef<User>,
         ]
       : []),
     {
@@ -192,31 +201,35 @@ export default function UsersPage() {
           {
             accessorKey: "rating",
             header: "Rating",
-            cell: ({ row }: any) => {
+            cell: ({ row }) => {
               const rating = row.original.rating || 0;
               return (
                 <div className="flex items-center gap-1.5 font-semibold text-ink-900">
                   <Star className="h-4 w-4 fill-amber-400 stroke-amber-500 text-amber-500" />
                   <span>{rating.toFixed(1)}</span>
-                  <span className="text-[11.5px] text-ink-400 font-medium">({row.original.jobs || 0})</span>
+                  <span className="text-[11.5px] text-ink-400 font-medium">
+                    ({row.original.jobs || 0})
+                  </span>
                 </div>
               );
             },
-          },
+          } as ColumnDef<User>,
         ]
       : [
           {
             accessorKey: "jobs",
             header: "Pesanan",
-            cell: ({ getValue }: any) => (
-              <span className="font-semibold text-ink-900">{getValue() || 0}</span>
+            cell: ({ getValue }) => (
+              <span className="font-semibold text-ink-900">
+                {Number(getValue() ?? 0)}
+              </span>
             ),
-          },
+          } as ColumnDef<User>,
         ]),
     {
       accessorKey: "createdAt",
       header: "Tgl. Daftar",
-      cell: ({ getValue }: any) => formatDate(getValue()),
+      cell: ({ getValue }) => formatDate(getValue() as string),
     },
     {
       id: "actions",
@@ -243,8 +256,10 @@ export default function UsersPage() {
             ) : (
               <button
                 onClick={() => {
-                  const nameToBan = row.original.fullName || (row.original as any).name || "User";
-                  if (confirm(`Apakah Anda yakin ingin memblokir ${nameToBan}?`)) {
+                  const nameToBan = row.original.fullName || "User";
+                  if (
+                    confirm(`Apakah Anda yakin ingin memblokir ${nameToBan}?`)
+                  ) {
                     banMutation.mutate(row.original.id);
                   }
                 }}
@@ -321,7 +336,9 @@ export default function UsersPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-500 font-semibold select-none">Status:</span>
+          <span className="text-xs text-ink-500 font-semibold select-none">
+            Status:
+          </span>
           <select
             value={statusFilter}
             onChange={(e) => {
@@ -342,8 +359,12 @@ export default function UsersPage() {
       {error ? (
         <div className="p-8 border border-border rounded-xl bg-white text-center">
           <AlertTriangle className="h-8 w-8 text-danger-500 mx-auto" />
-          <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">Gagal memuat data</h3>
-          <p className="text-xs text-ink-400 mt-1">{(error as any).message || "Terjadi kesalahan koneksi"}</p>
+          <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">
+            Gagal memuat data
+          </h3>
+          <p className="text-xs text-ink-400 mt-1">
+            {(error as Error).message || "Terjadi kesalahan koneksi"}
+          </p>
         </div>
       ) : (
         <DataTable
@@ -358,24 +379,31 @@ export default function UsersPage() {
       )}
 
       {/* Detail Modal */}
-      <Dialog open={!!selectedUserId} onOpenChange={(open) => !open && setSelectedUserId(null)}>
+      <Dialog
+        open={!!selectedUserId}
+        onOpenChange={(open) => !open && setSelectedUserId(null)}
+      >
         <DialogContent className="max-w-[820px] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3">
           {isLoadingDetail ? (
             <div className="p-12 text-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent mx-auto" />
-              <p className="text-xs text-ink-500 mt-2 font-medium">Memuat detail user...</p>
+              <p className="text-xs text-ink-500 mt-2 font-medium">
+                Memuat detail user...
+              </p>
             </div>
           ) : userDetail ? (
             <div className="flex flex-col h-full max-h-[85vh]">
               {/* Modal Header */}
               <div className="p-6 border-b border-border bg-surface-2/40 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border-2 border-white shadow-sm ${avatarClass(userDetail.fullName || (userDetail as any).name)}`}>
-                    {initials(userDetail.fullName || (userDetail as any).name)}
+                  <div
+                    className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border-2 border-white shadow-sm ${avatarClass(userDetail.fullName)}`}
+                  >
+                    {initials(userDetail.fullName)}
                   </div>
                   <div>
                     <h2 className="font-heading font-bold text-lg text-ink-900 tracking-tight leading-tight">
-                      {userDetail.fullName || (userDetail as any).name || "User"}
+                      {userDetail.fullName || "User"}
                     </h2>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <span className="text-xs text-ink-400 font-medium flex items-center gap-1">
@@ -383,7 +411,9 @@ export default function UsersPage() {
                       </span>
                       <span className="text-ink-200">•</span>
                       <span className="text-xs text-ink-400 font-medium select-none">
-                        {userDetail.role === "MAHASISWA" ? "Mahasiswa" : "Klien"}
+                        {userDetail.role === "MAHASISWA"
+                          ? "Mahasiswa"
+                          : "Klien"}
                       </span>
                     </div>
                   </div>
@@ -396,42 +426,58 @@ export default function UsersPage() {
                 {/* Info Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-4">
-                    <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider">Informasi Profil</h3>
+                    <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider">
+                      Informasi Profil
+                    </h3>
                     <div className="rounded-lg border border-border bg-white p-4 space-y-3">
                       {userDetail.role === "MAHASISWA" && (
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-ink-400 font-medium">Universitas</span>
-                          <span className="font-semibold text-ink-900 text-right">{userDetail.university || "-"}</span>
+                          <span className="text-ink-400 font-medium">
+                            Universitas
+                          </span>
+                          <span className="font-semibold text-ink-900 text-right">
+                            {userDetail.university || "-"}
+                          </span>
                         </div>
                       )}
                       {userDetail.role === "KLIEN" && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-ink-400 font-medium flex items-center gap-1.5">
-                            <Building className="h-4 w-4 text-ink-400" /> Perusahaan
+                            <Building className="h-4 w-4 text-ink-400" />{" "}
+                            Perusahaan
                           </span>
-                          <span className="font-semibold text-ink-900">{userDetail.company || "-"}</span>
+                          <span className="font-semibold text-ink-900">
+                            {userDetail.company || "-"}
+                          </span>
                         </div>
                       )}
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-ink-400 font-medium flex items-center gap-1.5">
                           <Phone className="h-4 w-4 text-ink-400" /> No. Telepon
                         </span>
-                        <span className="font-semibold text-ink-900">{userDetail.phone || "-"}</span>
+                        <span className="font-semibold text-ink-900">
+                          {userDetail.phone || "-"}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-ink-400 font-medium flex items-center gap-1.5">
-                          <Calendar className="h-4 w-4 text-ink-400" /> Tanggal Daftar
+                          <Calendar className="h-4 w-4 text-ink-400" /> Tanggal
+                          Daftar
                         </span>
-                        <span className="font-semibold text-ink-900">{formatDate(userDetail.createdAt)}</span>
+                        <span className="font-semibold text-ink-900">
+                          {formatDate(userDetail.createdAt)}
+                        </span>
                       </div>
                       {userDetail.role === "MAHASISWA" && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-ink-400 font-medium flex items-center gap-1.5">
-                            <Star className="h-4 w-4 text-ink-400" /> Rating Platform
+                            <Star className="h-4 w-4 text-ink-400" /> Rating
+                            Platform
                           </span>
                           <span className="font-semibold text-ink-900 flex items-center gap-1">
                             <Star className="h-3.5 w-3.5 fill-amber-400 stroke-amber-500 text-amber-500" />
-                            {(userDetail.rating || 0).toFixed(1)} ({userDetail.jobs || 0})
+                            {(userDetail.rating || 0).toFixed(1)} (
+                            {userDetail.jobs || 0})
                           </span>
                         </div>
                       )}
@@ -439,10 +485,13 @@ export default function UsersPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider">Bio Singkat</h3>
+                    <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider">
+                      Bio Singkat
+                    </h3>
                     <div className="rounded-lg border border-border bg-white p-4 h-[138px] overflow-y-auto">
                       <p className="text-sm text-ink-700 leading-relaxed font-medium">
-                        {userDetail.bio || "Tidak ada biodata diri yang dicantumkan."}
+                        {userDetail.bio ||
+                          "Tidak ada biodata diri yang dicantumkan."}
                       </p>
                     </div>
                   </div>
@@ -451,14 +500,21 @@ export default function UsersPage() {
                 {/* Riwayat Transaksi */}
                 <div className="space-y-3">
                   <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <TrendingUp className="h-4 w-4 text-ink-400" /> Riwayat Transaksi Terbaru
+                    <TrendingUp className="h-4 w-4 text-ink-400" /> Riwayat
+                    Transaksi Terbaru
                   </h3>
                   <div className="rounded-lg border border-border bg-surface-2 divide-y divide-border overflow-hidden">
-                    {userDetail.orderHistory && userDetail.orderHistory.length > 0 ? (
+                    {userDetail.orderHistory &&
+                    userDetail.orderHistory.length > 0 ? (
                       userDetail.orderHistory.map((order) => (
-                        <div key={order.id} className="p-3 bg-white flex justify-between items-center hover:bg-surface-2 transition-all">
+                        <div
+                          key={order.id}
+                          className="p-3 bg-white flex justify-between items-center hover:bg-surface-2 transition-all"
+                        >
                           <div>
-                            <div className="text-sm font-semibold text-ink-900">{order.title}</div>
+                            <div className="text-sm font-semibold text-ink-900">
+                              {order.title}
+                            </div>
                             <div className="text-[11px] text-ink-400 mt-1 font-medium flex gap-2">
                               <span>ID: {order.id}</span>
                               <span>•</span>
@@ -466,14 +522,20 @@ export default function UsersPage() {
                             </div>
                           </div>
                           <div className="text-right flex items-center gap-3">
-                            <span className="text-sm font-bold text-ink-900">{formatCurrency(order.amount)}</span>
-                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full select-none ${
-                              order.status === "Selesai" || order.status === "COMPLETED"
-                                ? "bg-success-50 text-success-700"
-                                : order.status === "Dibatalkan" || order.status === "CANCELLED"
-                                ? "bg-danger-50 text-danger-700"
-                                : "bg-warn-50 text-warn-700"
-                            }`}>
+                            <span className="text-sm font-bold text-ink-900">
+                              {formatCurrency(order.amount)}
+                            </span>
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full select-none ${
+                                order.status === "Selesai" ||
+                                order.status === "COMPLETED"
+                                  ? "bg-success-50 text-success-700"
+                                  : order.status === "Dibatalkan" ||
+                                      order.status === "CANCELLED"
+                                    ? "bg-danger-50 text-danger-700"
+                                    : "bg-warn-50 text-warn-700"
+                              }`}
+                            >
                               {order.status}
                             </span>
                           </div>
@@ -490,14 +552,21 @@ export default function UsersPage() {
                 {/* Riwayat Laporan */}
                 <div className="space-y-3">
                   <h3 className="font-heading font-bold text-xs text-ink-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <AlertTriangle className="h-4 w-4 text-ink-400" /> Riwayat Laporan
+                    <AlertTriangle className="h-4 w-4 text-ink-400" /> Riwayat
+                    Laporan
                   </h3>
                   <div className="rounded-lg border border-border bg-surface-2 divide-y divide-border overflow-hidden">
-                    {userDetail.reportHistory && userDetail.reportHistory.length > 0 ? (
+                    {userDetail.reportHistory &&
+                    userDetail.reportHistory.length > 0 ? (
                       userDetail.reportHistory.map((rep) => (
-                        <div key={rep.id} className="p-3 bg-white flex justify-between items-center hover:bg-surface-2 transition-all">
+                        <div
+                          key={rep.id}
+                          className="p-3 bg-white flex justify-between items-center hover:bg-surface-2 transition-all"
+                        >
                           <div>
-                            <div className="text-sm font-semibold text-ink-900">{rep.type}</div>
+                            <div className="text-sm font-semibold text-ink-900">
+                              {rep.type}
+                            </div>
                             <div className="text-[11px] text-ink-400 mt-1 font-medium flex gap-2">
                               <span>ID: {rep.id}</span>
                               <span>•</span>
@@ -505,13 +574,15 @@ export default function UsersPage() {
                             </div>
                           </div>
                           <div>
-                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full select-none ${
-                              rep.status === "Selesai"
-                                ? "bg-success-50 text-success-700"
-                                : rep.status === "Ditolak"
-                                ? "bg-danger-50 text-danger-700"
-                                : "bg-warn-50 text-warn-700"
-                            }`}>
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full select-none ${
+                                rep.status === "Selesai"
+                                  ? "bg-success-50 text-success-700"
+                                  : rep.status === "Ditolak"
+                                    ? "bg-danger-50 text-danger-700"
+                                    : "bg-warn-50 text-warn-700"
+                              }`}
+                            >
                               {rep.status}
                             </span>
                           </div>
@@ -546,8 +617,12 @@ export default function UsersPage() {
                 ) : (
                   <button
                     onClick={() => {
-                      const nameToBan = userDetail.fullName || (userDetail as any).name || "User";
-                      if (confirm(`Apakah Anda yakin ingin memblokir ${nameToBan}?`)) {
+                      const nameToBan = userDetail.fullName || "User";
+                      if (
+                        confirm(
+                          `Apakah Anda yakin ingin memblokir ${nameToBan}?`,
+                        )
+                      ) {
                         banMutation.mutate(userDetail.id);
                       }
                     }}

@@ -2,43 +2,49 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { disputesApi, Dispute, DisputeOutcome, ResolveDisputePayload, DisputeDetail } from "@/lib/api/disputes";
+import {
+  disputesApi,
+  Dispute,
+  DisputeOutcome,
+  DisputePriority,
+  DisputeStatus,
+  ResolveDisputePayload,
+  DisputeDetail,
+} from "@/lib/api/disputes";
 import { DataTable } from "@/components/data-table/data-table";
 import { avatarClass, initials } from "@/lib/avatar";
 import { ColumnDef } from "@tanstack/react-table";
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  Search, 
+import {
+  AlertTriangle,
+  CheckCircle,
+  Search,
   X,
-  FileText,
-  Calendar,
-  User,
-  ShieldCheck,
   Flag,
   ArrowRight,
   Clock,
-  ExternalLink
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 export default function DisputesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Terbuka");
   const [page, setPage] = useState(1);
-  const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
-
-  // Resolution Form States
-  const [resolutionNote, setResolutionNote] = useState("");
-  const [outcome, setOutcome] = useState<DisputeOutcome | "">("");
-  const [refundAmount, setRefundAmount] = useState<number | "">("");
+  const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(
+    null,
+  );
 
   const limit = 10;
 
@@ -50,45 +56,46 @@ export default function DisputesPage() {
         page,
         limit,
         status: statusFilter === "Semua" ? undefined : statusFilter,
-        search: search || undefined
+        search: search || undefined,
       });
       return res;
-    }
+    },
   });
 
   // Derive counts from real query data (after useQuery)
-  const openCount = data?.data?.filter((d) => d.status === "Terbuka").length ?? 0;
-  const processingCount = data?.data?.filter((d) => d.status === "Diproses").length ?? 0;
+  const openCount =
+    data?.data?.filter((d) => d.status === "Terbuka").length ?? 0;
+  const processingCount =
+    data?.data?.filter((d) => d.status === "Diproses").length ?? 0;
   const totalCount = data?.total ?? 0;
 
   // Query dispute detail
-  const { data: disputeDetail, isLoading: isLoadingDetail } = useQuery<DisputeDetail, Error>({
+  const { data: disputeDetail, isLoading: isLoadingDetail } = useQuery<
+    DisputeDetail,
+    Error
+  >({
     queryKey: ["disputeDetail", selectedDisputeId],
     queryFn: () => disputesApi.getById(selectedDisputeId!),
     enabled: !!selectedDisputeId,
   });
 
-  // Reset form states when modal is opened
-  React.useEffect(() => {
-    if (selectedDisputeId) {
-      setResolutionNote("");
-      setOutcome("");
-      setRefundAmount("");
-    }
-  }, [selectedDisputeId]);
-
   // Mutation to Resolve dispute
   const resolveMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: ResolveDisputePayload }) => 
-      disputesApi.resolve(id, payload),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: ResolveDisputePayload;
+    }) => disputesApi.resolve(id, payload),
     onSuccess: () => {
       toast.success("Dispute berhasil diselesaikan");
       queryClient.invalidateQueries({ queryKey: ["disputes"] });
       setSelectedDisputeId(null);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Gagal memproses resolusi");
-    }
+    },
   });
 
   const formatDate = (dateStr: string) => {
@@ -103,14 +110,6 @@ export default function DisputesPage() {
     } catch {
       return dateStr;
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(amount);
   };
 
   const renderPriorityPill = (priority: Dispute["priority"]) => {
@@ -134,7 +133,9 @@ export default function DisputesPage() {
           </span>
         );
       default:
-        return <span className="text-xs font-semibold text-ink-700">{priority}</span>;
+        return (
+          <span className="text-xs font-semibold text-ink-700">{priority}</span>
+        );
     }
   };
 
@@ -173,43 +174,13 @@ export default function DisputesPage() {
     }
   };
 
-  const handleResolveSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!disputeDetail) return;
-    if (!outcome) {
-      toast.error("Silakan pilih resolusi tindakan");
-      return;
-    }
-    if (!resolutionNote.trim()) {
-      toast.error("Catatan resolusi wajib diisi");
-      return;
-    }
-    if (outcome === "PARTIAL_REFUND" && (!refundAmount || refundAmount <= 0)) {
-      toast.error("Nominal refund parsial wajib diisi dan harus lebih dari 0");
-      return;
-    }
-    if (outcome === "PARTIAL_REFUND" && Number(refundAmount) > disputeDetail.orderAmount) {
-      toast.error("Nominal refund parsial tidak boleh melebihi nilai transaksi");
-      return;
-    }
-
-    resolveMutation.mutate({
-      id: disputeDetail.id,
-      payload: {
-        outcome,
-        resolutionNote,
-        refundAmount: outcome === "PARTIAL_REFUND" ? String(refundAmount) : undefined,
-      }
-    });
-  };
-
   const columns: ColumnDef<Dispute>[] = [
     {
       accessorKey: "id",
       header: "ID Laporan",
-      cell: ({ getValue }: any) => (
+      cell: ({ getValue }) => (
         <span className="font-mono font-bold text-xs text-brand-600 select-all">
-          {getValue()}
+          {String(getValue())}
         </span>
       ),
     },
@@ -218,12 +189,18 @@ export default function DisputesPage() {
       header: "Pelapor",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <div className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.reporterName)}`}>
+          <div
+            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.reporterName)}`}
+          >
             {initials(row.original.reporterName)}
           </div>
           <div>
-            <div className="font-semibold text-ink-900 leading-none">{row.original.reporterName}</div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">Klien</div>
+            <div className="font-semibold text-ink-900 leading-none">
+              {row.original.reporterName}
+            </div>
+            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
+              Klien
+            </div>
           </div>
         </div>
       ),
@@ -233,12 +210,18 @@ export default function DisputesPage() {
       header: "Terlapor",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <div className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.reportedName)}`}>
+          <div
+            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.reportedName)}`}
+          >
             {initials(row.original.reportedName)}
           </div>
           <div>
-            <div className="font-semibold text-ink-900 leading-none">{row.original.reportedName}</div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">Mahasiswa</div>
+            <div className="font-semibold text-ink-900 leading-none">
+              {row.original.reportedName}
+            </div>
+            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
+              Mahasiswa
+            </div>
           </div>
         </div>
       ),
@@ -246,24 +229,26 @@ export default function DisputesPage() {
     {
       accessorKey: "issueType",
       header: "Jenis Masalah",
-      cell: ({ getValue }: any) => (
-        <span className="font-medium text-ink-700 text-sm leading-snug">{getValue()}</span>
+      cell: ({ getValue }) => (
+        <span className="font-medium text-ink-700 text-sm leading-snug">
+          {String(getValue())}
+        </span>
       ),
     },
     {
       accessorKey: "priority",
       header: "Prioritas",
-      cell: ({ getValue }: any) => renderPriorityPill(getValue()),
+      cell: ({ getValue }) => renderPriorityPill(getValue() as DisputePriority),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ getValue }: any) => renderStatusPill(getValue()),
+      cell: ({ getValue }) => renderStatusPill(getValue() as DisputeStatus),
     },
     {
       accessorKey: "createdAt",
       header: "Tanggal",
-      cell: ({ getValue }: any) => formatDate(getValue()),
+      cell: ({ getValue }) => formatDate(getValue() as string),
     },
     {
       id: "actions",
@@ -286,18 +271,47 @@ export default function DisputesPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Laporan Terbuka", val: openCount, icon: Flag, color: "text-danger-500 bg-danger-50 border-danger-100" },
-          { label: "Sedang Diproses", val: processingCount, icon: Clock, color: "text-warn-500 bg-warn-50 border-warn-100" },
-          { label: "Total Laporan", val: totalCount, icon: CheckCircle, color: "text-success-500 bg-success-50 border-success-100" },
-          { label: "Selesai Diselesaikan", val: data?.data?.filter((d) => d.status === "Selesai").length ?? 0, icon: AlertTriangle, color: "text-brand-500 bg-brand-50 border-brand-100" }
+          {
+            label: "Laporan Terbuka",
+            val: openCount,
+            icon: Flag,
+            color: "text-danger-500 bg-danger-50 border-danger-100",
+          },
+          {
+            label: "Sedang Diproses",
+            val: processingCount,
+            icon: Clock,
+            color: "text-warn-500 bg-warn-50 border-warn-100",
+          },
+          {
+            label: "Total Laporan",
+            val: totalCount,
+            icon: CheckCircle,
+            color: "text-success-500 bg-success-50 border-success-100",
+          },
+          {
+            label: "Selesai Diselesaikan",
+            val: data?.data?.filter((d) => d.status === "Selesai").length ?? 0,
+            icon: AlertTriangle,
+            color: "text-brand-500 bg-brand-50 border-brand-100",
+          },
         ].map((item, idx) => (
-          <div key={idx} className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1">
-            <div className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}>
+          <div
+            key={idx}
+            className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1"
+          >
+            <div
+              className={`h-11 w-11 rounded-lg flex items-center justify-center border ${item.color.split(" ")[1]} ${item.color.split(" ")[2]} flex-shrink-0`}
+            >
               <item.icon className={`h-5 w-5 ${item.color.split(" ")[0]}`} />
             </div>
             <div>
-              <div className="text-xs text-ink-400 font-semibold">{item.label}</div>
-              <div className="text-2xl font-extrabold text-ink-900 mt-1 leading-none tracking-tight">{item.val}</div>
+              <div className="text-xs text-ink-400 font-semibold">
+                {item.label}
+              </div>
+              <div className="text-2xl font-extrabold text-ink-900 mt-1 leading-none tracking-tight">
+                {item.val}
+              </div>
             </div>
           </div>
         ))}
@@ -330,7 +344,9 @@ export default function DisputesPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-500 font-semibold select-none">Status:</span>
+          <span className="text-xs text-ink-500 font-semibold select-none">
+            Status:
+          </span>
           <select
             value={statusFilter}
             onChange={(e) => {
@@ -352,8 +368,12 @@ export default function DisputesPage() {
       {error ? (
         <div className="p-8 border border-border rounded-xl bg-white text-center">
           <AlertTriangle className="h-8 w-8 text-danger-500 mx-auto" />
-          <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">Gagal memuat data</h3>
-          <p className="text-xs text-ink-400 mt-1">{(error as any).message || "Terjadi kesalahan koneksi"}</p>
+          <h3 className="font-heading font-bold text-sm text-ink-900 mt-2">
+            Gagal memuat data
+          </h3>
+          <p className="text-xs text-ink-400 mt-1">
+            {(error as Error).message || "Terjadi kesalahan koneksi"}
+          </p>
         </div>
       ) : (
         <DataTable
@@ -368,12 +388,17 @@ export default function DisputesPage() {
       )}
 
       {/* Detail Modal & Resolution Flow */}
-      <Dialog open={!!selectedDisputeId} onOpenChange={(open) => !open && setSelectedDisputeId(null)}>
+      <Dialog
+        open={!!selectedDisputeId}
+        onOpenChange={(open) => !open && setSelectedDisputeId(null)}
+      >
         <DialogContent className="max-w-[850px] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3">
           {isLoadingDetail ? (
             <div className="p-12 text-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent mx-auto" />
-              <p className="text-xs text-ink-500 mt-2 font-medium">Memuat detail dispute...</p>
+              <p className="text-xs text-ink-500 mt-2 font-medium">
+                Memuat detail dispute...
+              </p>
             </div>
           ) : disputeDetail ? (
             <div className="flex flex-col h-full max-h-[85vh]">
@@ -388,9 +413,13 @@ export default function DisputesPage() {
                   </div>
                   <div className="flex items-center gap-1.5 mt-1 text-[11px] text-ink-400 font-medium">
                     <span>Transaksi: </span>
-                    <span className="font-mono font-bold text-brand-600 select-all">{disputeDetail.orderId}</span>
+                    <span className="font-mono font-bold text-brand-600 select-all">
+                      {disputeDetail.orderId}
+                    </span>
                     <span>•</span>
-                    <span>Dilaporkan: {formatDate(disputeDetail.createdAt)}</span>
+                    <span>
+                      Dilaporkan: {formatDate(disputeDetail.createdAt)}
+                    </span>
                   </div>
                 </div>
                 <div>{renderStatusPill(disputeDetail.status)}</div>
@@ -402,28 +431,44 @@ export default function DisputesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Pelapor */}
                   <div className="rounded-lg border border-border p-4 bg-surface-2/40 space-y-3">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Pelapor (Klien)</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+                      Pelapor (Klien)
+                    </h4>
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold border border-white shadow-sm ${avatarClass(disputeDetail.reporterName)}`}>
+                      <div
+                        className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold border border-white shadow-sm ${avatarClass(disputeDetail.reporterName)}`}
+                      >
                         {initials(disputeDetail.reporterName)}
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-ink-900">{disputeDetail.reporterName}</div>
-                        <div className="text-xs text-ink-400 mt-0.5">{disputeDetail.reporterEmail}</div>
+                        <div className="text-sm font-semibold text-ink-900">
+                          {disputeDetail.reporterName}
+                        </div>
+                        <div className="text-xs text-ink-400 mt-0.5">
+                          {disputeDetail.reporterEmail}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Terlapor */}
                   <div className="rounded-lg border border-border p-4 bg-surface-2/40 space-y-3">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Terlapor (Mahasiswa)</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+                      Terlapor (Mahasiswa)
+                    </h4>
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold border border-white shadow-sm ${avatarClass(disputeDetail.reportedName)}`}>
+                      <div
+                        className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold border border-white shadow-sm ${avatarClass(disputeDetail.reportedName)}`}
+                      >
                         {initials(disputeDetail.reportedName)}
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-ink-900">{disputeDetail.reportedName}</div>
-                        <div className="text-xs text-ink-400 mt-0.5">{disputeDetail.reportedEmail}</div>
+                        <div className="text-sm font-semibold text-ink-900">
+                          {disputeDetail.reportedName}
+                        </div>
+                        <div className="text-xs text-ink-400 mt-0.5">
+                          {disputeDetail.reportedEmail}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -431,32 +476,52 @@ export default function DisputesPage() {
 
                 {/* Deskripsi Masalah */}
                 <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Deskripsi Masalah ({disputeDetail.issueType})</h4>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+                    Deskripsi Masalah ({disputeDetail.issueType})
+                  </h4>
                   <div className="rounded-lg border border-border p-4 bg-white font-medium text-sm text-ink-700 leading-relaxed max-h-[120px] overflow-y-auto">
-                    {disputeDetail.description || "Tidak ada deskripsi laporan tertulis."}
+                    {disputeDetail.description ||
+                      "Tidak ada deskripsi laporan tertulis."}
                   </div>
                 </div>
 
                 {/* Timeline History */}
                 <div className="space-y-3">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Riwayat Komunikasi & Laporan</h4>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+                    Riwayat Komunikasi & Laporan
+                  </h4>
                   <div className="rounded-lg border border-border bg-white p-4 space-y-4 max-h-[180px] overflow-y-auto">
-                    {disputeDetail.communicationHistory && disputeDetail.communicationHistory.length > 0 ? (
+                    {disputeDetail.communicationHistory &&
+                    disputeDetail.communicationHistory.length > 0 ? (
                       <div className="relative border-l border-border ml-2.5 pl-5 space-y-4">
-                        {disputeDetail.communicationHistory.map((item: { id: string; senderName: string; senderRole: string; message: string; createdAt: string }) => (
-                          <div key={item.id} className="relative">
-                            <span className="absolute -left-[26px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-brand-500 shadow-sm" />
-                            <div className="text-xs text-ink-500">
-                              <span className="font-semibold text-ink-900">{item.senderName}</span>{" "}
-                              <span className="text-[10px] bg-surface-3 px-1 rounded text-ink-400 font-semibold uppercase">{item.senderRole}</span>
-                              <span className="text-ink-300 ml-1.5">•</span>
-                              <span className="text-[10px] text-ink-400 ml-1.5">{formatDate(item.createdAt)}</span>
+                        {disputeDetail.communicationHistory.map(
+                          (item: {
+                            id: string;
+                            senderName: string;
+                            senderRole: string;
+                            message: string;
+                            createdAt: string;
+                          }) => (
+                            <div key={item.id} className="relative">
+                              <span className="absolute -left-[26px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-brand-500 shadow-sm" />
+                              <div className="text-xs text-ink-500">
+                                <span className="font-semibold text-ink-900">
+                                  {item.senderName}
+                                </span>{" "}
+                                <span className="text-[10px] bg-surface-3 px-1 rounded text-ink-400 font-semibold uppercase">
+                                  {item.senderRole}
+                                </span>
+                                <span className="text-ink-300 ml-1.5">•</span>
+                                <span className="text-[10px] text-ink-400 ml-1.5">
+                                  {formatDate(item.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-ink-700 mt-1 font-medium bg-surface-2 p-2.5 rounded-lg border border-border/50 max-w-[95%]">
+                                {item.message}
+                              </p>
                             </div>
-                            <p className="text-xs text-ink-700 mt-1 font-medium bg-surface-2 p-2.5 rounded-lg border border-border/50 max-w-[95%]">
-                              {item.message}
-                            </p>
-                          </div>
-                        ))}
+                          ),
+                        )}
                       </div>
                     ) : (
                       <div className="text-center text-xs text-ink-400 font-medium py-3">
@@ -466,96 +531,179 @@ export default function DisputesPage() {
                   </div>
                 </div>
 
-                {/* Tindak Lanjut Resolusi (Only for open/processing statuses) */}
-                {(disputeDetail.status === "Terbuka" || disputeDetail.status === "Diproses") && (
-                  <form onSubmit={handleResolveSubmit} className="border-t border-border pt-4 space-y-4">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Tindak Lanjut & Keputusan Resolusi</h4>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Outcome Selection */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-ink-700">Keputusan Dana Escrow</label>
-                        <select
-                          value={outcome}
-                          onChange={(e) => {
-                            setOutcome(e.target.value as DisputeOutcome);
-                            if (e.target.value !== "PARTIAL_REFUND") setRefundAmount("");
-                          }}
-                          className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-sm font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
-                        >
-                          <option value="">Pilih resolusi...</option>
-                          <option value="RELEASE">Cairkan penuh ke Freelancer (Mahasiswa)</option>
-                          <option value="REFUND">Refund penuh ke Client (Klien)</option>
-                          <option value="PARTIAL_REFUND">Refund Parsial ke Client & Sisa ke Freelancer</option>
-                          <option value="REJECT">Tolak Laporan (Tutup tanpa perubahan dana)</option>
-                        </select>
-                      </div>
-
-                      {/* Refund Amount Input (Only visible for Partial Refund) */}
-                      {outcome === "PARTIAL_REFUND" && (
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-ink-700">
-                            Nominal Refund Klien (Maks: {formatCurrency(disputeDetail.orderAmount)})
-                          </label>
-                          <input
-                            type="number"
-                            placeholder="Contoh: 500000"
-                            value={refundAmount}
-                            onChange={(e) => setRefundAmount(e.target.value ? Number(e.target.value) : "")}
-                            className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-sm placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-semibold text-ink-900"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Resolution Note */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-ink-700">Catatan Resolusi Resmi (Wajib)</label>
-                      <textarea
-                        rows={3}
-                        placeholder="Tuliskan keputusan resolusi, misal: 'Pengerjaan tidak lengkap, disetujui refund parsial 50%...'"
-                        value={resolutionNote}
-                        onChange={(e) => setResolutionNote(e.target.value)}
-                        className="w-full p-3 bg-white border border-border rounded-lg text-sm placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-none"
-                      />
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedDisputeId(null)}
-                        className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
-                      >
-                        Batal
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={resolveMutation.isPending}
-                        className="px-4 py-2 text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {resolveMutation.isPending ? "Memproses..." : "Selesaikan Dispute"}
-                        {!resolveMutation.isPending && <ArrowRight className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </form>
-                )}
+                <ResolutionForm
+                  key={disputeDetail.id}
+                  disputeDetail={disputeDetail}
+                  onResolve={(params) => resolveMutation.mutate(params)}
+                  onClose={() => setSelectedDisputeId(null)}
+                  isPending={resolveMutation.isPending}
+                />
               </div>
 
               {/* Read-Only Resolution View (For resolved/rejected disputes) */}
-              {disputeDetail.status !== "Terbuka" && disputeDetail.status !== "Diproses" && (
-                <div className="p-5 border-t border-border bg-surface-2/40 flex justify-end">
-                  <button
-                    onClick={() => setSelectedDisputeId(null)}
-                    className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
-                  >
-                    Tutup Detail
-                  </button>
-                </div>
-              )}
+              {disputeDetail.status !== "Terbuka" &&
+                disputeDetail.status !== "Diproses" && (
+                  <div className="p-5 border-t border-border bg-surface-2/40 flex justify-end">
+                    <button
+                      onClick={() => setSelectedDisputeId(null)}
+                      className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
+                    >
+                      Tutup Detail
+                    </button>
+                  </div>
+                )}
             </div>
           ) : null}
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ResolutionForm({
+  disputeDetail,
+  onResolve,
+  onClose,
+  isPending,
+}: {
+  disputeDetail: DisputeDetail;
+  onResolve: (params: { id: string; payload: ResolveDisputePayload }) => void;
+  onClose: () => void;
+  isPending: boolean;
+}) {
+  const [resolutionNote, setResolutionNote] = useState("");
+  const [outcome, setOutcome] = useState<DisputeOutcome | "">("");
+  const [refundAmount, setRefundAmount] = useState<number | "">("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!outcome) {
+      toast.error("Silakan pilih resolusi tindakan");
+      return;
+    }
+    if (!resolutionNote.trim()) {
+      toast.error("Catatan resolusi wajib diisi");
+      return;
+    }
+    if (outcome === "PARTIAL_REFUND" && (!refundAmount || refundAmount <= 0)) {
+      toast.error("Nominal refund parsial wajib diisi dan harus lebih dari 0");
+      return;
+    }
+    if (
+      outcome === "PARTIAL_REFUND" &&
+      Number(refundAmount) > disputeDetail.orderAmount
+    ) {
+      toast.error(
+        "Nominal refund parsial tidak boleh melebihi nilai transaksi",
+      );
+      return;
+    }
+
+    onResolve({
+      id: disputeDetail.id,
+      payload: {
+        outcome,
+        resolutionNote,
+        refundAmount:
+          outcome === "PARTIAL_REFUND" ? String(refundAmount) : undefined,
+      },
+    });
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="border-t border-border pt-4 space-y-4"
+    >
+      <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+        Tindak Lanjut & Keputusan Resolusi
+      </h4>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-ink-700">
+            Keputusan Dana Escrow
+          </label>
+          <select
+            value={outcome}
+            onChange={(e) => {
+              setOutcome(e.target.value as DisputeOutcome);
+              if (e.target.value !== "PARTIAL_REFUND")
+                setRefundAmount("");
+            }}
+            className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-sm font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
+          >
+            <option value="">Pilih resolusi...</option>
+            <option value="RELEASE">
+              Cairkan penuh ke Freelancer (Mahasiswa)
+            </option>
+            <option value="REFUND">
+              Refund penuh ke Client (Klien)
+            </option>
+            <option value="PARTIAL_REFUND">
+              Refund Parsial ke Client & Sisa ke Freelancer
+            </option>
+            <option value="REJECT">
+              Tolak Laporan (Tutup tanpa perubahan dana)
+            </option>
+          </select>
+        </div>
+
+        {outcome === "PARTIAL_REFUND" && (
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-ink-700">
+              Nominal Refund Klien (Maks:{" "}
+              {formatCurrency(disputeDetail.orderAmount)})
+            </label>
+            <input
+              type="number"
+              placeholder="Contoh: 500000"
+              value={refundAmount}
+              onChange={(e) =>
+                setRefundAmount(
+                  e.target.value ? Number(e.target.value) : "",
+                )
+              }
+              className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-sm placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-semibold text-ink-900"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-ink-700">
+          Catatan Resolusi Resmi (Wajib)
+        </label>
+        <textarea
+          rows={3}
+          placeholder="Tuliskan keputusan resolusi, misal: 'Pengerjaan tidak lengkap, disetujui refund parsial 50%...'"
+          value={resolutionNote}
+          onChange={(e) => setResolutionNote(e.target.value)}
+          className="w-full p-3 bg-white border border-border rounded-lg text-sm placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-none"
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="px-4 py-2 text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isPending
+            ? "Memproses..."
+            : "Selesaikan Dispute"}
+          {!isPending && (
+            <ArrowRight className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </form>
   );
 }

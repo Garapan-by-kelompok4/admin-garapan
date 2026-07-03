@@ -64,23 +64,63 @@ function normaliseOrder(raw: unknown): OrderTransaction {
   return {
     id: String(r.id ?? ""),
     clientName: String(
-      klien.companyName ?? klienUser.fullName ?? klienUser.displayName ??
-      r.clientName ?? r.buyerName ?? r.klienName ?? "-"
+      klien.companyName ??
+        klienUser.fullName ??
+        klienUser.displayName ??
+        r.clientName ??
+        r.buyerName ??
+        r.klienName ??
+        "-",
     ),
     clientId: String(klien.id ?? r.clientId ?? r.buyerId ?? r.klienId ?? "-"),
     studentName: String(
-      mahasiswaUser.fullName ?? mahasiswaUser.displayName ?? mahasiswaUser.email ??
-      r.studentName ?? r.sellerName ?? r.mahasiswaName ?? r.freelancerName ?? "-"
+      mahasiswaUser.fullName ??
+        mahasiswaUser.displayName ??
+        mahasiswaUser.email ??
+        r.studentName ??
+        r.sellerName ??
+        r.mahasiswaName ??
+        r.freelancerName ??
+        "-",
     ),
-    studentId: String(mahasiswa.id ?? r.studentId ?? r.sellerId ?? r.mahasiswaId ?? r.freelancerId ?? "-"),
-    serviceTitle: String(jasa.title ?? project.title ?? r.serviceTitle ?? r.title ?? r.jasaTitle ?? "-"),
-    amount: Number(r.totalPrice ?? r.amount ?? r.totalAmount ?? r.price ?? r.total ?? r.value ?? 0),
-    escrowStatus: (r.escrowStatus || mapEscrowStatus(String(r.status ?? ""))) as EscrowStatus,
-    createdAt: String(r.createdAt ?? r.date ?? r.createdDate ?? new Date().toISOString()),
+    studentId: String(
+      mahasiswa.id ??
+        r.studentId ??
+        r.sellerId ??
+        r.mahasiswaId ??
+        r.freelancerId ??
+        "-",
+    ),
+    serviceTitle: String(
+      jasa.title ??
+        project.title ??
+        r.serviceTitle ??
+        r.title ??
+        r.jasaTitle ??
+        "-",
+    ),
+    amount: Number(
+      r.totalPrice ??
+        r.amount ??
+        r.totalAmount ??
+        r.price ??
+        r.total ??
+        r.value ??
+        0,
+    ),
+    escrowStatus: (r.escrowStatus ||
+      mapEscrowStatus(String(r.status ?? ""))) as EscrowStatus,
+    createdAt: String(
+      r.createdAt ?? r.date ?? r.createdDate ?? new Date().toISOString(),
+    ),
   };
 }
 
-function normaliseListResponse(raw: unknown, page = 1, limit = 10): ListOrdersResponse {
+function normaliseListResponse(
+  raw: unknown,
+  page = 1,
+  limit = 10,
+): ListOrdersResponse {
   if (!raw) return { data: [], total: 0, page, limit };
 
   const r = asRecord(raw);

@@ -44,10 +44,14 @@ function asRecord(value: unknown): UnknownRecord {
   return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
-function normaliseFlaggedItem(raw: UnknownRecord, type: "jasa" | "project"): FlaggedContent {
-  const owner = type === "jasa"
-    ? asRecord(asRecord(raw.mahasiswa).user)
-    : asRecord(asRecord(raw.klien).user);
+function normaliseFlaggedItem(
+  raw: UnknownRecord,
+  type: "jasa" | "project",
+): FlaggedContent {
+  const owner =
+    type === "jasa"
+      ? asRecord(asRecord(raw.mahasiswa).user)
+      : asRecord(asRecord(raw.klien).user);
 
   return {
     id: String(raw.id ?? ""),
@@ -67,7 +71,9 @@ function normaliseFlaggedItem(raw: UnknownRecord, type: "jasa" | "project"): Fla
 }
 
 export const contentApi = {
-  list: async (_params: ListContentParams = {}): Promise<ListContentResponse> => {
+  list: async (
+    _params: ListContentParams = {},
+  ): Promise<ListContentResponse> => {
     const raw = await apiClient<unknown>("/admin/content");
     const record = asRecord(raw);
 

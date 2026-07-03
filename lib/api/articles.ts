@@ -137,7 +137,12 @@ function nullableString(value: unknown) {
 
 function normaliseArticle(raw: RawArticle): Article {
   const publishedAt = raw.publishedAt ?? raw.published_at ?? null;
-  const imageUrl = raw.imageUrl ?? raw.thumbnailUrl ?? raw.image_url ?? raw.thumbnail_url ?? "";
+  const imageUrl =
+    raw.imageUrl ??
+    raw.thumbnailUrl ??
+    raw.image_url ??
+    raw.thumbnail_url ??
+    "";
 
   return {
     id: stringOr(raw.id),
@@ -152,8 +157,14 @@ function normaliseArticle(raw: RawArticle): Article {
     views: typeof raw.views === "number" ? raw.views : 0,
     publishedAt: nullableString(publishedAt),
     deletedAt: nullableString(raw.deletedAt ?? raw.deleted_at),
-    createdAt: stringOr(raw.createdAt ?? raw.tanggal ?? raw.created_at, new Date().toISOString()),
-    updatedAt: stringOr(raw.updatedAt ?? raw.updated_at ?? raw.createdAt, new Date().toISOString()),
+    createdAt: stringOr(
+      raw.createdAt ?? raw.tanggal ?? raw.created_at,
+      new Date().toISOString(),
+    ),
+    updatedAt: stringOr(
+      raw.updatedAt ?? raw.updated_at ?? raw.createdAt,
+      new Date().toISOString(),
+    ),
     status: raw.status === "Draft" || !publishedAt ? "Draft" : "Published",
     author: raw.author
       ? {
@@ -165,7 +176,9 @@ function normaliseArticle(raw: RawArticle): Article {
   };
 }
 
-function buildArticlePayload(payload: CreateArticlePayload | UpdateArticlePayload) {
+function buildArticlePayload(
+  payload: CreateArticlePayload | UpdateArticlePayload,
+) {
   const body: Record<string, unknown> = {};
 
   if (payload.title !== undefined) body.title = payload.title;
@@ -173,12 +186,16 @@ function buildArticlePayload(payload: CreateArticlePayload | UpdateArticlePayloa
   if (payload.imageUrl !== undefined) body.imageUrl = payload.imageUrl;
   if (payload.category !== undefined) body.category = payload.category;
   if (payload.tags !== undefined) body.tags = payload.tags;
-  if (payload.seoDescription !== undefined) body.seoDescription = payload.seoDescription;
+  if (payload.seoDescription !== undefined)
+    body.seoDescription = payload.seoDescription;
 
   return body;
 }
 
-async function uploadImage(path: string, file: File): Promise<{ imageUrl: string }> {
+async function uploadImage(
+  path: string,
+  file: File,
+): Promise<{ imageUrl: string }> {
   const formData = new FormData();
   formData.append("image", file);
 
@@ -202,7 +219,9 @@ async function uploadImage(path: string, file: File): Promise<{ imageUrl: string
 }
 
 export const articlesApi = {
-  list: async (params: ListArticlesParams = {}): Promise<ListArticlesResponse> => {
+  list: async (
+    params: ListArticlesParams = {},
+  ): Promise<ListArticlesResponse> => {
     const query = new URLSearchParams();
     if (params.page) query.set("page", String(params.page));
     if (params.limit) query.set("limit", String(params.limit));
@@ -212,7 +231,9 @@ export const articlesApi = {
     if (params.tag) query.set("tag", params.tag);
 
     const queryString = query.toString();
-    const res = await apiClient<RawListArticlesResponse>(`/admin/artikel${queryString ? `?${queryString}` : ""}`);
+    const res = await apiClient<RawListArticlesResponse>(
+      `/admin/artikel${queryString ? `?${queryString}` : ""}`,
+    );
 
     return {
       data: (res.data ?? []).map(normaliseArticle),
@@ -235,7 +256,10 @@ export const articlesApi = {
     return normaliseArticle(raw);
   },
 
-  update: async (id: string, payload: UpdateArticlePayload): Promise<Article> => {
+  update: async (
+    id: string,
+    payload: UpdateArticlePayload,
+  ): Promise<Article> => {
     const raw = await apiClient<RawArticle>(`/artikel/${id}`, {
       method: "PATCH",
       body: JSON.stringify(buildArticlePayload(payload)),
@@ -244,27 +268,37 @@ export const articlesApi = {
   },
 
   publish: async (id: string): Promise<Article> => {
-    const raw = await apiClient<RawArticle>(`/artikel/${id}/publish`, { method: "PATCH" });
+    const raw = await apiClient<RawArticle>(`/artikel/${id}/publish`, {
+      method: "PATCH",
+    });
     return normaliseArticle(raw);
   },
 
   unpublish: async (id: string): Promise<Article> => {
-    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}/unpublish`, { method: "PATCH" });
+    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}/unpublish`, {
+      method: "PATCH",
+    });
     return normaliseArticle(raw);
   },
 
   archive: async (id: string): Promise<Article> => {
-    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}/archive`, { method: "PATCH" });
+    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}/archive`, {
+      method: "PATCH",
+    });
     return normaliseArticle(raw);
   },
 
   delete: async (id: string): Promise<Article> => {
-    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}`, { method: "DELETE" });
+    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}`, {
+      method: "DELETE",
+    });
     return normaliseArticle(raw);
   },
 
   restore: async (id: string): Promise<Article> => {
-    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}/restore`, { method: "POST" });
+    const raw = await apiClient<RawArticle>(`/admin/artikel/${id}/restore`, {
+      method: "POST",
+    });
     return normaliseArticle(raw);
   },
 

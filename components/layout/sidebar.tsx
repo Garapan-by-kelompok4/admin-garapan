@@ -27,14 +27,20 @@ export function Sidebar() {
   // Fetch dynamic pending moderation count
   const { data: moderationRes } = useQuery({
     queryKey: ["sidebarModerationCount"],
-    queryFn: () => contentApi.list({ page: 1, limit: 1 }).catch(() => ({ data: [], total: 0 })),
+    queryFn: () =>
+      contentApi
+        .list({ page: 1, limit: 1 })
+        .catch(() => ({ data: [], total: 0 })),
     refetchInterval: 30000,
   });
 
   // Fetch dynamic disputes count
   const { data: disputesRes } = useQuery({
     queryKey: ["sidebarDisputesCount"],
-    queryFn: () => disputesApi.list({ page: 1, limit: 1 }).catch(() => ({ data: [], total: 0 })),
+    queryFn: () =>
+      disputesApi
+        .list({ page: 1, limit: 1 })
+        .catch(() => ({ data: [], total: 0 })),
     refetchInterval: 30000,
   });
 
@@ -47,7 +53,10 @@ export function Sidebar() {
     refetchOnWindowFocus: true, // instant catch-up when returning to the tab
   });
 
-  const unreadChatCount = chatSessions.reduce((acc, s) => acc + (s.unreadCount || 0), 0);
+  const unreadChatCount = chatSessions.reduce(
+    (acc, s) => acc + (s.unreadCount || 0),
+    0,
+  );
 
   const badgeCounts = {
     moderation: moderationRes?.total ?? 0,
@@ -82,7 +91,7 @@ export function Sidebar() {
               const active = isActive(pathname, item.href);
               const badgeKey = item.badge;
               const badgeValue = badgeKey ? badgeCounts[badgeKey] : 0;
-              
+
               return (
                 <Link
                   key={item.href}
@@ -97,12 +106,16 @@ export function Sidebar() {
                   <Icon className="size-[18px] shrink-0" strokeWidth={1.75} />
                   <span className="truncate flex-1">{item.label}</span>
                   {badgeValue > 0 && (
-                    <span className={cn(
-                      "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white select-none shadow-sm animate-none",
-                      badgeKey === "chat" ? "bg-brand-500" :
-                      badgeKey === "disputes" ? "bg-danger-500" :
-                      "bg-warn-500"
-                    )}>
+                    <span
+                      className={cn(
+                        "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white select-none shadow-sm animate-none",
+                        badgeKey === "chat"
+                          ? "bg-brand-500"
+                          : badgeKey === "disputes"
+                            ? "bg-danger-500"
+                            : "bg-warn-500",
+                      )}
+                    >
                       {badgeValue}
                     </span>
                   )}
