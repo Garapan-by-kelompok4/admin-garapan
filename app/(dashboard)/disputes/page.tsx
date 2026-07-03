@@ -17,7 +17,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import {
   AlertTriangle,
   CheckCircle,
+  MessageSquare,
   Search,
+  ShieldCheck,
   X,
   Flag,
   ArrowRight,
@@ -403,48 +405,55 @@ export default function DisputesPage() {
           ) : disputeDetail ? (
             <div className="flex flex-col h-full max-h-[85vh]">
               {/* Modal Header */}
-              <div className="p-5 border-b border-border bg-surface-2/40 flex justify-between items-center">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-heading font-bold text-base text-ink-900 tracking-tight leading-tight">
-                      Dispute & Laporan: {disputeDetail.id}
-                    </h2>
-                    {renderPriorityPill(disputeDetail.priority)}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-ink-400 font-medium">
-                    <span>Transaksi: </span>
-                    <span className="font-mono font-bold text-brand-600 select-all">
-                      {disputeDetail.orderId}
-                    </span>
-                    <span>•</span>
-                    <span>
-                      Dilaporkan: {formatDate(disputeDetail.createdAt)}
-                    </span>
+              <div className="px-5 py-4 border-b border-border bg-surface-2/50">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="font-heading font-bold text-[15px] text-ink-900 tracking-tight leading-tight">
+                        Dispute & Laporan
+                      </h2>
+                      {renderPriorityPill(disputeDetail.priority)}
+                      {renderStatusPill(disputeDetail.status)}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-ink-400 font-medium flex-wrap">
+                      <span className="font-mono text-ink-500 bg-surface-3 px-1.5 py-0.5 rounded select-all">
+                        {disputeDetail.id.slice(0, 8)}…
+                      </span>
+                      <span>•</span>
+                      <span>Transaksi</span>
+                      <span className="font-mono font-bold text-brand-600 select-all">
+                        {disputeDetail.orderId?.slice(0, 8)}…
+                      </span>
+                      <span>•</span>
+                      <span>Dilaporkan {formatDate(disputeDetail.createdAt)}</span>
+                    </div>
                   </div>
                 </div>
-                <div>{renderStatusPill(disputeDetail.status)}</div>
               </div>
 
               {/* Modal Body */}
               <div className="flex-1 overflow-y-auto p-5 space-y-5">
                 {/* Pelapor & Terlapor Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Pelapor */}
-                  <div className="rounded-lg border border-border p-4 bg-surface-2/40 space-y-3">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-                      Pelapor (Klien)
-                    </h4>
+                  <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-500" />
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+                        Pelapor (Klien)
+                      </h4>
+                    </div>
                     <div className="flex items-center gap-3">
                       <div
                         className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold border border-white shadow-sm ${avatarClass(disputeDetail.reporterName)}`}
                       >
                         {initials(disputeDetail.reporterName)}
                       </div>
-                      <div>
-                        <div className="text-sm font-semibold text-ink-900">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-ink-900 truncate">
                           {disputeDetail.reporterName}
                         </div>
-                        <div className="text-xs text-ink-400 mt-0.5">
+                        <div className="text-[11px] text-ink-400 mt-0.5 truncate">
                           {disputeDetail.reporterEmail}
                         </div>
                       </div>
@@ -452,21 +461,24 @@ export default function DisputesPage() {
                   </div>
 
                   {/* Terlapor */}
-                  <div className="rounded-lg border border-border p-4 bg-surface-2/40 space-y-3">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-                      Terlapor (Mahasiswa)
-                    </h4>
+                  <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-warn-500" />
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+                        Terlapor (Mahasiswa)
+                      </h4>
+                    </div>
                     <div className="flex items-center gap-3">
                       <div
                         className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold border border-white shadow-sm ${avatarClass(disputeDetail.reportedName)}`}
                       >
                         {initials(disputeDetail.reportedName)}
                       </div>
-                      <div>
-                        <div className="text-sm font-semibold text-ink-900">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-ink-900 truncate">
                           {disputeDetail.reportedName}
                         </div>
-                        <div className="text-xs text-ink-400 mt-0.5">
+                        <div className="text-[11px] text-ink-400 mt-0.5 truncate">
                           {disputeDetail.reportedEmail}
                         </div>
                       </div>
@@ -477,20 +489,25 @@ export default function DisputesPage() {
                 {/* Deskripsi Masalah */}
                 <div className="space-y-2">
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-                    Deskripsi Masalah ({disputeDetail.issueType})
+                    Deskripsi Masalah
                   </h4>
-                  <div className="rounded-lg border border-border p-4 bg-white font-medium text-sm text-ink-700 leading-relaxed max-h-[120px] overflow-y-auto">
-                    {disputeDetail.description ||
-                      "Tidak ada deskripsi laporan tertulis."}
+                  <div className="rounded-lg border border-border border-l-2 border-l-brand-400 bg-white p-4 space-y-2">
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-2 py-0.5 rounded">
+                      {disputeDetail.issueType}
+                    </span>
+                    <p className="text-sm text-ink-700 leading-relaxed font-medium">
+                      {disputeDetail.description ||
+                        "Tidak ada deskripsi laporan tertulis."}
+                    </p>
                   </div>
                 </div>
 
-                {/* Timeline History */}
-                <div className="space-y-3">
+                {/* Riwayat Komunikasi & Laporan */}
+                <div className="space-y-2">
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-                    Riwayat Komunikasi & Laporan
+                    Riwayat Komunikasi &amp; Laporan
                   </h4>
-                  <div className="rounded-lg border border-border bg-white p-4 space-y-4 max-h-[180px] overflow-y-auto">
+                  <div className="rounded-lg border border-border bg-white p-4 max-h-[180px] overflow-y-auto">
                     {disputeDetail.communicationHistory &&
                     disputeDetail.communicationHistory.length > 0 ? (
                       <div className="relative border-l border-border ml-2.5 pl-5 space-y-4">
@@ -503,20 +520,20 @@ export default function DisputesPage() {
                             createdAt: string;
                           }) => (
                             <div key={item.id} className="relative">
-                              <span className="absolute -left-[26px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-brand-500 shadow-sm" />
-                              <div className="text-xs text-ink-500">
+                              <span className="absolute -left-[26px] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-brand-500 shadow-sm" />
+                              <div className="text-[11px] text-ink-500">
                                 <span className="font-semibold text-ink-900">
                                   {item.senderName}
                                 </span>{" "}
-                                <span className="text-[10px] bg-surface-3 px-1 rounded text-ink-400 font-semibold uppercase">
+                                <span className="text-[10px] bg-surface-3 px-1.5 py-0.5 rounded text-ink-400 font-semibold uppercase">
                                   {item.senderRole}
                                 </span>
-                                <span className="text-ink-300 ml-1.5">•</span>
-                                <span className="text-[10px] text-ink-400 ml-1.5">
+                                <span className="text-ink-300 mx-1">•</span>
+                                <span className="text-ink-400">
                                   {formatDate(item.createdAt)}
                                 </span>
                               </div>
-                              <p className="text-xs text-ink-700 mt-1 font-medium bg-surface-2 p-2.5 rounded-lg border border-border/50 max-w-[95%]">
+                              <p className="text-xs text-ink-700 mt-1.5 font-medium bg-surface-2 p-3 rounded-lg border border-border/50">
                                 {item.message}
                               </p>
                             </div>
@@ -524,8 +541,11 @@ export default function DisputesPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="text-center text-xs text-ink-400 font-medium py-3">
-                        Belum ada riwayat percakapan dispute.
+                      <div className="text-center py-6">
+                        <MessageSquare className="h-8 w-8 text-ink-300 mx-auto mb-2" />
+                        <p className="text-xs text-ink-400 font-medium">
+                          Belum ada riwayat percakapan dispute.
+                        </p>
                       </div>
                     )}
                   </div>
@@ -613,11 +633,14 @@ function ResolutionForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-t border-border pt-4 space-y-4"
+      className="border-t border-border pt-5 space-y-4"
     >
-      <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-        Tindak Lanjut & Keputusan Resolusi
-      </h4>
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="h-4 w-4 text-brand-500" />
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+          Tindak Lanjut &amp; Keputusan Resolusi
+        </h4>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
@@ -641,7 +664,7 @@ function ResolutionForm({
               Refund penuh ke Client (Klien)
             </option>
             <option value="PARTIAL_REFUND">
-              Refund Parsial ke Client & Sisa ke Freelancer
+              Refund Parsial ke Client &amp; Sisa ke Freelancer
             </option>
             <option value="REJECT">
               Tolak Laporan (Tutup tanpa perubahan dana)
@@ -672,7 +695,7 @@ function ResolutionForm({
 
       <div className="space-y-1.5">
         <label className="text-xs font-bold text-ink-700">
-          Catatan Resolusi Resmi (Wajib)
+          Catatan Resolusi Resmi <span className="text-danger-500">*</span>
         </label>
         <textarea
           rows={3}
@@ -683,7 +706,7 @@ function ResolutionForm({
         />
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-end gap-2.5 pt-1">
         <button
           type="button"
           onClick={onClose}
