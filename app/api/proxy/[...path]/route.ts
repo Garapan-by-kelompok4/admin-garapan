@@ -78,6 +78,14 @@ async function handle(request: NextRequest, context: RouteContext) {
   responseHeaders.set("Pragma", "no-cache");
   responseHeaders.set("Expires", "0");
 
+  // 204 No Content / 205 Reset Content must not carry a body
+  if (upstream.status === 204 || upstream.status === 205) {
+    return new NextResponse(null, {
+      status: upstream.status,
+      headers: responseHeaders,
+    });
+  }
+
   const responseBody = await upstream.arrayBuffer();
 
   return new NextResponse(responseBody, {
