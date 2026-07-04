@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
@@ -117,29 +118,7 @@ export default function UsersPage() {
     },
   });
 
-  // Helper to format date
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "-";
-    try {
-      const date = new Date(dateStr);
-      return new Intl.DateTimeFormat("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }).format(date);
-    } catch {
-      return dateStr;
-    }
-  };
 
-  // Helper to format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Render Status Pill
   const renderStatusPill = (user: User) => {
@@ -508,7 +487,7 @@ export default function UsersPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {userDetail.role === "MAHASISWA" && (
                       <div>
-                        <span className="text-xs text-ink-400 font-medium flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
                           <GraduationCap className="h-3.5 w-3.5" /> Universitas
                         </span>
                         <span className="text-sm text-ink-900 mt-1 block break-words">
@@ -518,7 +497,7 @@ export default function UsersPage() {
                     )}
                     {userDetail.role === "KLIEN" && (
                       <div>
-                        <span className="text-xs text-ink-400 font-medium flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
                           <Building className="h-3.5 w-3.5" /> Perusahaan
                         </span>
                         <span className="text-sm text-ink-900 mt-1 block break-words">
@@ -527,7 +506,7 @@ export default function UsersPage() {
                       </div>
                     )}
                     <div>
-                      <span className="text-xs text-ink-400 font-medium flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
                         <Phone className="h-3.5 w-3.5" /> No. Telepon
                       </span>
                       <span className="text-sm text-ink-900 mt-1 block">
@@ -535,7 +514,7 @@ export default function UsersPage() {
                       </span>
                     </div>
                     <div>
-                      <span className="text-xs text-ink-400 font-medium flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" /> Tanggal Daftar
                       </span>
                       <span className="text-sm text-ink-900 mt-1 block">
@@ -544,7 +523,7 @@ export default function UsersPage() {
                     </div>
                     {userDetail.role === "MAHASISWA" && (
                       <div>
-                        <span className="text-xs text-ink-400 font-medium flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
                           <Star className="h-3.5 w-3.5" /> Rating
                         </span>
                         <span className="text-sm text-ink-900 flex items-center gap-1 mt-1">
@@ -555,7 +534,7 @@ export default function UsersPage() {
                     )}
                     {userDetail.role === "KLIEN" && (
                       <div>
-                        <span className="text-xs text-ink-400 font-medium flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400 flex items-center gap-1.5">
                           <TrendingUp className="h-3.5 w-3.5" /> Total Pesanan
                         </span>
                         <span className="text-sm text-ink-900 mt-1 block">
@@ -566,7 +545,7 @@ export default function UsersPage() {
                   </div>
                   <Separator className="my-5" />
                   <div>
-                    <span className="text-xs text-ink-400 font-medium">Bio</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Bio</span>
                     <div className="mt-2 max-h-[160px] overflow-y-auto">
                       <p className="text-sm text-ink-700 leading-relaxed">
                         {userDetail.bio || "Tidak ada biodata diri yang dicantumkan."}

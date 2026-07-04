@@ -30,14 +30,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function DisputesPage() {
   const queryClient = useQueryClient();
@@ -100,19 +93,7 @@ export default function DisputesPage() {
     },
   });
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "-";
-    try {
-      const date = new Date(dateStr);
-      return new Intl.DateTimeFormat("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }).format(date);
-    } catch {
-      return dateStr;
-    }
-  };
+
 
   const renderPriorityPill = (priority: Dispute["priority"]) => {
     switch (priority) {
@@ -394,13 +375,70 @@ export default function DisputesPage() {
         open={!!selectedDisputeId}
         onOpenChange={(open) => !open && setSelectedDisputeId(null)}
       >
-        <DialogContent className="max-w-[850px] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3">
+        <DialogContent className="max-w-[min(850px,95vw)] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3" showCloseButton={false}>
           {isLoadingDetail ? (
-            <div className="p-12 text-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent mx-auto" />
-              <p className="text-xs text-ink-500 mt-2 font-medium">
-                Memuat detail dispute...
-              </p>
+            <div className="flex flex-col h-full max-h-[85vh]">
+              {/* Skeleton Header */}
+              <div className="px-5 py-4 border-b border-border bg-surface-2/50">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 bg-surface-2 rounded animate-pulse w-40" />
+                    <div className="h-5 bg-surface-2 rounded animate-pulse w-14" />
+                    <div className="h-5 bg-surface-2 rounded-full animate-pulse w-20" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 bg-surface-2 rounded animate-pulse w-24" />
+                    <div className="h-3 bg-surface-2 rounded animate-pulse w-32" />
+                    <div className="h-3 bg-surface-2 rounded animate-pulse w-28" />
+                  </div>
+                </div>
+              </div>
+              {/* Skeleton Body */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                {/* Reporter & reported cards skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="rounded-lg border border-border bg-white p-4 space-y-3">
+                      <div className="h-3 bg-surface-2 rounded animate-pulse w-28" />
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-surface-2 animate-pulse" />
+                        <div className="space-y-2 flex-1">
+                          <div className="h-4 bg-surface-2 rounded animate-pulse w-32" />
+                          <div className="h-3 bg-surface-2 rounded animate-pulse w-40" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Description skeleton */}
+                <div className="space-y-2">
+                  <div className="h-3 bg-surface-2 rounded animate-pulse w-40" />
+                  <div className="rounded-lg border border-border p-4 space-y-3">
+                    <div className="h-5 bg-surface-2 rounded animate-pulse w-24" />
+                    <div className="space-y-2">
+                      <div className="h-3 bg-surface-2 rounded animate-pulse w-full" />
+                      <div className="h-3 bg-surface-2 rounded animate-pulse w-3/4" />
+                    </div>
+                  </div>
+                </div>
+                {/* Communication history skeleton */}
+                <div className="space-y-2">
+                  <div className="h-3 bg-surface-2 rounded animate-pulse w-48" />
+                  <div className="rounded-lg border border-border p-4 space-y-4">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <div className="h-3 bg-surface-2 rounded animate-pulse w-32" />
+                        <div className="h-3 bg-surface-2 rounded animate-pulse w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {/* Skeleton Footer */}
+              <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end gap-2.5">
+                <div className="h-9 w-20 bg-surface-2 rounded-lg animate-pulse" />
+                <div className="h-9 w-28 bg-surface-2 rounded-lg animate-pulse" />
+              </div>
             </div>
           ) : disputeDetail ? (
             <div className="flex flex-col h-full max-h-[85vh]">
@@ -561,14 +599,15 @@ export default function DisputesPage() {
               </div>
 
               {/* Read-Only Resolution View (For resolved/rejected disputes) */}
+              {/* Footer: close button for resolved/rejected, or action buttons for open */}
               {disputeDetail.status !== "Terbuka" &&
                 disputeDetail.status !== "Diproses" && (
-                  <div className="p-5 border-t border-border bg-surface-2/40 flex justify-end">
+                  <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end">
                     <button
                       onClick={() => setSelectedDisputeId(null)}
-                      className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
+                      className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
                     >
-                      Tutup Detail
+                      <X className="h-3.5 w-3.5" /> Tutup Detail
                     </button>
                   </div>
                 )}
