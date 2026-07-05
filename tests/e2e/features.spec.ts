@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-import { installMockApi } from "./helpers/mock-api";
+import { MODERATION_PAGE_TITLE } from "@/lib/moderation/page-meta";
 
+import { installMockApi } from "./helpers/mock-api";
 test.beforeEach(async ({ page }) => {
   await installMockApi(page);
 });
@@ -19,7 +20,7 @@ const FEATURE_PAGES = [
   },
   {
     path: "/moderation",
-    title: "Moderasi Konten",
+    title: MODERATION_PAGE_TITLE,
     marker: "E2E Flagged Jasa",
   },
   {
