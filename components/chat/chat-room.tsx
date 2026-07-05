@@ -15,6 +15,12 @@ import { formatDateLabel, quickReplies } from "@/lib/chat-utils";
 import { formatDate } from "@/lib/utils";
 import { ChatMessageBubble } from "@/components/chat/chat-message-bubble";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDocumentVisible } from "@/hooks/use-document-visible";
 import {
   CHAT_POLL_INTERVAL_MS,
@@ -26,6 +32,7 @@ import {
   Mail,
   Calendar,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth-store";
@@ -122,6 +129,8 @@ export function ChatRoom({
   }, [olderMessages, liveMessages, optimisticMessages]);
 
   const hasMoreMessages = allMessages.length < totalMessages;
+  const visibleQuickReplies = quickReplies.slice(0, 2);
+  const overflowQuickReplies = quickReplies.slice(2);
 
   const loadOlderMessages = useCallback(async () => {
     if (isLoadingOlder || !hasMoreMessages) return;
@@ -227,14 +236,14 @@ export function ChatRoom({
   return (
     <>
       <div className="flex-1 flex flex-col h-full bg-surface-2 min-w-0 relative">
-        <div className="h-[60px] border-b border-border bg-white px-5 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="h-[60px] border-b border-border bg-white px-5 flex items-center justify-between flex-shrink-0 gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <div
               onClick={() => setShowUserInfo(!showUserInfo)}
-              className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
+              className="flex min-w-0 items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
               title="Klik untuk detail profile user"
             >
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <div
                   className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(activeSession?.name || "")}`}
                 >
@@ -248,16 +257,16 @@ export function ChatRoom({
                   }`}
                 />
               </div>
-              <div>
-                <h3 className="font-semibold text-ink-900 text-sm leading-tight hover:underline">
+              <div className="min-w-0">
+                <h3 className="truncate font-semibold text-ink-900 text-sm leading-tight hover:underline">
                   {activeSession?.name}
                 </h3>
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="flex min-w-0 items-center gap-1.5 mt-0.5">
                   <span className="text-[10px] text-ink-400 font-medium">
                     {activeSession?.isOnline ? "Online" : "Offline"}
                   </span>
-                  <span className="text-ink-200 text-[10px]">•</span>
-                  <span className="text-[10px] text-ink-400 font-semibold uppercase">
+                  <span className="text-ink-200 text-[10px] flex-shrink-0">•</span>
+                  <span className="truncate text-[10px] text-ink-400 font-semibold uppercase">
                     ID: {activeSession?.id}
                   </span>
                 </div>
@@ -340,19 +349,39 @@ export function ChatRoom({
         </div>
 
         <div className="bg-white border-t border-border p-4 flex flex-col gap-3 flex-shrink-0">
-          <div className="flex gap-1.5 overflow-x-auto pb-1 select-none scrollbar-thin">
+          <div className="flex min-w-0 items-center gap-1.5 select-none">
             <span className="text-[10px] font-bold text-brand-600 self-center mr-1 flex items-center gap-1 flex-shrink-0">
               <Sparkles className="h-3 w-3" /> Balas cepat:
             </span>
-            {quickReplies.map((r, idx) => (
+            {visibleQuickReplies.map((r, idx) => (
               <button
                 key={idx}
                 onClick={() => handleQuickReply(r)}
-                className="px-2.5 py-1 text-[11px] font-medium rounded-full border border-border bg-surface-2 hover:bg-surface-3 hover:text-ink-900 text-ink-600 transition-colors whitespace-nowrap cursor-pointer"
+                title={r}
+                className="min-w-0 max-w-[360px] px-2.5 py-1 text-[11px] font-medium rounded-full border border-border bg-surface-2 hover:bg-surface-3 hover:text-ink-900 text-ink-600 transition-colors cursor-pointer"
               >
-                {r}
+                <span className="block truncate">{r}</span>
               </button>
             ))}
+            {overflowQuickReplies.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex h-[26px] flex-shrink-0 items-center gap-1 rounded-full border border-border bg-white px-2.5 text-[11px] font-bold text-ink-600 shadow-sm transition-colors hover:bg-surface-2 hover:text-ink-900">
+                  Template lainnya
+                  <ChevronDown className="h-3 w-3 text-ink-400" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[360px]">
+                  {overflowQuickReplies.map((reply, idx) => (
+                    <DropdownMenuItem
+                      key={idx}
+                      onClick={() => handleQuickReply(reply)}
+                      className="cursor-pointer text-xs font-medium leading-relaxed"
+                    >
+                      {reply}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           <form
