@@ -76,6 +76,7 @@ function normaliseUser(raw: unknown): User {
       typeof mahasiswa.rating === "number"
         ? Number(mahasiswa.rating)
         : undefined,
+    jobs: typeof r.jobs === "number" ? Number(r.jobs) : undefined,
     bannedAt: r.bannedAt ? String(r.bannedAt) : null,
     emailVerified: Boolean(r.emailVerified),
     createdAt: String(r.createdAt ?? ""),
