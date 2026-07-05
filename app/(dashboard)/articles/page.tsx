@@ -1,12 +1,19 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { ArticleEditor } from "@/components/articles/article-editor";
+import { ArticleEditorSkeleton } from "@/components/articles/article-editor-skeleton";
+
+const ArticleEditor = dynamic(
+  () =>
+    import("@/components/articles/article-editor").then((m) => m.ArticleEditor),
+  { ssr: false, loading: () => <ArticleEditorSkeleton /> },
+);
 import { createArticleColumns } from "@/components/articles/article-columns";
 import { ArticleList } from "@/components/articles/article-list";
 import {

@@ -1,13 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { CategoryDonutChart } from "@/components/charts/category-donut-chart";
-import {
-  TransactionAreaChart,
-  type ChartPeriod,
-} from "@/components/charts/transaction-area-chart";
+import { ChartSkeleton } from "@/components/charts/chart-skeleton";
+import type { ChartPeriod } from "@/components/charts/types";
 import { DashboardActivityFeed } from "@/components/dashboard/dashboard-activity-feed";
 import { DashboardAttentionPanel } from "@/components/dashboard/dashboard-attention-panel";
 import { DashboardStatCards } from "@/components/dashboard/dashboard-stat-cards";
@@ -19,6 +17,22 @@ import {
   type DashboardStats,
 } from "@/lib/api/dashboard";
 
+const TransactionAreaChart = dynamic(
+  () =>
+    import("@/components/charts/transaction-area-chart").then(
+      (m) => m.TransactionAreaChart,
+    ),
+  { loading: () => <ChartSkeleton className="lg:col-span-2" /> },
+);
+
+const CategoryDonutChart = dynamic(
+  () =>
+    import("@/components/charts/category-donut-chart").then(
+      (m) => m.CategoryDonutChart,
+    ),
+  { loading: () => <ChartSkeleton /> },
+);
+
 export default function DashboardPage() {
   const [period, setPeriod] = useState<ChartPeriod>("30H");
   const opsCounts = useOpsBadgeCounts();
@@ -26,12 +40,14 @@ export default function DashboardPage() {
   const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["dashboardStats"],
     queryFn: () => dashboardApi.getStats(),
+    staleTime: 60_000,
   });
 
   const { data: analytics, isLoading: isLoadingCharts } =
     useQuery<AnalyticsResponse>({
       queryKey: ["dashboardAnalytics", period],
       queryFn: () => dashboardApi.getChartData(period),
+      staleTime: 60_000,
     });
 
   const { data: activities = [], isLoading: isLoadingActivities } = useQuery<
@@ -39,6 +55,7 @@ export default function DashboardPage() {
   >({
     queryKey: ["dashboardActivities"],
     queryFn: () => dashboardApi.getActivityLog(),
+    staleTime: 30_000,
   });
 
   return (
