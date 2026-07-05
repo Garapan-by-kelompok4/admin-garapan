@@ -18,6 +18,7 @@ export default function ChatPage() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
+  const [unreadOnly, setUnreadOnly] = useState(false);
   const [showSessionList] = useState(true);
   const isDocumentVisible = useDocumentVisible();
 
@@ -42,13 +43,13 @@ export default function ChatPage() {
 
       if (!matchesSearch) return false;
 
-      if (roleFilter === "UNREAD") return s.unreadCount > 0;
+      if (unreadOnly && s.unreadCount <= 0) return false;
       if (roleFilter === "KLIEN") return s.role === "KLIEN";
       if (roleFilter === "MAHASISWA") return s.role === "MAHASISWA";
 
       return true;
     });
-  }, [sessions, search, roleFilter]);
+  }, [sessions, search, roleFilter, unreadOnly]);
 
   return (
     <div className="flex h-[calc(100vh-140px)] border border-border rounded-xl bg-white shadow-sh-2 overflow-hidden select-none">
@@ -59,6 +60,8 @@ export default function ChatPage() {
         onSearchChange={setSearch}
         roleFilter={roleFilter}
         onRoleFilterChange={setRoleFilter}
+        unreadOnly={unreadOnly}
+        onUnreadOnlyChange={setUnreadOnly}
         showSessionList={showSessionList}
         filteredSessions={filteredSessions}
         isLoadingSessions={isLoadingSessions}

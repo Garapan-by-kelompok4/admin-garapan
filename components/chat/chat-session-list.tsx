@@ -4,9 +4,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { chatApi, ChatSession } from "@/lib/api/chat";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatTime } from "@/lib/chat-utils";
-import { Search, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, Search, X } from "lucide-react";
 
-export type RoleFilter = "ALL" | "KLIEN" | "MAHASISWA" | "UNREAD";
+export type RoleFilter = "ALL" | "KLIEN" | "MAHASISWA";
 
 export interface ChatSessionListProps {
   activeSessionId: string | null;
@@ -15,6 +21,8 @@ export interface ChatSessionListProps {
   onSearchChange: (value: string) => void;
   roleFilter: RoleFilter;
   onRoleFilterChange: (filter: RoleFilter) => void;
+  unreadOnly: boolean;
+  onUnreadOnlyChange: (value: boolean) => void;
   showSessionList: boolean;
   filteredSessions: ChatSession[];
   isLoadingSessions: boolean;
@@ -27,11 +35,19 @@ export function ChatSessionList({
   onSearchChange,
   roleFilter,
   onRoleFilterChange,
+  unreadOnly,
+  onUnreadOnlyChange,
   showSessionList,
   filteredSessions,
   isLoadingSessions,
 }: ChatSessionListProps) {
   const queryClient = useQueryClient();
+  const roleLabel =
+    roleFilter === "KLIEN"
+      ? "Klien"
+      : roleFilter === "MAHASISWA"
+        ? "Mahasiswa"
+        : "Semua Role";
 
   const handleSessionClick = async (session: ChatSession) => {
     onSelectSession(session.id);
@@ -83,27 +99,60 @@ export function ChatSessionList({
           )}
         </div>
 
-        <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-thin">
-          {(
-            [
-              { id: "ALL", label: "Semua" },
-              { id: "UNREAD", label: "Belum Dibaca" },
-              { id: "KLIEN", label: "Klien" },
-              { id: "MAHASISWA", label: "Mahasiswa" },
-            ] as const
-          ).map((f) => (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex rounded-lg border border-border bg-surface-2 p-0.5">
             <button
-              key={f.id}
-              onClick={() => onRoleFilterChange(f.id)}
-              className={`px-2.5 py-1 text-[10.5px] font-bold rounded-md border transition-all whitespace-nowrap cursor-pointer ${
-                roleFilter === f.id
-                  ? "bg-brand-500 border-brand-500 text-white shadow-sm"
-                  : "bg-white border-border text-ink-500 hover:bg-surface-3 hover:text-ink-900"
+              type="button"
+              onClick={() => onUnreadOnlyChange(false)}
+              className={`h-7 rounded-md px-2.5 text-[10.5px] font-bold transition-all cursor-pointer ${
+                !unreadOnly
+                  ? "bg-white text-brand-700 shadow-sm"
+                  : "text-ink-500 hover:text-ink-900"
               }`}
             >
-              {f.label}
+              Semua
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => onUnreadOnlyChange(true)}
+              className={`h-7 rounded-md px-2.5 text-[10.5px] font-bold transition-all cursor-pointer ${
+                unreadOnly
+                  ? "bg-brand-500 text-white shadow-sm"
+                  : "text-ink-500 hover:text-ink-900"
+              }`}
+            >
+              Belum Dibaca
+            </button>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="flex h-8 min-w-0 items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 text-[10.5px] font-bold text-ink-600 shadow-sm transition-colors hover:bg-surface-2 hover:text-ink-900"
+              title="Filter role user"
+            >
+              <span className="truncate">{roleLabel}</span>
+              <ChevronDown className="h-3 w-3 text-ink-400" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              {(
+                [
+                  { id: "ALL", label: "Semua Role" },
+                  { id: "KLIEN", label: "Klien" },
+                  { id: "MAHASISWA", label: "Mahasiswa" },
+                ] as const
+              ).map((role) => (
+                <DropdownMenuItem
+                  key={role.id}
+                  onClick={() => onRoleFilterChange(role.id)}
+                  className={`cursor-pointer text-xs font-semibold ${
+                    roleFilter === role.id ? "text-brand-600" : ""
+                  }`}
+                >
+                  {role.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
