@@ -25,7 +25,7 @@ export function TransactionDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-[min(800px,95vw)] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3"
+        className="!w-[min(980px,96vw)] !max-w-none sm:!max-w-none rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3"
         showCloseButton={false}
       >
         {isLoading ? (

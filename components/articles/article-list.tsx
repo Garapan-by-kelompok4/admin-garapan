@@ -12,6 +12,13 @@ import {
 } from "lucide-react";
 import { DataTable } from "@/components/data-table/data-table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Article,
   ArticleStatusFilter,
 } from "@/lib/api/articles";
@@ -168,47 +175,89 @@ export function ArticleList({
           )}
         </div>
 
-        <select
+        <Select
           value={statusFilter}
-          onChange={(event) =>
-            onStatusFilterChange(event.target.value as ArticleStatusFilter)
-          }
-          className="h-[38px] rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
+          onValueChange={(value) => {
+            if (typeof value === "string") {
+              onStatusFilterChange(value as ArticleStatusFilter);
+            }
+          }}
         >
-          {(["all", "published", "draft"] as ArticleStatusFilter[]).map(
-            (status) => (
-              <option key={status} value={status}>
-                {statusLabel(status)}
-              </option>
-            ),
-          )}
-        </select>
+          <SelectTrigger className="h-[38px] min-w-[130px] border-border bg-white px-3 text-[13.5px] font-semibold text-ink-700 focus-visible:border-brand-400 focus-visible:ring-brand-50">
+            <SelectValue>
+              {(value) => statusLabel(value as ArticleStatusFilter)}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align="end" className="min-w-[150px] p-1">
+            {(["all", "published", "draft"] as ArticleStatusFilter[]).map(
+              (status) => (
+                <SelectItem
+                  key={status}
+                  value={status}
+                  className="px-2 py-1.5 text-[13px] font-semibold"
+                >
+                  {statusLabel(status)}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
 
-        <select
+        <Select
           value={categoryFilter}
-          onChange={(event) => onCategoryFilterChange(event.target.value)}
-          className="h-[38px] rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
+          onValueChange={(value) => {
+            if (typeof value === "string") onCategoryFilterChange(value);
+          }}
         >
-          <option value="all">Semua Kategori</option>
-          {categoryOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="h-[38px] min-w-[170px] border-border bg-white px-3 text-[13.5px] font-semibold text-ink-700 focus-visible:border-brand-400 focus-visible:ring-brand-50">
+            <SelectValue>
+              {(value) =>
+                value === "all" ? "Semua Kategori" : String(value)
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align="end" className="min-w-[190px] p-1">
+            <SelectItem value="all" className="px-2 py-1.5 text-[13px] font-semibold">
+              Semua Kategori
+            </SelectItem>
+            {categoryOptions.map((option) => (
+              <SelectItem
+                key={option}
+                value={option}
+                className="px-2 py-1.5 text-[13px] font-semibold"
+              >
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
+        <Select
           value={tagFilter}
-          onChange={(event) => onTagFilterChange(event.target.value)}
-          className="h-[38px] rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
+          onValueChange={(value) => {
+            if (typeof value === "string") onTagFilterChange(value);
+          }}
         >
-          <option value="all">Semua Tag</option>
-          {tagOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="h-[38px] min-w-[140px] border-border bg-white px-3 text-[13.5px] font-semibold text-ink-700 focus-visible:border-brand-400 focus-visible:ring-brand-50">
+            <SelectValue>
+              {(value) => (value === "all" ? "Semua Tag" : String(value))}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align="end" className="min-w-[170px] p-1">
+            <SelectItem value="all" className="px-2 py-1.5 text-[13px] font-semibold">
+              Semua Tag
+            </SelectItem>
+            {tagOptions.map((option) => (
+              <SelectItem
+                key={option}
+                value={option}
+                className="px-2 py-1.5 text-[13px] font-semibold"
+              >
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {error ? (

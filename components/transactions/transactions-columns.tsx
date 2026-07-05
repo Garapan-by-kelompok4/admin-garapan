@@ -1,9 +1,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
 import { OrderTransaction } from "@/lib/api/orders";
+import { CopyIdButton } from "@/components/data-table/copy-id-button";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { TransactionStatusPill } from "./transaction-status-pill";
+
+function shortId(id: string) {
+  return id ? `${id.slice(0, 8)}...${id.slice(-4)}` : "-";
+}
 
 interface CreateTransactionsColumnsOptions {
   onViewDetail: (orderId: string) => void;
@@ -17,48 +22,50 @@ export function createTransactionsColumns({
       accessorKey: "id",
       header: "ID Transaksi",
       cell: ({ getValue }) => (
-        <span className="font-mono font-bold text-xs text-ink-900 select-all">
-          {String(getValue())}
-        </span>
-      ),
-    },
-    {
-      id: "client",
-      header: "Klien",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <div
-            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.clientName)}`}
+        <div className="flex w-[132px] items-center gap-1.5">
+          <span
+            className="font-mono text-xs font-bold text-ink-900"
+            title={String(getValue())}
           >
-            {initials(row.original.clientName)}
-          </div>
-          <div>
-            <div className="font-semibold text-ink-900 leading-none">
-              {row.original.clientName}
-            </div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
-              ID: {row.original.clientId}
-            </div>
-          </div>
+            {shortId(String(getValue()))}
+          </span>
+          <CopyIdButton value={String(getValue())} label="ID transaksi" />
         </div>
       ),
     },
     {
-      id: "student",
-      header: "Mahasiswa",
+      id: "parties",
+      header: "Pihak",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <div
-            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.studentName)}`}
-          >
-            {initials(row.original.studentName)}
-          </div>
-          <div>
-            <div className="font-semibold text-ink-900 leading-none">
-              {row.original.studentName}
+        <div className="w-[280px] space-y-2">
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${avatarClass(row.original.clientName)}`}
+            >
+              {initials(row.original.clientName)}
             </div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
-              ID: {row.original.studentId}
+            <div className="min-w-0">
+              <div className="truncate font-semibold leading-none text-ink-900">
+                {row.original.clientName}
+              </div>
+              <div className="mt-0.5 text-[10px] font-medium text-ink-400">
+                Klien - {shortId(row.original.clientId)}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${avatarClass(row.original.studentName)}`}
+            >
+              {initials(row.original.studentName)}
+            </div>
+            <div className="min-w-0">
+              <div className="truncate font-semibold leading-none text-ink-900">
+                {row.original.studentName}
+              </div>
+              <div className="mt-0.5 text-[10px] font-medium text-ink-400">
+                Mahasiswa - {shortId(row.original.studentId)}
+              </div>
             </div>
           </div>
         </div>
@@ -68,7 +75,10 @@ export function createTransactionsColumns({
       accessorKey: "serviceTitle",
       header: "Jasa",
       cell: ({ getValue }) => (
-        <span className="font-semibold text-ink-700 text-sm leading-snug truncate max-w-[200px] block">
+        <span
+          className="block max-w-[260px] truncate text-sm font-semibold leading-snug text-ink-700"
+          title={String(getValue())}
+        >
           {String(getValue())}
         </span>
       ),
@@ -77,22 +87,22 @@ export function createTransactionsColumns({
       accessorKey: "amount",
       header: "Nominal",
       cell: ({ getValue }) => (
-        <span className="font-extrabold text-ink-900 text-sm">
+        <span className="block w-[112px] text-sm font-extrabold text-ink-900">
           {formatCurrency(Number(getValue()))}
         </span>
       ),
     },
     {
-      accessorKey: "escrowStatus",
-      header: "Status Escrow",
+      id: "state",
+      header: "Status",
       cell: ({ row }) => (
-        <TransactionStatusPill status={row.original.escrowStatus} />
+        <div className="flex w-[132px] flex-col items-start gap-1.5">
+          <TransactionStatusPill status={row.original.escrowStatus} />
+          <span className="text-[11px] font-medium text-ink-400">
+            {formatDate(row.original.createdAt)}
+          </span>
+        </div>
       ),
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Tanggal Transaksi",
-      cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
       id: "actions",

@@ -2,12 +2,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import {
   Dispute,
 } from "@/lib/api/disputes";
+import { CopyIdButton } from "@/components/data-table/copy-id-button";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatDate } from "@/lib/utils";
 import {
   DisputePriorityPill,
   DisputeStatusPill,
 } from "./dispute-status-pill";
+
+function shortId(id: string) {
+  return id ? `${id.slice(0, 8)}...${id.slice(-4)}` : "-";
+}
 
 interface CreateDisputesColumnsOptions {
   onReview: (disputeId: string) => void;
@@ -21,48 +26,50 @@ export function createDisputesColumns({
       accessorKey: "id",
       header: "ID Laporan",
       cell: ({ getValue }) => (
-        <span className="font-mono font-bold text-xs text-brand-600 select-all">
-          {String(getValue())}
-        </span>
-      ),
-    },
-    {
-      id: "reporter",
-      header: "Pelapor",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <div
-            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.reporterName)}`}
+        <div className="flex w-[132px] items-center gap-1.5">
+          <span
+            className="font-mono text-xs font-bold text-brand-600"
+            title={String(getValue())}
           >
-            {initials(row.original.reporterName)}
-          </div>
-          <div>
-            <div className="font-semibold text-ink-900 leading-none">
-              {row.original.reporterName}
-            </div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
-              Klien
-            </div>
-          </div>
+            {shortId(String(getValue()))}
+          </span>
+          <CopyIdButton value={String(getValue())} label="ID laporan" />
         </div>
       ),
     },
     {
-      id: "reported",
-      header: "Terlapor",
+      id: "parties",
+      header: "Pihak Terkait",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <div
-            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.reportedName)}`}
-          >
-            {initials(row.original.reportedName)}
-          </div>
-          <div>
-            <div className="font-semibold text-ink-900 leading-none">
-              {row.original.reportedName}
+        <div className="w-[260px] space-y-2">
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${avatarClass(row.original.reporterName)}`}
+            >
+              {initials(row.original.reporterName)}
             </div>
-            <div className="text-[10px] text-ink-400 mt-0.5 font-medium">
-              Mahasiswa
+            <div className="min-w-0">
+              <div className="truncate font-semibold leading-none text-ink-900">
+                {row.original.reporterName}
+              </div>
+              <div className="mt-0.5 text-[10px] font-medium text-ink-400">
+                Pelapor - Klien
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${avatarClass(row.original.reportedName)}`}
+            >
+              {initials(row.original.reportedName)}
+            </div>
+            <div className="min-w-0">
+              <div className="truncate font-semibold leading-none text-ink-900">
+                {row.original.reportedName}
+              </div>
+              <div className="mt-0.5 text-[10px] font-medium text-ink-400">
+                Terlapor - Mahasiswa
+              </div>
             </div>
           </div>
         </div>
@@ -72,27 +79,32 @@ export function createDisputesColumns({
       accessorKey: "issueType",
       header: "Jenis Masalah",
       cell: ({ getValue }) => (
-        <span className="font-medium text-ink-700 text-sm leading-snug">
+        <span
+          className="block max-w-[300px] truncate text-sm font-medium leading-snug text-ink-700"
+          title={String(getValue())}
+        >
           {String(getValue())}
         </span>
       ),
     },
     {
-      accessorKey: "priority",
-      header: "Prioritas",
-      cell: ({ row }) => (
-        <DisputePriorityPill priority={row.original.priority} />
-      ),
-    },
-    {
-      accessorKey: "status",
+      id: "state",
       header: "Status",
-      cell: ({ row }) => <DisputeStatusPill status={row.original.status} />,
+      cell: ({ row }) => (
+        <div className="flex w-[110px] flex-col items-start gap-1.5">
+          <DisputePriorityPill priority={row.original.priority} />
+          <DisputeStatusPill status={row.original.status} />
+        </div>
+      ),
     },
     {
       accessorKey: "createdAt",
       header: "Tanggal",
-      cell: ({ row }) => formatDate(row.original.createdAt),
+      cell: ({ row }) => (
+        <span className="block w-[86px] text-xs font-medium text-ink-500">
+          {formatDate(row.original.createdAt)}
+        </span>
+      ),
     },
     {
       id: "actions",

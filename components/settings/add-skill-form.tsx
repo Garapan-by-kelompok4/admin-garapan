@@ -6,6 +6,13 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { KategoriItem } from "@/lib/api/settings";
 import { addSkillSchema, type AddSkillFormInput, type AddSkillInput } from "@/lib/validators/settings";
 
@@ -25,6 +32,8 @@ export function AddSkillForm({
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<AddSkillFormInput, unknown, AddSkillInput>({
     resolver: zodResolver(addSkillSchema),
@@ -33,6 +42,7 @@ export function AddSkillForm({
       kategoriId: "",
     },
   });
+  const kategoriId = watch("kategoriId");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-3" noValidate>
@@ -56,18 +66,45 @@ export function AddSkillForm({
         <Label htmlFor="kategoriId" className="text-xs font-bold text-ink-700">
           Kategori Jasa
         </Label>
-        <select
-          id="kategoriId"
-          className="h-[38px] w-full cursor-pointer rounded-lg border border-border bg-white px-3 text-xs font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
-          {...register("kategoriId")}
+        <input type="hidden" {...register("kategoriId")} />
+        <Select
+          value={kategoriId || "none"}
+          onValueChange={(value) => {
+            if (typeof value !== "string") return;
+            setValue("kategoriId", value === "none" ? "" : value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+          }}
         >
-          <option value="">Pilih Kategori (opsional)</option>
-          {kategoriList.map((kat) => (
-            <option key={kat.id} value={kat.id}>
-              {kat.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            id="kategoriId"
+            className="h-[38px] w-full border-border bg-white px-3 text-xs font-medium text-ink-700 focus-visible:border-brand-400 focus-visible:ring-brand-50"
+          >
+            <SelectValue>
+              {(value) =>
+                value === "none"
+                  ? "Pilih Kategori (opsional)"
+                  : kategoriList.find((kat) => kat.id === value)?.name ??
+                    "Pilih Kategori (opsional)"
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align="start" className="min-w-[240px] p-1">
+            <SelectItem value="none" className="px-2 py-1.5 text-sm">
+              Pilih Kategori (opsional)
+            </SelectItem>
+            {kategoriList.map((kat) => (
+              <SelectItem
+                key={kat.id}
+                value={kat.id}
+                className="px-2 py-1.5 text-sm"
+              >
+                {kat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="mt-4 flex justify-end gap-2 border-t border-border pt-2">

@@ -3,16 +3,23 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   DisputeDetail,
   ResolveDisputePayload,
 } from "@/lib/api/disputes";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import {
   createResolveDisputeSchema,
   type ResolveDisputeFormInput,
@@ -24,6 +31,7 @@ interface ResolutionFormProps {
   onResolve: (params: { id: string; payload: ResolveDisputePayload }) => void;
   onClose: () => void;
   isPending: boolean;
+  className?: string;
 }
 
 export function ResolutionForm({
@@ -31,6 +39,7 @@ export function ResolutionForm({
   onResolve,
   onClose,
   isPending,
+  className,
 }: ResolutionFormProps) {
   const schema = useMemo(
     () => createResolveDisputeSchema(disputeDetail.orderAmount),
@@ -39,6 +48,7 @@ export function ResolutionForm({
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
@@ -78,7 +88,7 @@ export function ResolutionForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4 border-t border-border pt-5"
+      className={cn("space-y-4", className)}
       noValidate
     >
       <div className="flex items-center gap-2">
@@ -88,35 +98,63 @@ export function ResolutionForm({
         </h4>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="outcome" className="text-xs font-bold text-ink-700">
             Keputusan Dana Escrow
           </Label>
-          <select
-            id="outcome"
-            className="h-[38px] w-full cursor-pointer rounded-lg border border-border bg-white px-3 text-sm font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
-            aria-invalid={Boolean(errors.outcome)}
-            {...register("outcome", {
-              onChange: (event) => {
-                if (event.target.value !== "PARTIAL_REFUND") {
-                  setValue("refundAmount", undefined);
-                }
-              },
-            })}
-          >
-            <option value="">Pilih resolusi...</option>
-            <option value="RELEASE">
-              Cairkan penuh ke Freelancer (Mahasiswa)
-            </option>
-            <option value="REFUND">Refund penuh ke Client (Klien)</option>
-            <option value="PARTIAL_REFUND">
-              Refund Parsial ke Client &amp; Sisa ke Freelancer
-            </option>
-            <option value="REJECT">
-              Tolak Laporan (Tutup tanpa perubahan dana)
-            </option>
-          </select>
+          <Controller
+            name="outcome"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  if (value !== "PARTIAL_REFUND") {
+                    setValue("refundAmount", undefined);
+                  }
+                }}
+              >
+                <SelectTrigger
+                  id="outcome"
+                  aria-invalid={Boolean(errors.outcome)}
+                  className="h-[38px] w-full border-border bg-white px-3 text-sm font-medium text-ink-700 focus-visible:border-brand-400 focus-visible:ring-brand-50"
+                >
+                  <SelectValue placeholder="Pilih resolusi...">
+                    {(value) => {
+                      if (value === "RELEASE") {
+                        return "Cairkan penuh ke Freelancer";
+                      }
+                      if (value === "REFUND") return "Refund penuh ke Klien";
+                      if (value === "PARTIAL_REFUND") {
+                        return "Refund parsial";
+                      }
+                      if (value === "REJECT") return "Tolak laporan";
+                      return "Pilih resolusi...";
+                    }}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent align="start" className="min-w-[280px] p-1">
+                  <SelectItem value="RELEASE" className="px-2 py-1.5 text-sm">
+                    Cairkan penuh ke Freelancer (Mahasiswa)
+                  </SelectItem>
+                  <SelectItem value="REFUND" className="px-2 py-1.5 text-sm">
+                    Refund penuh ke Client (Klien)
+                  </SelectItem>
+                  <SelectItem
+                    value="PARTIAL_REFUND"
+                    className="px-2 py-1.5 text-sm"
+                  >
+                    Refund Parsial ke Client &amp; Sisa ke Freelancer
+                  </SelectItem>
+                  <SelectItem value="REJECT" className="px-2 py-1.5 text-sm">
+                    Tolak Laporan (Tutup tanpa perubahan dana)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
           {errors.outcome && (
             <p className="text-xs text-danger-500">{errors.outcome.message}</p>
           )}
@@ -170,7 +208,7 @@ export function ResolutionForm({
         )}
       </div>
 
-      <div className="flex justify-end gap-2.5 pt-1">
+      <div className="flex flex-col-reverse gap-2.5 pt-1 sm:flex-row sm:justify-end">
         <Button
           type="button"
           variant="outline"
