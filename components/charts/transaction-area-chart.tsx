@@ -9,10 +9,19 @@ import {
   Tooltip,
 } from "recharts";
 
+import { ChartPeriodToggle } from "@/components/charts/chart-period-toggle";
+import {
+  CHART_AXIS_STROKE,
+  CHART_BRAND_STROKE,
+  chartTooltipStyle,
+  TRANSACTION_AREA_GRADIENT_ID,
+} from "@/components/charts/chart-tokens";
+import { getTransactionChartSummary } from "@/components/charts/transaction-chart-summary";
+import type { ChartPeriod } from "@/components/charts/types";
 import type { AnalyticsResponse } from "@/lib/api/dashboard";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
-export type ChartPeriod = "7H" | "30H" | "90H" | "1T";
+export type { ChartPeriod } from "@/components/charts/types";
 
 interface TransactionAreaChartProps {
   period: ChartPeriod;
@@ -27,6 +36,8 @@ export function TransactionAreaChart({
   analytics,
   isLoading,
 }: TransactionAreaChartProps) {
+  const summary = getTransactionChartSummary(analytics);
+
   return (
     <div className="lg:col-span-2 bg-white border border-border rounded-xl p-5 space-y-4 shadow-sh-1">
       <div className="flex justify-between items-center border-b border-border pb-3">
@@ -39,54 +50,15 @@ export function TransactionAreaChart({
           </p>
         </div>
 
-        <div className="flex bg-surface-3 p-0.5 rounded-lg border border-border/40 select-none">
-          {(["7H", "30H", "90H", "1T"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => onPeriodChange(t)}
-              className={`px-2 py-1 text-[10.5px] font-bold rounded-md transition-all cursor-pointer ${
-                period === t
-                  ? "bg-white text-ink-900 shadow-sm font-extrabold"
-                  : "text-ink-500 hover:text-ink-900"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <ChartPeriodToggle period={period} onPeriodChange={onPeriodChange} />
       </div>
 
       <div className="grid grid-cols-3 gap-4 py-1 select-none">
-        {[
-          {
-            label: "Total Pesanan",
-            val: analytics?.timeSeries
-              ? formatNumber(
-                  analytics.timeSeries.reduce((s, p) => s + p.orderCount, 0),
-                )
-              : "-",
-          },
-          {
-            label: "Nilai Transaksi",
-            val: analytics?.timeSeries
-              ? formatCurrency(
-                  analytics.timeSeries.reduce((s, p) => s + p.revenue, 0),
-                )
-              : "-",
-          },
-          {
-            label: "Rata-rata Harian",
-            val: analytics?.timeSeries?.length
-              ? formatCurrency(
-                  Math.round(
-                    analytics.timeSeries.reduce((s, p) => s + p.revenue, 0) /
-                      analytics.timeSeries.length,
-                  ),
-                )
-              : "-",
-          },
-        ].map((agg, idx) => (
-          <div key={idx} className="border-r border-border last:border-r-0">
+        {summary.map((agg) => (
+          <div
+            key={agg.label}
+            className="border-r border-border last:border-r-0"
+          >
             <div className="text-[11px] text-ink-400 font-semibold">
               {agg.label}
             </div>
@@ -109,14 +81,28 @@ export function TransactionAreaChart({
               margin={{ left: -10, right: 10, top: 10, bottom: 0 }}
             >
               <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2047C9" stopOpacity={0.16} />
-                  <stop offset="95%" stopColor="#2047C9" stopOpacity={0.0} />
+                <linearGradient
+                  id={TRANSACTION_AREA_GRADIENT_ID}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="5%"
+                    stopColor={CHART_BRAND_STROKE}
+                    stopOpacity={0.16}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={CHART_BRAND_STROKE}
+                    stopOpacity={0.0}
+                  />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="name"
-                stroke="#94A3B8"
+                stroke={CHART_AXIS_STROKE}
                 fontSize={10}
                 fontWeight={500}
                 tickLine={false}
@@ -124,7 +110,7 @@ export function TransactionAreaChart({
                 dy={10}
               />
               <YAxis
-                stroke="#94A3B8"
+                stroke={CHART_AXIS_STROKE}
                 fontSize={10}
                 fontWeight={500}
                 tickLine={false}
@@ -137,20 +123,15 @@ export function TransactionAreaChart({
                   formatCurrency(Number(value)),
                   "Nilai Transaksi",
                 ]}
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: "1px solid #E5E9F0",
-                  fontSize: "12px",
-                  fontFamily: "Inter",
-                }}
+                contentStyle={chartTooltipStyle}
               />
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#2047C9"
+                stroke={CHART_BRAND_STROKE}
                 strokeWidth={2}
                 fillOpacity={1}
-                fill="url(#colorValue)"
+                fill={`url(#${TRANSACTION_AREA_GRADIENT_ID})`}
               />
             </AreaChart>
           </ResponsiveContainer>

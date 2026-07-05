@@ -68,12 +68,40 @@ function normaliseActivity(raw: unknown, index: number): ActivityItem {
 export interface DashboardStats {
   activeUsers: number;
   activeUsersDelta: number | null;
+  activeUsersSparkline: number[];
   transactionsCount: number;
   transactionsDelta: number | null;
+  transactionsSparkline: number[];
   revenue: number;
   revenueDelta: number | null;
+  revenueSparkline: number[];
   pendingReports: number;
   pendingReportsDelta: number | null;
+  pendingReportsSparkline: number[];
+}
+
+function numberList(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.map((item) => {
+    if (typeof item === "number" && Number.isFinite(item)) return item;
+    if (typeof item === "string") {
+      const parsed = Number(item);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
+  });
+}
+
+function normaliseStatsSparklines(raw: unknown) {
+  const sparklines = asRecord(asRecord(raw).sparklines);
+
+  return {
+    activeUsersSparkline: numberList(sparklines.users),
+    transactionsSparkline: numberList(sparklines.orders),
+    revenueSparkline: numberList(sparklines.revenue),
+    pendingReportsSparkline: numberList(sparklines.pendingDisputes),
+  };
 }
 
 export interface OrderChartPoint {
@@ -156,7 +184,9 @@ function normaliseAnalytics(raw: unknown): AnalyticsResponse {
 export const dashboardApi = {
   getStats: async (): Promise<DashboardStats> => {
     const [statsRaw, analyticsRaw] = await Promise.all([
-      apiClient<unknown>("/admin/stats"),
+      apiClient<unknown>(
+        "/admin/stats?sparklineDays=7&includeSparklines=true",
+      ),
       apiClient<unknown>("/admin/analytics?days=30&includeDeltas=true").catch(
         () => null,
       ),
@@ -164,16 +194,21 @@ export const dashboardApi = {
     const r = asRecord(statsRaw);
     const analytics = analyticsRaw ? normaliseAnalytics(analyticsRaw) : null;
     const deltas = analytics?.deltas;
+    const sparklines = normaliseStatsSparklines(statsRaw);
 
     return {
       activeUsers: Number(r.users ?? 0),
       activeUsersDelta: deltas?.users ?? null,
+      activeUsersSparkline: sparklines.activeUsersSparkline,
       transactionsCount: Number(asRecord(r.orders).total ?? 0),
       transactionsDelta: deltas?.orders ?? null,
+      transactionsSparkline: sparklines.transactionsSparkline,
       revenue: Number(r.revenue ?? 0),
       revenueDelta: deltas?.revenue ?? null,
+      revenueSparkline: sparklines.revenueSparkline,
       pendingReports: Number(r.pendingDisputes ?? 0),
       pendingReportsDelta: null,
+      pendingReportsSparkline: sparklines.pendingReportsSparkline,
     };
   },
 
