@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   settingsApi,
@@ -25,9 +26,23 @@ import type { AddSkillInput, ProfileInput } from "@/lib/validators/settings";
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<SettingsTabId>("profile");
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
+
+  useEffect(() => {
+    if (
+      tabParam === "profile" ||
+      tabParam === "security" ||
+      tabParam === "notifications" ||
+      tabParam === "master" ||
+      tabParam === "audit"
+    ) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   const { data: profile, isLoading: isLoadingProfile } = useQuery<
     AdminProfile,

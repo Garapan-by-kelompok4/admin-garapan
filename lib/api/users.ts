@@ -107,7 +107,7 @@ function normaliseUserDetail(raw: unknown): UserDetail {
 
   return {
     ...base,
-    phone: "",
+    phone: r.phoneNumber ? String(r.phoneNumber) : undefined,
     bio: String(mahasiswa.bio ?? klien.bio ?? ""),
     orderHistory,
     reportHistory,

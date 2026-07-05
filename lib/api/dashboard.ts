@@ -32,24 +32,50 @@ function listFromResponse(raw: unknown, keys: string[] = []): unknown[] {
   return [];
 }
 
+const ACTIVITY_MESSAGES: Record<string, string> = {
+  USER_REGISTERED: "Pengguna baru terdaftar",
+  USER_LOGGED_IN: "Pengguna masuk",
+  ORDER_CREATED: "Pesanan baru dibuat",
+  PAYMENT_SUCCEEDED: "Pembayaran berhasil",
+  ORDER_DELIVERED: "Pesanan dikirim",
+  ORDER_COMPLETED: "Pesanan selesai",
+  ORDER_CANCELLED: "Pesanan dibatalkan",
+  DISPUTE_OPENED: "Dispute dibuka",
+  DISPUTE_RESOLVED: "Dispute diselesaikan",
+  PROPOSAL_SUBMITTED: "Proposal diajukan",
+  PROPOSAL_WITHDRAWN: "Proposal ditarik",
+  PROPOSAL_ACCEPTED: "Proposal diterima",
+  PROPOSAL_REJECTED: "Proposal ditolak",
+};
+
 function normaliseActivity(raw: unknown, index: number): ActivityItem {
   const record = asRecord(raw);
   const meta = asRecord(record.meta);
+  const user = asRecord(record.user);
   const action = String(record.action ?? "activity");
+  const userId = String(record.userId ?? user.id ?? "");
 
-  let message = String(meta.message ?? meta.description ?? action);
+  let message = String(
+    meta.message ?? meta.description ?? ACTIVITY_MESSAGES[action] ?? action,
+  );
   if (action.includes("DISPUTE") && meta.outcome) {
     message = `Dispute diselesaikan: ${meta.outcome}`;
   } else if (action.includes("ORDER") && meta.pesananId) {
-    message = `Pesanan ${String(meta.pesananId).slice(0, 8)}... ${action.toLowerCase().replace("_", " ")}`;
-  } else if (action.includes("USER") && meta.userId) {
-    message = `User ${action.toLowerCase().replace("_", " ")}`;
+    message = `Pesanan ${String(meta.pesananId).slice(0, 8)}… — ${ACTIVITY_MESSAGES[action] ?? action.toLowerCase().replaceAll("_", " ")}`;
   }
+
+  const actorName = String(
+    user.displayName ??
+      user.fullName ??
+      user.email ??
+      (userId ? `User ${userId.slice(0, 8)}` : "Sistem"),
+  );
+  const actorRole = String(user.role ?? (action.includes("DISPUTE_RESOLVED") ? "ADMIN" : "USER"));
 
   return {
     id: String(record.id ?? record._id ?? `activity-${index}`),
-    actorName: "Admin",
-    actorRole: "ADMIN",
+    actorName,
+    actorRole,
     action,
     message,
     createdAt: String(
@@ -63,13 +89,13 @@ function normaliseActivity(raw: unknown, index: number): ActivityItem {
 
 export interface DashboardStats {
   activeUsers: number;
-  activeUsersDelta: number;
+  activeUsersDelta: number | null;
   transactionsCount: number;
-  transactionsDelta: number;
+  transactionsDelta: number | null;
   revenue: number;
-  revenueDelta: number;
+  revenueDelta: number | null;
   pendingReports: number;
-  pendingReportsDelta: number;
+  pendingReportsDelta: number | null;
 }
 
 export interface OrderChartPoint {
@@ -151,17 +177,25 @@ function normaliseAnalytics(raw: unknown): AnalyticsResponse {
 
 export const dashboardApi = {
   getStats: async (): Promise<DashboardStats> => {
-    const raw = await apiClient<unknown>("/admin/stats");
-    const r = asRecord(raw);
+    const [statsRaw, analyticsRaw] = await Promise.all([
+      apiClient<unknown>("/admin/stats"),
+      apiClient<unknown>("/admin/analytics?days=30&includeDeltas=true").catch(
+        () => null,
+      ),
+    ]);
+    const r = asRecord(statsRaw);
+    const analytics = analyticsRaw ? normaliseAnalytics(analyticsRaw) : null;
+    const deltas = analytics?.deltas;
+
     return {
       activeUsers: Number(r.users ?? 0),
-      activeUsersDelta: 0,
+      activeUsersDelta: deltas?.users ?? null,
       transactionsCount: Number(asRecord(r.orders).total ?? 0),
-      transactionsDelta: 0,
+      transactionsDelta: deltas?.orders ?? null,
       revenue: Number(r.revenue ?? 0),
-      revenueDelta: 0,
+      revenueDelta: deltas?.revenue ?? null,
       pendingReports: Number(r.pendingDisputes ?? 0),
-      pendingReportsDelta: 0,
+      pendingReportsDelta: null,
     };
   },
 

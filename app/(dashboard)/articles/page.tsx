@@ -21,14 +21,6 @@ import {
   type ArticleFormInput,
 } from "@/lib/validators/articles";
 
-const fallbackCategories = [
-  "Umum",
-  "Tips",
-  "Tutorial",
-  "Pengumuman",
-  "Tren IT",
-];
-
 export default function ArticlesPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -55,7 +47,7 @@ export default function ArticlesPage() {
     defaultValues: {
       title: "",
       content: "",
-      category: "Umum",
+      category: "",
       tags: [],
       seoDescription: "",
     },
@@ -101,11 +93,10 @@ export default function ArticlesPage() {
     queryFn: () => articlesApi.tags(),
   });
 
-  const categoryOptions = useMemo(() => {
-    return Array.from(
-      new Set([...(categoriesQuery.data?.data ?? []), ...fallbackCategories]),
-    ).filter(Boolean);
-  }, [categoriesQuery.data?.data]);
+  const categoryOptions = useMemo(
+    () => categoriesQuery.data?.data ?? [],
+    [categoriesQuery.data?.data],
+  );
 
   const tagOptions = tagsQuery.data?.data ?? [];
 
@@ -134,7 +125,7 @@ export default function ArticlesPage() {
     reset({
       title: article.title,
       content: article.content,
-      category: article.category || "Umum",
+      category: article.category || categoryOptions[0] || "",
       tags: article.tags,
       seoDescription: article.seoDescription,
     });
@@ -155,7 +146,7 @@ export default function ArticlesPage() {
     reset({
       title: "",
       content: "",
-      category: "Umum",
+      category: categoryOptions[0] || "",
       tags: [],
       seoDescription: "",
     });
@@ -187,7 +178,7 @@ export default function ArticlesPage() {
         title: values.title.trim(),
         content: values.content,
         imageUrl: coverRemoved ? "" : finalImageUrl || undefined,
-        category: values.category.trim() || "Umum",
+        category: values.category.trim() || categoryOptions[0] || "",
         tags: values.tags,
         seoDescription: values.seoDescription?.trim() || undefined,
       };
