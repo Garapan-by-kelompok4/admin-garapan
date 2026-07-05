@@ -20,6 +20,7 @@ import {
 import { SettingsMasterTab } from "@/components/settings/settings-master-tab";
 import { SettingsAuditTab } from "@/components/settings/settings-audit-tab";
 import { SettingsSecurityTab } from "@/components/settings/settings-security-tab";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { AddSkillInput, ProfileInput } from "@/lib/validators/settings";
 
 function parseSettingsTab(value: string | null): SettingsTabId | null {
@@ -42,6 +43,10 @@ export default function SettingsPage() {
     parseSettingsTab(searchParams.get("tab")) ?? "profile";
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
+  const [deleteSkillTarget, setDeleteSkillTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const handleTabChange = (tab: SettingsTabId) => {
     router.replace(`/settings?tab=${tab}`, { scroll: false });
@@ -179,15 +184,7 @@ export default function SettingsPage() {
             onAddSkillOpenChange={setIsAddSkillOpen}
             isAddPending={addSkillMutation.isPending}
             onAddSkill={handleAddSkill}
-            onDeleteSkill={(id, name) => {
-              if (
-                confirm(
-                  `Apakah Anda yakin ingin menghapus kompetensi ${name}?`,
-                )
-              ) {
-                deleteSkillMutation.mutate(id);
-              }
-            }}
+            onDeleteSkill={(id, name) => setDeleteSkillTarget({ id, name })}
           />
         )}
 
@@ -198,6 +195,21 @@ export default function SettingsPage() {
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteSkillTarget !== null}
+        onOpenChange={(open) => !open && setDeleteSkillTarget(null)}
+        title={`Hapus kompetensi ${deleteSkillTarget?.name ?? ""}?`}
+        description="Kompetensi yang dihapus tidak lagi tersedia saat mahasiswa membuat jasa baru."
+        confirmLabel="Hapus Kompetensi"
+        isLoading={deleteSkillMutation.isPending}
+        onConfirm={() => {
+          if (deleteSkillTarget) {
+            deleteSkillMutation.mutate(deleteSkillTarget.id);
+            setDeleteSkillTarget(null);
+          }
+        }}
+      />
     </div>
   );
 }

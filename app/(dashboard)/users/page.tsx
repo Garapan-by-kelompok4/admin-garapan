@@ -9,6 +9,7 @@ import { usersApi, type UserStatusFilter } from "@/lib/api/users";
 import { getErrorMessage } from "@/lib/utils";
 import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { UsersToolbar } from "@/components/users/users-toolbar";
 import { createUsersColumns } from "@/components/users/users-columns";
 import { UserDetailDialog } from "@/components/users/user-detail-dialog";
@@ -24,6 +25,10 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<UserStatusFilter>("Semua");
   const [page, setPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [banTarget, setBanTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const limit = 10;
 
@@ -75,9 +80,7 @@ export default function UsersPage() {
   });
 
   const handleBan = (userId: string, userName: string) => {
-    if (confirm(`Apakah Anda yakin ingin memblokir ${userName}?`)) {
-      banMutation.mutate(userId);
-    }
+    setBanTarget({ id: userId, name: userName });
   };
 
   const columns = createUsersColumns({
@@ -134,6 +137,21 @@ export default function UsersPage() {
         onOpenChange={(open) => !open && setSelectedUserId(null)}
         userDetail={userDetail}
         isLoading={isLoadingDetail}
+      />
+
+      <ConfirmDialog
+        open={banTarget !== null}
+        onOpenChange={(open) => !open && setBanTarget(null)}
+        title={`Blokir ${banTarget?.name ?? "user"}?`}
+        description="User tidak akan bisa login atau menggunakan platform setelah diblokir. Anda dapat memulihkan akun kapan saja."
+        confirmLabel="Blokir User"
+        isLoading={banMutation.isPending}
+        onConfirm={() => {
+          if (banTarget) {
+            banMutation.mutate(banTarget.id);
+            setBanTarget(null);
+          }
+        }}
       />
     </div>
   );

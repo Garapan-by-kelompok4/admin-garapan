@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { AlertTriangle, Trash2, FileText, Tag } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FlaggedContent } from "@/lib/api/content";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatDate } from "@/lib/utils";
@@ -22,22 +24,24 @@ export function ModerationDetailDialog({
   isLoading,
   onRemove,
 }: ModerationDetailDialogProps) {
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const handleClose = () => onOpenChange(false);
 
   const handleRemove = () => {
     if (!contentDetail) return;
-    if (
-      confirm(
-        "Apakah Anda yakin ingin menghapus jasa ini? Tindakan ini bersifat permanen.",
-      )
-    ) {
-      onRemove(contentDetail.id);
-    }
+    setShowRemoveConfirm(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (!contentDetail) return;
+    onRemove(contentDetail.id);
+    setShowRemoveConfirm(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[850px] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[850px] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3">
         {isLoading ? (
           <div className="p-12 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent mx-auto" />
@@ -183,7 +187,17 @@ export function ModerationDetailDialog({
             </div>
           </div>
         ) : null}
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={showRemoveConfirm}
+        onOpenChange={setShowRemoveConfirm}
+        title="Hapus jasa ini?"
+        description="Tindakan ini bersifat permanen. Jasa akan dihapus dari platform dan tidak dapat dipulihkan."
+        confirmLabel="Hapus Jasa"
+        onConfirm={handleConfirmRemove}
+      />
+    </>
   );
 }
