@@ -97,7 +97,7 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
       iconBg: "bg-success-50 text-success-500 border-success-100",
     },
     {
-      label: "Pendapatan Platform",
+      label: "Total Pendapatan Selesai",
       val: stats?.revenue ? formatCurrency(stats.revenue) : "-",
       delta: stats?.revenueDelta ?? null,
       spark: [] as number[],

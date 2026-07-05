@@ -42,15 +42,21 @@ export function createUsersColumns({
         </div>
       ),
     },
-    ...(activeTab === "KLIEN"
+    ...(activeTab === "MAHASISWA"
       ? [
+          {
+            accessorKey: "university",
+            header: "Universitas",
+            cell: ({ getValue }) => getValue() || "-",
+          } as ColumnDef<User>,
+        ]
+      : [
           {
             accessorKey: "company",
             header: "Perusahaan",
             cell: ({ getValue }) => getValue() || "-",
           } as ColumnDef<User>,
-        ]
-      : []),
+        ]),
     {
       id: "status",
       header: "Status",

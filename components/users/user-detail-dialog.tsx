@@ -3,9 +3,7 @@
 import { useRef, useEffect } from "react";
 import {
   Star,
-  Ban,
   X,
-  Unlock,
   Calendar,
   TrendingUp,
   AlertTriangle,
@@ -27,8 +25,6 @@ interface UserDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   userDetail: UserDetail | undefined;
   isLoading: boolean;
-  onBan: (userId: string, userName: string) => void;
-  onUnban: (userId: string) => void;
 }
 
 export function UserDetailDialog({
@@ -36,8 +32,6 @@ export function UserDetailDialog({
   onOpenChange,
   userDetail,
   isLoading,
-  onBan,
-  onUnban,
 }: UserDetailDialogProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -372,23 +366,6 @@ export function UserDetailDialog({
               >
                 <X className="h-3.5 w-3.5" /> Tutup
               </button>
-              {userDetail.bannedAt !== null ? (
-                <button
-                  onClick={() => onUnban(userDetail.id)}
-                  className="px-4 py-2 text-sm font-semibold bg-success-500 hover:bg-success-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
-                >
-                  <Unlock className="h-4 w-4" /> Pulihkan Akun
-                </button>
-              ) : (
-                <button
-                  onClick={() =>
-                    onBan(userDetail.id, userDetail.fullName || "User")
-                  }
-                  className="px-4 py-2 text-sm font-semibold bg-danger-500 hover:bg-danger-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
-                >
-                  <Ban className="h-4 w-4" /> Blokir Akun
-                </button>
-              )}
             </div>
           </div>
         ) : null}

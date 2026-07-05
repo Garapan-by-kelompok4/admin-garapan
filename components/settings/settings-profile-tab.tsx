@@ -116,7 +116,7 @@ export function SettingsProfileTab({
                 Peran Akses (Role)
               </label>
               <span className="w-full h-10 px-3 bg-surface-2 border border-border rounded-lg text-xs text-ink-450 flex items-center font-bold capitalize select-none cursor-not-allowed">
-                {profile?.role?.toLowerCase() || "Super Admin"}
+                {profile?.role?.toLowerCase() || "admin"}
               </span>
             </div>
           </div>
