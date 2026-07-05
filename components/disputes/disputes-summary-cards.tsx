@@ -1,18 +1,17 @@
 import { AlertTriangle, CheckCircle, Clock, Flag } from "lucide-react";
-import { Dispute } from "@/lib/api/disputes";
 
 interface DisputesSummaryCardsProps {
   openCount: number;
   processingCount: number;
   totalCount: number;
-  items: Dispute[] | undefined;
+  resolvedCount: number;
 }
 
 export function DisputesSummaryCards({
   openCount,
   processingCount,
   totalCount,
-  items,
+  resolvedCount,
 }: DisputesSummaryCardsProps) {
   const cards = [
     {
@@ -35,7 +34,7 @@ export function DisputesSummaryCards({
     },
     {
       label: "Selesai Diselesaikan",
-      val: items?.filter((d) => d.status === "Selesai").length ?? 0,
+      val: resolvedCount,
       icon: AlertTriangle,
       color: "text-brand-500 bg-brand-50 border-brand-100",
     },

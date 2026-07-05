@@ -1,42 +1,40 @@
 import { AlertTriangle, CheckCircle, Trash2 } from "lucide-react";
-import { FlaggedContent } from "@/lib/api/content";
 
 interface ModerationSummaryCardsProps {
-  totalItems: number;
-  pendingItems: number;
-  items: FlaggedContent[] | undefined;
+  pendingCount: number;
+  totalCount: number;
+  safeCount: number;
+  removedCount: number;
 }
 
 export function ModerationSummaryCards({
-  totalItems,
-  pendingItems,
-  items,
+  pendingCount,
+  totalCount,
+  safeCount,
+  removedCount,
 }: ModerationSummaryCardsProps) {
   const cards = [
     {
       label: "Perlu Ditinjau",
-      val: pendingItems,
+      val: pendingCount,
       icon: AlertTriangle,
       color: "text-warn-500 bg-warn-50 border-warn-100",
     },
     {
       label: "Total Flagged",
-      val: totalItems,
+      val: totalCount,
       icon: AlertTriangle,
       color: "text-brand-500 bg-brand-50 border-brand-100",
     },
     {
       label: "Ditandai Aman",
-      val: items?.filter((c) => c.status === "Aman").length ?? 0,
+      val: safeCount,
       icon: CheckCircle,
       color: "text-success-500 bg-success-50 border-success-100",
     },
     {
       label: "Dihapus / Sembunyi",
-      val:
-        items?.filter(
-          (c) => c.status === "Dihapus" || c.status === "Disembunyikan",
-        ).length ?? 0,
+      val: removedCount,
       icon: Trash2,
       color: "text-danger-500 bg-danger-50 border-danger-100",
     },

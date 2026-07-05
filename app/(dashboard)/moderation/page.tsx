@@ -6,6 +6,8 @@ import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { contentApi } from "@/lib/api/content";
 import { getErrorMessage } from "@/lib/utils";
+import { useModerationSummaryStats } from "@/hooks/use-moderation-summary-stats";
+import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
 import { ModerationSummaryCards } from "@/components/moderation/moderation-summary-cards";
 import { ModerationToolbar } from "@/components/moderation/moderation-toolbar";
@@ -23,22 +25,19 @@ export default function ModerationPage() {
 
   const limit = 10;
 
+  const { data: summaryStats } = useModerationSummaryStats();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["content", page, search, statusFilter],
-    queryFn: async () => {
-      const res = await contentApi.list({
+    queryFn: () =>
+      contentApi.list({
         page,
         limit,
         status: statusFilter === "Semua" ? undefined : statusFilter,
         search: search || undefined,
-      });
-      return res;
-    },
+      }),
+    placeholderData: paginatedListPlaceholder,
   });
-
-  const totalItems = data?.total ?? 0;
-  const pendingItems =
-    data?.data?.filter((c) => c.status === "Ditinjau").length ?? 0;
 
   const { data: contentDetail, isLoading: isLoadingDetail } = useQuery({
     queryKey: ["contentDetail", selectedContentId],
@@ -69,9 +68,10 @@ export default function ModerationPage() {
   return (
     <div className="space-y-6">
       <ModerationSummaryCards
-        totalItems={totalItems}
-        pendingItems={pendingItems}
-        items={data?.data}
+        pendingCount={summaryStats?.pendingCount ?? 0}
+        totalCount={summaryStats?.totalCount ?? 0}
+        safeCount={summaryStats?.safeCount ?? 0}
+        removedCount={summaryStats?.removedCount ?? 0}
       />
 
       <ModerationToolbar

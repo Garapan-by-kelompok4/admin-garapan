@@ -19,11 +19,19 @@ export interface User {
   createdAt: string;
 }
 
+export type UserStatusFilter = "Semua" | "Aktif" | "Suspended" | "Pending";
+
 export interface ListUsersParams {
   page?: number;
   limit?: number;
   search?: string;
   role?: "MAHASISWA" | "KLIEN";
+  banned?: boolean;
+  emailVerified?: boolean;
+}
+
+export interface ListUsersWithStatusParams extends ListUsersParams {
+  statusFilter?: UserStatusFilter;
 }
 
 export interface ListUsersResponse {
@@ -118,6 +126,12 @@ export const usersApi = {
     if (params.limit) query.set("limit", String(params.limit));
     if (params.search) query.set("search", params.search);
     if (params.role) query.set("role", params.role);
+    if (params.banned !== undefined) {
+      query.set("banned", String(params.banned));
+    }
+    if (params.emailVerified !== undefined) {
+      query.set("emailVerified", String(params.emailVerified));
+    }
 
     const queryString = query.toString();
     const path = `/admin/users${queryString ? `?${queryString}` : ""}`;
@@ -133,6 +147,43 @@ export const usersApi = {
       page: Number(record.page ?? params.page ?? 1),
       limit: Number(record.limit ?? params.limit ?? 20),
     };
+  },
+
+  listWithStatusFilter: async (
+    params: ListUsersWithStatusParams = {},
+  ): Promise<ListUsersResponse> => {
+    const {
+      statusFilter = "Semua",
+      page = 1,
+      limit = 10,
+      ...rest
+    } = params;
+
+    if (statusFilter === "Suspended") {
+      return usersApi.list({ ...rest, page, limit, banned: true });
+    }
+
+    if (statusFilter === "Semua") {
+      return usersApi.list({ ...rest, page, limit });
+    }
+
+    if (statusFilter === "Aktif") {
+      return usersApi.list({
+        ...rest,
+        page,
+        limit,
+        banned: false,
+        emailVerified: true,
+      });
+    }
+
+    return usersApi.list({
+      ...rest,
+      page,
+      limit,
+      banned: false,
+      emailVerified: false,
+    });
   },
 
   getById: async (id: string): Promise<UserDetail> => {

@@ -4,53 +4,38 @@ import {
   DollarSign,
   Undo2,
 } from "lucide-react";
-import { OrderTransaction } from "@/lib/api/orders";
+import { TransactionsSummaryStats } from "@/hooks/use-transactions-summary-stats";
 import { formatCurrency } from "@/lib/utils";
 
 interface TransactionsSummaryCardsProps {
-  items: OrderTransaction[] | undefined;
+  stats: TransactionsSummaryStats | undefined;
 }
 
 export function TransactionsSummaryCards({
-  items,
+  stats,
 }: TransactionsSummaryCardsProps) {
-  const totalVolume =
-    items?.reduce((sum, t) => sum + (t.amount ?? 0), 0) ?? 0;
-
   const cards = [
     {
       label: "Volume Transaksi (GTV)",
-      val: formatCurrency(totalVolume),
+      val: formatCurrency(stats?.totalVolume ?? 0),
       icon: TrendingUp,
       color: "text-success-500 bg-success-50 border-success-100",
     },
     {
       label: "Escrow Ditahan",
-      val: formatCurrency(
-        items
-          ?.filter((t) => t.escrowStatus === "Ditahan")
-          .reduce((s, t) => s + t.amount, 0) ?? 0,
-      ),
+      val: formatCurrency(stats?.heldVolume ?? 0),
       icon: Wallet,
       color: "text-warn-500 bg-warn-50 border-warn-100",
     },
     {
       label: "Dana Dicairkan",
-      val: formatCurrency(
-        items
-          ?.filter((t) => t.escrowStatus === "Dicairkan")
-          .reduce((s, t) => s + t.amount, 0) ?? 0,
-      ),
+      val: formatCurrency(stats?.releasedVolume ?? 0),
       icon: DollarSign,
       color: "text-brand-500 bg-brand-50 border-brand-100",
     },
     {
       label: "Total Pengembalian (Refund)",
-      val: formatCurrency(
-        items
-          ?.filter((t) => t.escrowStatus === "Refund")
-          .reduce((s, t) => s + t.amount, 0) ?? 0,
-      ),
+      val: formatCurrency(stats?.refundVolume ?? 0),
       icon: Undo2,
       color: "text-danger-500 bg-danger-50 border-danger-100",
     },
