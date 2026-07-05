@@ -1,4 +1,10 @@
 import { apiClient } from "./client";
+import {
+  normaliseTags,
+  nullableString,
+  optionalString,
+  stringOr,
+} from "./normalizers";
 
 export type ArticleStatus = "Published" | "Draft";
 export type ArticleStatusFilter = "all" | "draft" | "published";
@@ -106,33 +112,6 @@ interface RawListArticlesResponse {
 interface RawTaxonomyResponse {
   data?: string[];
   total?: number;
-}
-
-function normaliseTags(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value.filter((tag): tag is string => typeof tag === "string");
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
-function stringOr(value: unknown, fallback = "") {
-  return typeof value === "string" ? value : fallback;
-}
-
-function optionalString(value: unknown) {
-  return typeof value === "string" ? value : undefined;
-}
-
-function nullableString(value: unknown) {
-  return typeof value === "string" ? value : null;
 }
 
 function normaliseArticle(raw: RawArticle): Article {

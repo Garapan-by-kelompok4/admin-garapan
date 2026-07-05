@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { asRecord } from "./normalizers";
 
 export type EscrowStatus = "Ditahan" | "Dicairkan" | "Refund";
 
@@ -38,12 +39,6 @@ export interface ListOrdersResponse {
   total: number;
   page: number;
   limit: number;
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
 function mapEscrowStatus(status: string): EscrowStatus {

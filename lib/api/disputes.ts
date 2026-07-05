@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { asRecord, type UnknownRecord } from "./normalizers";
 
 export type DisputePriority = "Tinggi" | "Sedang" | "Rendah";
 export type DisputeStatus = "Terbuka" | "Diproses" | "Selesai" | "Ditolak";
@@ -50,12 +51,6 @@ export interface ResolveDisputePayload {
   outcome: DisputeOutcome;
   resolutionNote: string;
   refundAmount?: string;
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
 function normaliseDispute(raw: unknown): Dispute {

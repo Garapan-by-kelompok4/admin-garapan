@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { asRecord, listFromResponse, type UnknownRecord } from "./normalizers";
 
 export interface ActivityItem {
   id: string;
@@ -7,29 +8,6 @@ export interface ActivityItem {
   action: "order" | "user" | "report" | string;
   message: string;
   createdAt: string;
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? (value as UnknownRecord) : {};
-}
-
-function listFromResponse(raw: unknown, keys: string[] = []): unknown[] {
-  const record = asRecord(raw);
-  const data = asRecord(record.data);
-
-  if (Array.isArray(raw)) return raw;
-
-  for (const key of keys) {
-    if (Array.isArray(record[key])) return record[key];
-    if (Array.isArray(data[key])) return data[key];
-  }
-
-  if (Array.isArray(record.data)) return record.data;
-  if (Array.isArray(record.items)) return record.items;
-  if (Array.isArray(data.items)) return data.items;
-  return [];
 }
 
 const ACTIVITY_MESSAGES: Record<string, string> = {

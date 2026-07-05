@@ -1,15 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit2, FileText, Trash2 } from "lucide-react";
 import { Article } from "@/lib/api/articles";
-
-export function formatArticleDate(dateStr?: string | null) {
-  if (!dateStr) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(dateStr));
-}
+import { formatDate, formatNumber } from "@/lib/utils";
 
 export interface ArticleColumnHandlers {
   onEdit: (id: string) => void;
@@ -123,19 +115,19 @@ export function createArticleColumns(
     {
       accessorKey: "publishedAt",
       header: "Tgl. Publikasi",
-      cell: ({ row }) => formatArticleDate(row.original.publishedAt),
+      cell: ({ row }) => formatDate(row.original.publishedAt ?? ""),
     },
     {
       accessorKey: "updatedAt",
       header: "Update",
-      cell: ({ row }) => formatArticleDate(row.original.updatedAt),
+      cell: ({ row }) => formatDate(row.original.updatedAt),
     },
     {
       accessorKey: "views",
       header: "Views",
       cell: ({ row }) => (
         <span className="font-mono text-xs font-semibold text-ink-900">
-          {new Intl.NumberFormat("id-ID").format(row.original.views)}
+          {formatNumber(row.original.views)}
         </span>
       ),
     },

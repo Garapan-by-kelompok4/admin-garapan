@@ -1,3 +1,5 @@
+import { formatDate } from "@/lib/utils";
+
 export const formatTime = (dateStr: string) => {
   if (!dateStr) return "";
   try {
@@ -11,19 +13,8 @@ export const formatTime = (dateStr: string) => {
   }
 };
 
-export const formatDateLabel = (dateStr: string) => {
-  if (!dateStr) return "";
-  try {
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }).format(date);
-  } catch {
-    return dateStr;
-  }
-};
+export const formatDateLabel = (dateStr: string) =>
+  dateStr ? formatDate(dateStr) : "";
 
 export const quickReplies = [
   "Halo, ada yang bisa kami bantu di Pusat Bantuan GARAPAN?",

@@ -119,22 +119,6 @@ export default function SettingsPage() {
     },
   });
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "-";
-    try {
-      const date = new Date(dateStr);
-      return new Intl.DateTimeFormat("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date);
-    } catch {
-      return dateStr;
-    }
-  };
-
   const handleAddSkill = (values: AddSkillInput) => {
     addSkillMutation.mutate({
       name: values.name.trim(),
@@ -199,7 +183,6 @@ export default function SettingsPage() {
                 deleteSkillMutation.mutate(id);
               }
             }}
-            formatDate={formatDate}
           />
         )}
 
@@ -207,7 +190,6 @@ export default function SettingsPage() {
           <SettingsAuditTab
             auditLogs={auditLogs}
             isLoadingAudit={isLoadingAudit}
-            formatDate={formatDate}
           />
         )}
       </div>
