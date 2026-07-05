@@ -1,9 +1,15 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { FileText } from "lucide-react";
 import { FlaggedContent } from "@/lib/api/content";
+import { CopyIdButton } from "@/components/data-table/copy-id-button";
 import { avatarClass, initials } from "@/lib/avatar";
+import { moderationContentLabels } from "@/lib/moderation/content-labels";
 import { formatDate } from "@/lib/utils";
 import { ModerationStatusPill } from "./moderation-status-pill";
+import { ModerationTypePill } from "./moderation-type-pill";
+
+function shortId(id: string) {
+  return id ? `${id.slice(0, 8)}...${id.slice(-4)}` : "-";
+}
 
 interface CreateModerationColumnsOptions {
   onReview: (contentId: string) => void;
@@ -14,48 +20,71 @@ export function createModerationColumns({
 }: CreateModerationColumnsOptions): ColumnDef<FlaggedContent>[] {
   return [
     {
-      accessorKey: "title",
-      header: "Jasa",
+      id: "contentType",
+      header: "Tipe",
       cell: ({ row }) => (
-        <div className="flex items-center gap-3 max-w-[260px]">
-          <div className="h-11 w-11 rounded-lg bg-surface-2 border border-border flex items-center justify-center flex-shrink-0 select-none">
-            <FileText className="h-5 w-5 text-ink-400" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-semibold text-ink-900 truncate leading-snug">
-              {row.original.title}
-            </div>
-            <div className="text-[11px] text-ink-400 mt-1 font-mono">
-              ID: {row.original.id}
-            </div>
-          </div>
+        <div className="w-[76px]">
+          <ModerationTypePill contentType={row.original.contentType} />
         </div>
+      ),
+    },
+    {
+      accessorKey: "id",
+      header: "ID Konten",
+      cell: ({ row }) => {
+        const labels = moderationContentLabels(row.original.contentType);
+
+        return (
+          <div className="flex w-[132px] items-center gap-1.5">
+            <span
+              className="font-mono text-xs font-bold text-brand-600"
+              title={row.original.id}
+            >
+              {shortId(row.original.id)}
+            </span>
+            <CopyIdButton value={row.original.id} label={labels.copyIdLabel} />
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "title",
+      header: "Judul",
+      cell: ({ getValue }) => (
+        <span
+          className="block max-w-[260px] truncate text-sm font-semibold leading-snug text-ink-700"
+          title={String(getValue())}
+        >
+          {String(getValue())}
+        </span>
       ),
     },
     {
       id: "owner",
       header: "Pemilik",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2.5">
-          <div
-            className={`h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${avatarClass(row.original.owner?.fullName)}`}
-          >
-            {initials(row.original.owner?.fullName)}
+      cell: ({ row }) => {
+        const labels = moderationContentLabels(row.original.contentType);
+
+        return (
+          <div className="w-[240px]">
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${avatarClass(row.original.owner?.fullName)}`}
+              >
+                {initials(row.original.owner?.fullName)}
+              </div>
+              <div className="min-w-0">
+                <div className="truncate font-semibold leading-none text-ink-900">
+                  {row.original.owner?.fullName ?? "-"}
+                </div>
+                <div className="mt-0.5 truncate text-[10px] font-medium text-ink-400">
+                  Pemilik · {labels.ownerTableSublabel}
+                </div>
+              </div>
+            </div>
           </div>
-          <span className="font-medium text-ink-700 text-sm">
-            {row.original.owner?.fullName ?? "-"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "category",
-      header: "Kategori",
-      cell: ({ getValue }) => (
-        <span className="inline-flex px-2 py-0.5 rounded border border-border bg-surface-2 text-[11px] font-semibold text-ink-500">
-          {String(getValue() ?? "Lainnya")}
-        </span>
-      ),
+        );
+      },
     },
     {
       accessorKey: "reportCount",
@@ -83,16 +112,16 @@ export function createModerationColumns({
       },
     },
     {
-      accessorKey: "status",
+      id: "state",
       header: "Status",
       cell: ({ row }) => (
-        <ModerationStatusPill status={row.original.status} />
+        <div className="flex w-[132px] flex-col items-start gap-1.5">
+          <ModerationStatusPill status={row.original.status} />
+          <span className="text-[11px] font-medium text-ink-400">
+            {formatDate(row.original.createdAt)}
+          </span>
+        </div>
       ),
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Tanggal Posting",
-      cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
       id: "actions",
