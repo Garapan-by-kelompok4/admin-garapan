@@ -16,7 +16,7 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { UserDetail } from "@/lib/api/users";
-import { avatarClass, initials } from "@/lib/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { UserStatusPill } from "./user-status-pill";
 
@@ -106,11 +106,11 @@ export function UserDetailDialog({
           <div className="flex flex-col h-full max-h-[85vh]">
             <div className="px-5 py-4 border-b border-border bg-surface-2/50">
               <div className="flex items-center gap-4">
-                <div
-                  className={`h-12 w-12 rounded-full flex items-center justify-center text-white text-base font-bold border-2 border-white shadow-sm flex-shrink-0 ${avatarClass(userDetail.fullName)}`}
-                >
-                  {initials(userDetail.fullName)}
-                </div>
+                <UserAvatar
+                  name={userDetail.fullName}
+                  avatarUrl={userDetail.avatarUrl}
+                  className="size-12 border-2 border-white flex-shrink-0"
+                />
 
                 <div className="flex-1 min-w-0">
                   <h2
