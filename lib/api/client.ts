@@ -46,18 +46,18 @@ export async function apiClient<T>(
     const text = await response.text().catch(() => "");
     let detail = "";
     try {
-      const error = JSON.parse(text);
+      const error = JSON.parse(text) as Record<string, unknown>;
       detail =
         typeof error.message === "string"
           ? error.message
           : Array.isArray(error.message)
             ? error.message.join("; ")
-            : "";
+            : JSON.stringify(error);
     } catch {
       detail = text.slice(0, 500);
     }
     throw new Error(
-      detail.length > 0
+      detail.length > 0 && detail !== "{}"
         ? detail
         : `Request failed with status ${response.status}`,
     );
