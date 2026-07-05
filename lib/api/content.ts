@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { asRecord, type UnknownRecord } from "./normalizers";
+import { asRecord, recordList, type UnknownRecord } from "./normalizers";
 
 export interface FlaggedContent {
   id: string;
@@ -125,8 +125,8 @@ export const contentApi = {
     const raw = await apiClient<unknown>("/admin/content");
     const record = asRecord(raw);
 
-    const jasaItems = (record.jasa ?? []) as UnknownRecord[];
-    const projectItems = (record.projects ?? []) as UnknownRecord[];
+    const jasaItems = recordList(record.jasa);
+    const projectItems = recordList(record.projects);
 
     const allItems: FlaggedContent[] = [
       ...jasaItems.map((item) => normaliseFlaggedItem(item, "jasa")),

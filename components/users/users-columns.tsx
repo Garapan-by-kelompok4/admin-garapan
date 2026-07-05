@@ -20,6 +20,47 @@ export function createUsersColumns({
   onBan,
   onUnban,
 }: CreateUsersColumnsOptions): ColumnDef<User>[] {
+  const roleSpecificColumn: ColumnDef<User> =
+    activeTab === "MAHASISWA"
+      ? {
+          accessorKey: "university",
+          header: "Universitas",
+          cell: ({ getValue }) => getValue() || "-",
+        }
+      : {
+          accessorKey: "company",
+          header: "Perusahaan",
+          cell: ({ getValue }) => getValue() || "-",
+        };
+
+  const statsColumn: ColumnDef<User> =
+    activeTab === "MAHASISWA"
+      ? {
+          accessorKey: "rating",
+          header: "Rating",
+          cell: ({ row }) => {
+            const rating = row.original.rating || 0;
+            return (
+              <div className="flex items-center gap-1.5 font-semibold text-ink-900">
+                <Star className="h-4 w-4 fill-amber-400 stroke-amber-500 text-amber-500" />
+                <span>{rating.toFixed(1)}</span>
+                <span className="text-[11.5px] text-ink-400 font-medium">
+                  ({row.original.jobs || 0})
+                </span>
+              </div>
+            );
+          },
+        }
+      : {
+          accessorKey: "jobs",
+          header: "Pesanan",
+          cell: ({ getValue }) => (
+            <span className="font-semibold text-ink-900">
+              {Number(getValue() ?? 0)}
+            </span>
+          ),
+        };
+
   return [
     {
       id: "name",
@@ -42,60 +83,17 @@ export function createUsersColumns({
         </div>
       ),
     },
-    ...(activeTab === "MAHASISWA"
-      ? [
-          {
-            accessorKey: "university",
-            header: "Universitas",
-            cell: ({ getValue }) => getValue() || "-",
-          } as ColumnDef<User>,
-        ]
-      : [
-          {
-            accessorKey: "company",
-            header: "Perusahaan",
-            cell: ({ getValue }) => getValue() || "-",
-          } as ColumnDef<User>,
-        ]),
+    roleSpecificColumn,
     {
       id: "status",
       header: "Status",
       cell: ({ row }) => <UserStatusPill user={row.original} />,
     },
-    ...(activeTab === "MAHASISWA"
-      ? [
-          {
-            accessorKey: "rating",
-            header: "Rating",
-            cell: ({ row }) => {
-              const rating = row.original.rating || 0;
-              return (
-                <div className="flex items-center gap-1.5 font-semibold text-ink-900">
-                  <Star className="h-4 w-4 fill-amber-400 stroke-amber-500 text-amber-500" />
-                  <span>{rating.toFixed(1)}</span>
-                  <span className="text-[11.5px] text-ink-400 font-medium">
-                    ({row.original.jobs || 0})
-                  </span>
-                </div>
-              );
-            },
-          } as ColumnDef<User>,
-        ]
-      : [
-          {
-            accessorKey: "jobs",
-            header: "Pesanan",
-            cell: ({ getValue }) => (
-              <span className="font-semibold text-ink-900">
-                {Number(getValue() ?? 0)}
-              </span>
-            ),
-          } as ColumnDef<User>,
-        ]),
+    statsColumn,
     {
       accessorKey: "createdAt",
       header: "Tgl. Daftar",
-      cell: ({ getValue }) => formatDate(getValue() as string),
+      cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
       id: "actions",

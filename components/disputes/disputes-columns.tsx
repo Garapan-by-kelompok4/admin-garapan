@@ -1,8 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import {
   Dispute,
-  DisputePriority,
-  DisputeStatus,
 } from "@/lib/api/disputes";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatDate } from "@/lib/utils";
@@ -82,21 +80,19 @@ export function createDisputesColumns({
     {
       accessorKey: "priority",
       header: "Prioritas",
-      cell: ({ getValue }) => (
-        <DisputePriorityPill priority={getValue() as DisputePriority} />
+      cell: ({ row }) => (
+        <DisputePriorityPill priority={row.original.priority} />
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ getValue }) => (
-        <DisputeStatusPill status={getValue() as DisputeStatus} />
-      ),
+      cell: ({ row }) => <DisputeStatusPill status={row.original.status} />,
     },
     {
       accessorKey: "createdAt",
       header: "Tanggal",
-      cell: ({ getValue }) => formatDate(getValue() as string),
+      cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
       id: "actions",

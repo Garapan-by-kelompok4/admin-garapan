@@ -55,3 +55,13 @@ export function formatDateTime(dateStr: string): string {
     minute: "2-digit",
   });
 }
+
+/** Extract a user-facing message from an unknown caught error. */
+export function getErrorMessage(
+  error: unknown,
+  fallback = "Terjadi kesalahan koneksi",
+): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error.length > 0) return error;
+  return fallback;
+}

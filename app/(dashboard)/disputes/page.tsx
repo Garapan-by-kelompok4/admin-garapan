@@ -9,6 +9,7 @@ import {
   DisputeDetail,
   ResolveDisputePayload,
 } from "@/lib/api/disputes";
+import { getErrorMessage } from "@/lib/utils";
 import { DataTable } from "@/components/data-table/data-table";
 import { DisputesSummaryCards } from "@/components/disputes/disputes-summary-cards";
 import { DisputesToolbar } from "@/components/disputes/disputes-toolbar";
@@ -105,7 +106,7 @@ export default function DisputesPage() {
             Gagal memuat data
           </h3>
           <p className="text-xs text-ink-400 mt-1">
-            {(error as Error).message || "Terjadi kesalahan koneksi"}
+            {getErrorMessage(error)}
           </p>
         </div>
       ) : (

@@ -85,14 +85,14 @@ export function createModerationColumns({
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ getValue }) => (
-        <ModerationStatusPill status={getValue() as FlaggedContent["status"]} />
+      cell: ({ row }) => (
+        <ModerationStatusPill status={row.original.status} />
       ),
     },
     {
       accessorKey: "createdAt",
       header: "Tanggal Posting",
-      cell: ({ getValue }) => formatDate(getValue() as string),
+      cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
       id: "actions",

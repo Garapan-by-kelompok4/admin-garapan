@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { asRecord, textFromValue } from "./normalizers";
+import { asRecord, recordList, textFromValue } from "./normalizers";
 
 export interface SkillItem {
   id: string;
@@ -27,8 +27,6 @@ export interface AdminProfile {
 function normaliseProfile(raw: unknown): AdminProfile {
   const record = asRecord(raw);
   return {
-    ...record,
-    // Backend may return `name` instead of `fullName`
     id: String(record.id ?? ""),
     fullName: textFromValue(
       record.fullName ?? record.name ?? record.displayName,
@@ -39,6 +37,15 @@ function normaliseProfile(raw: unknown): AdminProfile {
     bio: textFromValue(record.bio ?? record.description ?? record.about, ""),
     avatarUrl: textFromValue(record.avatarUrl, ""),
     role: textFromValue(record.role, "ADMIN"),
+  };
+}
+
+function normaliseKategori(raw: unknown, index = 0): KategoriItem {
+  const record = asRecord(raw);
+  return {
+    id: String(record.id ?? record._id ?? `kategori-${index}`),
+    name: textFromValue(record.name ?? record.title ?? record.label, ""),
+    icon: textFromValue(record.icon ?? record.emoji, ""),
   };
 }
 
@@ -109,11 +116,13 @@ export const settingsApi = {
 
   listKategori: async (): Promise<KategoriItem[]> => {
     const raw = await apiClient<unknown>("/admin/kategori");
-    if (Array.isArray(raw)) return raw as KategoriItem[];
+    if (Array.isArray(raw)) {
+      return raw.map((item, index) => normaliseKategori(item, index));
+    }
     const record = asRecord(raw);
-    const items = record.data;
-    if (Array.isArray(items)) return items as KategoriItem[];
-    return [];
+    return recordList(record.data).map((item, index) =>
+      normaliseKategori(item, index),
+    );
   },
 
   listSkills: async (): Promise<SkillItem[]> => {

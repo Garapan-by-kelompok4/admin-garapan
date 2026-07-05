@@ -1,7 +1,9 @@
 import { apiClient } from "./client";
-import { asRecord, type UnknownRecord } from "./normalizers";
+import { asRecord, enumValue, recordList } from "./normalizers";
 
 export type UserRole = "ADMIN" | "MAHASISWA" | "KLIEN";
+
+const USER_ROLES = ["ADMIN", "MAHASISWA", "KLIEN"] as const satisfies readonly UserRole[];
 
 export interface User {
   id: string;
@@ -59,7 +61,7 @@ function normaliseUser(raw: unknown): User {
       mahasiswa.fullName ?? klien.companyName ?? r.fullName ?? r.name ?? "",
     ),
     email: String(r.email ?? ""),
-    role: String(r.role ?? "MAHASISWA") as UserRole,
+    role: enumValue(r.role, USER_ROLES, "MAHASISWA"),
     university: mahasiswa.university ? String(mahasiswa.university) : undefined,
     company: klien.companyName ? String(klien.companyName) : undefined,
     rating:
@@ -78,7 +80,7 @@ function normaliseUserDetail(raw: unknown): UserDetail {
   const klien = asRecord(r.klien);
   const base = normaliseUser(raw);
 
-  const recentPesanan = (r.recentPesanan ?? []) as UnknownRecord[];
+  const recentPesanan = recordList(r.recentPesanan);
   const orderHistory = recentPesanan.map((p) => {
     const jasa = asRecord(p.jasa);
     const project = asRecord(p.project);
@@ -92,7 +94,7 @@ function normaliseUserDetail(raw: unknown): UserDetail {
   });
 
   const laporan = asRecord(r.laporan);
-  const recentLaporan = (laporan.recent ?? []) as UnknownRecord[];
+  const recentLaporan = recordList(laporan.recent);
   const reportHistory = recentLaporan.map((l) => ({
     id: String(l.id ?? ""),
     type: String(l.reason ?? ""),
@@ -121,9 +123,9 @@ export const usersApi = {
     const path = `/admin/users${queryString ? `?${queryString}` : ""}`;
     const raw = await apiClient<unknown>(path);
     const record = asRecord(raw);
-    const data = (record.data ??
-      record.items ??
-      (Array.isArray(raw) ? raw : [])) as UnknownRecord[];
+    const data = recordList(
+      record.data ?? record.items ?? (Array.isArray(raw) ? raw : []),
+    );
     const total = Number(record.total ?? record.count ?? data.length);
     return {
       data: data.map(normaliseUser),
