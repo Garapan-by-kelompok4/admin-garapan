@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   settingsApi,
@@ -9,35 +9,25 @@ import {
   KategoriItem,
 } from "@/lib/api/settings";
 import { dashboardApi, ActivityItem } from "@/lib/api/dashboard";
+import { AddSkillForm } from "@/components/settings/add-skill-form";
+import { ChangePasswordForm } from "@/components/settings/change-password-form";
+import { ProfileForm } from "@/components/settings/profile-form";
 import { toast } from "sonner";
 import {
   SettingsSidebar,
   SettingsTabId,
 } from "@/components/settings/settings-sidebar";
-import { SettingsProfileTab } from "@/components/settings/settings-profile-tab";
-import { SettingsSecurityTab } from "@/components/settings/settings-security-tab";
 import { SettingsNotificationsTab } from "@/components/settings/settings-notifications-tab";
 import { SettingsMasterTab } from "@/components/settings/settings-master-tab";
 import { SettingsAuditTab } from "@/components/settings/settings-audit-tab";
+import { SettingsSecurityTab } from "@/components/settings/settings-security-tab";
+import type { AddSkillInput, ProfileInput } from "@/lib/validators/settings";
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<SettingsTabId>("profile");
-
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [bio, setBio] = useState("");
-
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
-  const [newSkillName, setNewSkillName] = useState("");
-  const [newSkillCategoryId, setNewSkillCategoryId] = useState<
-    string | undefined
-  >(undefined);
 
   const { data: profile, isLoading: isLoadingProfile } = useQuery<
     AdminProfile,
@@ -46,16 +36,6 @@ export default function SettingsPage() {
     queryKey: ["adminProfile"],
     queryFn: () => settingsApi.getProfile(),
   });
-
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    if (profile) {
-      setFullName(profile.fullName);
-      setPhone(profile.phone || "");
-      setBio(profile.bio || "");
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [profile]);
 
   const { data: skills = [], isLoading: isLoadingSkills } = useQuery<
     SkillItem[]
@@ -96,9 +76,6 @@ export default function SettingsPage() {
       settingsApi.changePassword(payload),
     onSuccess: () => {
       toast.success("Password berhasil diubah");
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
     },
     onError: (err: Error) => {
       toast.error(err.message || "Gagal mengubah password");
@@ -111,8 +88,6 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success("Kompetensi master berhasil ditambahkan");
       queryClient.invalidateQueries({ queryKey: ["masterSkills"] });
-      setNewSkillName("");
-      setNewSkillCategoryId(undefined);
       setIsAddSkillOpen(false);
     },
     onError: (err: Error) => {
@@ -131,36 +106,6 @@ export default function SettingsPage() {
     },
   });
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate({ fullName, phone, bio });
-  };
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error("Konfirmasi password baru tidak cocok");
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error("Password baru minimal 6 karakter");
-      return;
-    }
-    changePasswordMutation.mutate({ oldPassword, newPassword });
-  };
-
-  const handleAddSkillSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSkillName.trim()) {
-      toast.error("Nama kompetensi wajib diisi");
-      return;
-    }
-    addSkillMutation.mutate({
-      name: newSkillName.trim(),
-      kategoriId: newSkillCategoryId,
-    });
-  };
-
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "-";
     try {
@@ -177,39 +122,50 @@ export default function SettingsPage() {
     }
   };
 
+  const handleAddSkill = (values: AddSkillInput) => {
+    addSkillMutation.mutate({
+      name: values.name.trim(),
+      kategoriId: values.kategoriId || undefined,
+    });
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start select-none">
       <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="flex-1 w-full bg-white border border-border rounded-xl p-5 md:p-6 shadow-sh-1 min-h-[480px]">
         {activeTab === "profile" && (
-          <SettingsProfileTab
-            profile={profile}
-            isLoadingProfile={isLoadingProfile}
-            fullName={fullName}
-            onFullNameChange={setFullName}
-            phone={phone}
-            onPhoneChange={setPhone}
-            bio={bio}
-            onBioChange={setBio}
-            isPending={updateProfileMutation.isPending}
-            onSubmit={handleProfileSubmit}
-          />
+          <div className="space-y-6">
+            <div className="border-b border-border pb-3">
+              <h3 className="font-heading font-bold text-sm text-ink-900">
+                Profil Admin
+              </h3>
+              <p className="text-[11px] text-ink-400 font-medium mt-0.5">
+                Kelola informasi akun admin yang digunakan untuk mengakses panel.
+              </p>
+            </div>
+            <ProfileForm
+              profile={profile}
+              isLoading={isLoadingProfile}
+              isPending={updateProfileMutation.isPending}
+              onSubmit={(values: ProfileInput) =>
+                updateProfileMutation.mutate(values)
+              }
+            />
+          </div>
         )}
 
         {activeTab === "security" && (
-          <SettingsSecurityTab
-            oldPassword={oldPassword}
-            onOldPasswordChange={setOldPassword}
-            newPassword={newPassword}
-            onNewPasswordChange={setNewPassword}
-            confirmPassword={confirmPassword}
-            onConfirmPasswordChange={setConfirmPassword}
-            is2FAEnabled={is2FAEnabled}
-            on2FAToggle={() => setIs2FAEnabled((prev) => !prev)}
-            isPending={changePasswordMutation.isPending}
-            onSubmit={handlePasswordSubmit}
-          />
+          <div className="space-y-6">
+            <SettingsSecurityTab
+              is2FAEnabled={is2FAEnabled}
+              on2FAToggle={() => setIs2FAEnabled((prev) => !prev)}
+            />
+            <ChangePasswordForm
+              isPending={changePasswordMutation.isPending}
+              onSubmit={(values) => changePasswordMutation.mutate(values)}
+            />
+          </div>
         )}
 
         {activeTab === "notifications" && <SettingsNotificationsTab />}
@@ -221,12 +177,8 @@ export default function SettingsPage() {
             isLoadingSkills={isLoadingSkills}
             isAddSkillOpen={isAddSkillOpen}
             onAddSkillOpenChange={setIsAddSkillOpen}
-            newSkillName={newSkillName}
-            onNewSkillNameChange={setNewSkillName}
-            newSkillCategoryId={newSkillCategoryId}
-            onNewSkillCategoryIdChange={setNewSkillCategoryId}
             isAddPending={addSkillMutation.isPending}
-            onAddSkillSubmit={handleAddSkillSubmit}
+            onAddSkill={handleAddSkill}
             onDeleteSkill={(id, name) => {
               if (
                 confirm(

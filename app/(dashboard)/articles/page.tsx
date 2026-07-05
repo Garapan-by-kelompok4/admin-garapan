@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -13,6 +15,11 @@ import {
   articlesApi,
   CreateArticlePayload,
 } from "@/lib/api/articles";
+import {
+  articleFormSchema,
+  articleTagInputSchema,
+  type ArticleFormInput,
+} from "@/lib/validators/articles";
 
 const fallbackCategories = [
   "Umum",
@@ -32,16 +39,35 @@ export default function ArticlesPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [isFetchingArticle, setIsFetchingArticle] = useState(false);
-
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [category, setCategory] = useState("Umum");
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-  const [seoDescription, setSeoDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState("");
   const [coverRemoved, setCoverRemoved] = useState(false);
+
+  const {
+    reset,
+    watch,
+    setValue,
+    getValues,
+    formState: { isValid },
+  } = useForm<ArticleFormInput>({
+    resolver: zodResolver(articleFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: "",
+      content: "",
+      category: "Umum",
+      tags: [],
+      seoDescription: "",
+    },
+  });
+
+  const [tagInput, setTagInput] = useState("");
+
+  const title = watch("title");
+  const content = watch("content");
+  const category = watch("category");
+  const tags = watch("tags");
+  const seoDescription = watch("seoDescription") ?? "";
 
   const limit = 10;
 
@@ -105,11 +131,13 @@ export default function ArticlesPage() {
   }, [visibleArticles]);
 
   const fillEditor = (article: Article) => {
-    setTitle(article.title);
-    setContent(article.content);
-    setCategory(article.category || "Umum");
-    setTags(article.tags);
-    setSeoDescription(article.seoDescription);
+    reset({
+      title: article.title,
+      content: article.content,
+      category: article.category || "Umum",
+      tags: article.tags,
+      seoDescription: article.seoDescription,
+    });
     setCoverPreview(article.imageUrl);
     setCoverFile(null);
     setCoverRemoved(false);
@@ -124,12 +152,14 @@ export default function ArticlesPage() {
   const resetEditor = () => {
     setIsEditing(false);
     setEditingArticleId(null);
-    setTitle("");
-    setContent("");
-    setCategory("Umum");
-    setTags([]);
+    reset({
+      title: "",
+      content: "",
+      category: "Umum",
+      tags: [],
+      seoDescription: "",
+    });
     setTagInput("");
-    setSeoDescription("");
     setCoverFile(null);
     setCoverPreview("");
     setCoverRemoved(false);
@@ -137,6 +167,7 @@ export default function ArticlesPage() {
 
   const saveMutation = useMutation({
     mutationFn: async (publishAfterSave: boolean) => {
+      const values = getValues();
       let finalImageUrl = coverPreview;
 
       if (coverFile) {
@@ -153,12 +184,12 @@ export default function ArticlesPage() {
       }
 
       const payload: CreateArticlePayload = {
-        title: title.trim(),
-        content,
+        title: values.title.trim(),
+        content: values.content,
         imageUrl: coverRemoved ? "" : finalImageUrl || undefined,
-        category: category.trim() || "Umum",
-        tags,
-        seoDescription: seoDescription.trim() || undefined,
+        category: values.category.trim() || "Umum",
+        tags: values.tags,
+        seoDescription: values.seoDescription?.trim() || undefined,
       };
 
       const saved = editingArticleId
@@ -277,9 +308,18 @@ export default function ArticlesPage() {
 
   const handleAddTag = (event: React.FormEvent) => {
     event.preventDefault();
-    const value = tagInput.trim();
-    if (!value || tags.includes(value)) return;
-    setTags([...tags, value]);
+    const parsed = articleTagInputSchema.safeParse({ tag: tagInput });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Tag tidak valid");
+      return;
+    }
+    const tag = parsed.data.tag;
+    const currentTags = getValues("tags");
+    if (currentTags.includes(tag)) {
+      setTagInput("");
+      return;
+    }
+    setValue("tags", [...currentTags, tag], { shouldValidate: true });
     setTagInput("");
   };
 
@@ -295,10 +335,7 @@ export default function ArticlesPage() {
     [publishMutation, unpublishMutation, deleteMutation],
   );
 
-  const canSave =
-    title.trim().length > 0 &&
-    content.trim().length > 0 &&
-    !saveMutation.isPending;
+  const canSave = isValid && !saveMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -342,9 +379,13 @@ export default function ArticlesPage() {
           editingArticleId={editingArticleId}
           isFetchingArticle={isFetchingArticle}
           title={title}
-          onTitleChange={setTitle}
+          onTitleChange={(value) =>
+            setValue("title", value, { shouldValidate: true })
+          }
           content={content}
-          onContentChange={setContent}
+          onContentChange={(value) =>
+            setValue("content", value, { shouldValidate: true })
+          }
           coverPreview={coverPreview}
           onCoverRemove={() => {
             setCoverFile(null);
@@ -353,18 +394,30 @@ export default function ArticlesPage() {
           }}
           onFileChange={handleFileChange}
           category={category}
-          onCategoryChange={setCategory}
+          onCategoryChange={(value) =>
+            setValue("category", value, { shouldValidate: true })
+          }
           tags={tags}
           tagInput={tagInput}
           onTagInputChange={setTagInput}
           onAddTag={handleAddTag}
-          onRemoveTag={(tag) => setTags(tags.filter((item) => item !== tag))}
-          onAddTagOption={(option) =>
-            !tags.includes(option) && setTags([...tags, option])
+          onRemoveTag={(tag) =>
+            setValue(
+              "tags",
+              tags.filter((item) => item !== tag),
+              { shouldValidate: true },
+            )
           }
+          onAddTagOption={(option) => {
+            if (!tags.includes(option)) {
+              setValue("tags", [...tags, option], { shouldValidate: true });
+            }
+          }}
           tagOptions={tagOptions}
           seoDescription={seoDescription}
-          onSeoDescriptionChange={setSeoDescription}
+          onSeoDescriptionChange={(value) =>
+            setValue("seoDescription", value, { shouldValidate: true })
+          }
           canSave={canSave}
           isSaving={saveMutation.isPending}
           onSaveDraft={() => saveMutation.mutate(false)}

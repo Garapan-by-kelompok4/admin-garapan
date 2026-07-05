@@ -12,7 +12,7 @@ import {
   DisputePriorityPill,
   DisputeStatusPill,
 } from "./dispute-status-pill";
-import { DisputeResolutionForm } from "./dispute-resolution-form";
+import { ResolutionForm } from "./resolution-form";
 
 interface DisputeDetailDialogProps {
   open: boolean;
@@ -236,7 +236,7 @@ export function DisputeDetailDialog({
                 </div>
               </div>
 
-              <DisputeResolutionForm
+              <ResolutionForm
                 key={disputeDetail.id}
                 disputeDetail={disputeDetail}
                 onResolve={onResolve}
