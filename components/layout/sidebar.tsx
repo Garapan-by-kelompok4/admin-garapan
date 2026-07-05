@@ -65,14 +65,7 @@ export function Sidebar() {
                   <span className="truncate flex-1">{item.label}</span>
                   {badgeValue > 0 && (
                     <span
-                      className={cn(
-                        "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white select-none shadow-sm animate-none",
-                        badgeKey === "chat"
-                          ? "bg-brand-500"
-                          : badgeKey === "disputes"
-                            ? "bg-danger-500"
-                            : "bg-warn-500",
-                      )}
+                      className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-500 px-1.5 text-[10px] font-bold text-white select-none shadow-sm animate-none"
                     >
                       {badgeValue}
                     </span>
