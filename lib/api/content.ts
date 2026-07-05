@@ -5,9 +5,11 @@ export interface FlaggedContent {
   title: string;
   description: string;
   category: string;
-  reportCount: number;
+  /** Omitted when backend does not expose per-post counts (ADR 001 deferral). */
+  reportCount?: number;
   status: "Ditinjau" | "Aman" | "Dihapus" | "Disembunyikan";
   createdAt: string;
+  contentType: "jasa" | "project";
   owner: {
     id: string;
     fullName: string;
@@ -44,35 +46,86 @@ function asRecord(value: unknown): UnknownRecord {
   return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
+function mapContentStatus(
+  backendStatus: string,
+  contentType: "jasa" | "project",
+): FlaggedContent["status"] {
+  const status = backendStatus.toUpperCase();
+  if (contentType === "jasa") {
+    if (status === "INACTIVE") return "Dihapus";
+    if (status === "ACTIVE") return "Ditinjau";
+  }
+  if (contentType === "project") {
+    if (status === "CLOSED") return "Dihapus";
+    if (status === "OPEN") return "Ditinjau";
+  }
+  return "Ditinjau";
+}
+
 function normaliseFlaggedItem(
   raw: UnknownRecord,
   type: "jasa" | "project",
 ): FlaggedContent {
-  const owner =
+  const mahasiswa = asRecord(raw.mahasiswa);
+  const klien = asRecord(raw.klien);
+  const ownerUser =
     type === "jasa"
-      ? asRecord(asRecord(raw.mahasiswa).user)
-      : asRecord(asRecord(raw.klien).user);
+      ? asRecord(mahasiswa.user)
+      : asRecord(klien.user);
+  const ownerId = String(
+    ownerUser.id ?? mahasiswa.id ?? klien.id ?? "",
+  );
+  const ownerLabel = String(
+    ownerUser.fullName ??
+      ownerUser.displayName ??
+      ownerUser.email ??
+      (ownerId ? `User ${ownerId.slice(0, 8)}` : "—"),
+  );
 
   return {
     id: String(raw.id ?? ""),
     title: String(raw.title ?? ""),
     description: "",
     category: "",
-    reportCount: 0,
-    status: "Ditinjau",
-    createdAt: new Date().toISOString(),
+    status: mapContentStatus(String(raw.status ?? ""), type),
+    createdAt: String(raw.createdAt ?? ""),
+    contentType: type,
     owner: {
-      id: String(owner.id ?? ""),
-      fullName: String(owner.fullName ?? owner.displayName ?? ""),
-      email: String(owner.email ?? ""),
-      avatarUrl: String(owner.avatarUrl ?? ""),
+      id: ownerId,
+      fullName: ownerLabel,
+      email: String(ownerUser.email ?? ""),
+      avatarUrl: ownerUser.avatarUrl ? String(ownerUser.avatarUrl) : undefined,
     },
   };
 }
 
+function filterContent(
+  items: FlaggedContent[],
+  params: ListContentParams,
+): FlaggedContent[] {
+  let filtered = items;
+
+  if (params.status && params.status !== "Semua") {
+    filtered = filtered.filter((item) => item.status === params.status);
+  }
+
+  const search = params.search?.trim().toLowerCase();
+  if (search) {
+    filtered = filtered.filter(
+      (item) =>
+        item.title.toLowerCase().includes(search) ||
+        item.id.toLowerCase().includes(search) ||
+        item.owner.fullName.toLowerCase().includes(search) ||
+        item.owner.email.toLowerCase().includes(search),
+    );
+  }
+
+  return filtered;
+}
+
 export const contentApi = {
   list: async (
-    _params: ListContentParams = {},
+    params: ListContentParams = {},
   ): Promise<ListContentResponse> => {
     const raw = await apiClient<unknown>("/admin/content");
     const record = asRecord(raw);
@@ -80,16 +133,22 @@ export const contentApi = {
     const jasaItems = (record.jasa ?? []) as UnknownRecord[];
     const projectItems = (record.projects ?? []) as UnknownRecord[];
 
-    const data: FlaggedContent[] = [
+    const allItems: FlaggedContent[] = [
       ...jasaItems.map((item) => normaliseFlaggedItem(item, "jasa")),
       ...projectItems.map((item) => normaliseFlaggedItem(item, "project")),
     ];
 
+    const filtered = filterContent(allItems, params);
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 10;
+    const start = (page - 1) * limit;
+    const data = filtered.slice(start, start + limit);
+
     return {
       data,
-      total: data.length,
-      page: _params.page ?? 1,
-      limit: _params.limit ?? data.length,
+      total: filtered.length,
+      page,
+      limit,
     };
   },
 

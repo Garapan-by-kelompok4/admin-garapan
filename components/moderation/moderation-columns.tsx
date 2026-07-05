@@ -61,8 +61,14 @@ export function createModerationColumns({
       accessorKey: "reportCount",
       header: "Laporan",
       cell: ({ getValue }) => {
-        const count = Number(getValue() ?? 0);
-        const isHigh = count >= 5;
+        const count = getValue();
+        if (count == null || count === "") {
+          return (
+            <span className="text-[11px] font-medium text-ink-400">—</span>
+          );
+        }
+        const numericCount = Number(count);
+        const isHigh = numericCount >= 5;
         return (
           <span
             className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-[11px] font-bold ${
@@ -71,7 +77,7 @@ export function createModerationColumns({
                 : "bg-warn-50 text-warn-700 border border-warn-100"
             }`}
           >
-            {count} Laporan
+            {numericCount} Laporan
           </span>
         );
       },

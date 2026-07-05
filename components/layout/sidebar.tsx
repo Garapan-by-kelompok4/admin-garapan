@@ -6,15 +6,11 @@ import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useLogout } from "@/hooks/use-logout";
+import { useOpsBadgeCounts } from "@/hooks/use-ops-badge-counts";
 import { avatarClass, initials } from "@/lib/avatar";
 import { NAV_GROUPS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
-
-import { useQuery } from "@tanstack/react-query";
-import { contentApi } from "@/lib/api/content";
-import { disputesApi } from "@/lib/api/disputes";
-import { chatApi } from "@/lib/api/chat";
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -24,46 +20,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
-
-  // Fetch dynamic pending moderation count
-  const { data: moderationRes } = useQuery({
-    queryKey: ["sidebarModerationCount"],
-    queryFn: () =>
-      contentApi
-        .list({ page: 1, limit: 1 })
-        .catch(() => ({ data: [], total: 0 })),
-    refetchInterval: 30000,
-  });
-
-  // Fetch dynamic disputes count
-  const { data: disputesRes } = useQuery({
-    queryKey: ["sidebarDisputesCount"],
-    queryFn: () =>
-      disputesApi
-        .list({ page: 1, limit: 1 })
-        .catch(() => ({ data: [], total: 0 })),
-    refetchInterval: 30000,
-  });
-
-  // Fetch dynamic unread chat sessions count
-  const { data: chatSessions = [] } = useQuery({
-    queryKey: ["chatSessions"],
-    queryFn: () => chatApi.listSessions().catch(() => []),
-    refetchInterval: 5000, // match the chat page so the badge isn't ~15s behind
-    refetchIntervalInBackground: true, // keep updating when the tab isn't focused
-    refetchOnWindowFocus: true, // instant catch-up when returning to the tab
-  });
-
-  const unreadChatCount = chatSessions.reduce(
-    (acc, s) => acc + (s.unreadCount || 0),
-    0,
-  );
-
-  const badgeCounts = {
-    moderation: moderationRes?.total ?? 0,
-    disputes: disputesRes?.total ?? 0,
-    chat: unreadChatCount,
-  };
+  const badgeCounts = useOpsBadgeCounts();
 
   return (
     <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col border-r border-border bg-surface">

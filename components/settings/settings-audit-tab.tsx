@@ -29,6 +29,30 @@ export function SettingsAuditTab({
         </div>
         <button
           onClick={() => {
+            if (!auditLogs.length) {
+              toast.error("Tidak ada log untuk diekspor");
+              return;
+            }
+            const header = ["waktu", "aktor", "peran", "aksi", "pesan"];
+            const rows = auditLogs.map((log) =>
+              [
+                log.createdAt,
+                log.actorName,
+                log.actorRole,
+                log.action,
+                log.message,
+              ]
+                .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+                .join(","),
+            );
+            const csv = [header.join(","), ...rows].join("\n");
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `garapan-audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
             toast.success("Log aktivitas berhasil diekspor (CSV)");
           }}
           className="h-9 px-3.5 border border-border bg-white text-[11px] font-bold text-ink-700 rounded-lg hover:bg-surface-3 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"

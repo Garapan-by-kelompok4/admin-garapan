@@ -159,10 +159,12 @@ export const disputesApi = {
 
   getById: async (id: string): Promise<DisputeDetail> => {
     const raw = await apiClient<unknown>(`/admin/disputes/${id}`);
+    const dispute = normaliseDispute(raw);
+    const record = asRecord(raw);
+    const resolutionNote = String(record.resolutionNote ?? "");
     return {
-      ...normaliseDispute(raw),
-      evidenceUrls: [],
-      communicationHistory: [],
+      ...dispute,
+      description: resolutionNote || dispute.description,
     };
   },
 

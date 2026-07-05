@@ -10,7 +10,8 @@ import {
 import type { DashboardStats } from "@/lib/api/dashboard";
 import { formatCurrency } from "@/lib/utils";
 
-function formatDelta(val: number) {
+function formatDelta(val: number | null | undefined) {
+  if (val == null) return null;
   const abs = Math.abs(val);
   const isPositive = val >= 0;
   return (
@@ -77,7 +78,7 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
         stats?.activeUsers != null
           ? new Intl.NumberFormat("id-ID").format(stats.activeUsers)
           : "-",
-      delta: stats?.activeUsersDelta ?? 0,
+      delta: stats?.activeUsersDelta ?? null,
       spark: [] as number[],
       color: "#2047C9",
       icon: Users,
@@ -89,7 +90,7 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
         stats?.transactionsCount != null
           ? new Intl.NumberFormat("id-ID").format(stats.transactionsCount)
           : "-",
-      delta: stats?.transactionsDelta ?? 0,
+      delta: stats?.transactionsDelta ?? null,
       spark: [] as number[],
       color: "#10B981",
       icon: CheckCircle,
@@ -98,7 +99,7 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
     {
       label: "Pendapatan Platform",
       val: stats?.revenue ? formatCurrency(stats.revenue) : "-",
-      delta: stats?.revenueDelta ?? 0,
+      delta: stats?.revenueDelta ?? null,
       spark: [] as number[],
       color: "#F59E0B",
       icon: Wallet,
@@ -107,7 +108,7 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
     {
       label: "Laporan Pending",
       val: stats?.pendingReports ?? "-",
-      delta: stats?.pendingReportsDelta ?? 0,
+      delta: stats?.pendingReportsDelta ?? null,
       spark: [] as number[],
       color: "#EF4444",
       icon: AlertTriangle,
@@ -130,9 +131,11 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
             </div>
             <div className="flex items-center gap-1.5">
               {formatDelta(item.delta)}
-              <span className="text-[10px] text-ink-400 font-medium">
-                vs bln lalu
-              </span>
+              {item.delta != null ? (
+                <span className="text-[10px] text-ink-400 font-medium">
+                  vs bln lalu
+                </span>
+              ) : null}
             </div>
           </div>
           <div>

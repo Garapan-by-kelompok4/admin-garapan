@@ -11,6 +11,7 @@ import {
 import { DashboardActivityFeed } from "@/components/dashboard/dashboard-activity-feed";
 import { DashboardAttentionPanel } from "@/components/dashboard/dashboard-attention-panel";
 import { DashboardStatCards } from "@/components/dashboard/dashboard-stat-cards";
+import { useOpsBadgeCounts } from "@/hooks/use-ops-badge-counts";
 import {
   dashboardApi,
   type ActivityItem,
@@ -20,6 +21,7 @@ import {
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState<ChartPeriod>("30H");
+  const opsCounts = useOpsBadgeCounts();
 
   const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["dashboardStats"],
@@ -61,7 +63,7 @@ export default function DashboardPage() {
           activities={activities}
           isLoading={isLoadingActivities}
         />
-        <DashboardAttentionPanel />
+        <DashboardAttentionPanel counts={opsCounts} />
       </div>
     </div>
   );

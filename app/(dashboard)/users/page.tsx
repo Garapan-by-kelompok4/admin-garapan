@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -12,10 +13,12 @@ import { UserDetailDialog } from "@/components/users/user-detail-dialog";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") ?? "";
   const [activeTab, setActiveTab] = useState<"MAHASISWA" | "KLIEN">(
     "MAHASISWA",
   );
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState("Semua");
   const [page, setPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);

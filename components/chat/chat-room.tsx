@@ -9,8 +9,10 @@ import React, {
 } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { chatApi, ChatMessage, ChatThreadPage, ChatSession } from "@/lib/api/chat";
+import { usersApi } from "@/lib/api/users";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatTime, formatDateLabel, quickReplies } from "@/lib/chat-utils";
+import { formatDate } from "@/lib/utils";
 import {
   Send,
   Phone,
@@ -76,6 +78,24 @@ export function ChatRoom({
 
   const liveMessages = useMemo(() => livePage?.messages ?? [], [livePage?.messages]);
   const totalMessages = livePage?.total ?? 0;
+
+  const { data: contactUser, isLoading: isLoadingContact } = useQuery({
+    queryKey: ["chatContactUser", activeSessionId],
+    queryFn: () => usersApi.getById(activeSessionId),
+    enabled: showUserInfo && !!activeSessionId,
+  });
+
+  const banMutation = useMutation({
+    mutationFn: () => usersApi.ban(activeSessionId),
+    onSuccess: () => {
+      toast.success("User berhasil diblokir");
+      queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Gagal memblokir user");
+    },
+  });
 
   const allMessages = useMemo(() => {
     const byId = new Map<string, ChatMessage>();
@@ -449,12 +469,13 @@ export function ChatRoom({
                           `Apakah Anda yakin ingin memblokir ${activeSession.name}?`,
                         )
                       ) {
-                        toast.success("User berhasil diblokir");
+                        banMutation.mutate();
                       }
                     }}
-                    className="px-4 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm w-full max-w-[120px]"
+                    disabled={banMutation.isPending || contactUser?.bannedAt != null}
+                    className="px-4 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm w-full max-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Blokir
+                    {contactUser?.bannedAt ? "Diblokir" : "Blokir"}
                   </button>
                 </div>
               </div>
@@ -464,27 +485,35 @@ export function ChatRoom({
                   Info Kontak
                 </h5>
                 <div className="rounded-lg border border-border bg-surface-2/40 p-3.5 space-y-3">
-                  <div className="flex gap-2.5 items-center text-xs">
-                    <Mail className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                    <span
-                      className="font-medium text-ink-800 truncate"
-                      title={activeSession.id + "@garapan.test"}
-                    >
-                      {activeSession.id}@garapan.test
-                    </span>
-                  </div>
-                  <div className="flex gap-2.5 items-center text-xs">
-                    <Phone className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                    <span className="font-semibold text-ink-800">
-                      +62 812-3456-789
-                    </span>
-                  </div>
-                  <div className="flex gap-2.5 items-center text-xs">
-                    <Calendar className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
-                    <span className="font-semibold text-ink-800">
-                      19 Apr 2026
-                    </span>
-                  </div>
+                  {isLoadingContact ? (
+                    <p className="text-xs text-ink-400">Memuat info kontak…</p>
+                  ) : (
+                    <>
+                      <div className="flex gap-2.5 items-center text-xs">
+                        <Mail className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                        <span
+                          className="font-medium text-ink-800 truncate"
+                          title={contactUser?.email ?? activeSession.id}
+                        >
+                          {contactUser?.email ?? "—"}
+                        </span>
+                      </div>
+                      <div className="flex gap-2.5 items-center text-xs">
+                        <Phone className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                        <span className="font-semibold text-ink-800">
+                          {contactUser?.phone ?? "—"}
+                        </span>
+                      </div>
+                      <div className="flex gap-2.5 items-center text-xs">
+                        <Calendar className="h-3.5 w-3.5 text-ink-400 flex-shrink-0" />
+                        <span className="font-semibold text-ink-800">
+                          {contactUser?.createdAt
+                            ? formatDate(contactUser.createdAt)
+                            : "—"}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
