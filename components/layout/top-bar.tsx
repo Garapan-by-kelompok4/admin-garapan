@@ -5,7 +5,7 @@ import { Bell, ChevronDown, CircleHelp, LogOut, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,7 @@ import { useOpsBadgeCounts } from "@/hooks/use-ops-badge-counts";
 import { avatarClass, initials } from "@/lib/avatar";
 import { Input } from "@/components/ui/input";
 import { pageTitle } from "@/lib/nav";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 
 export function TopBar() {
@@ -75,29 +76,29 @@ export function TopBar() {
       </form>
 
       <div className="ml-auto flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
+        <Link
+          href="/settings"
           title="Bantuan"
-          className="text-ink-500 hover:bg-surface-3"
-          render={<Link href="/settings" />}
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "icon" }),
+            "text-ink-500 hover:bg-surface-3",
+          )}
         >
           <CircleHelp className="size-[18px]" strokeWidth={1.75} />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
+        </Link>
+        <Link
+          href="/chat"
           title="Notifikasi chat"
-          className="relative text-ink-500 hover:bg-surface-3"
-          render={<Link href="/chat" />}
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "icon" }),
+            "relative text-ink-500 hover:bg-surface-3",
+          )}
         >
           <Bell className="size-[18px]" strokeWidth={1.75} />
           {unreadChatCount > 0 ? (
             <span className="absolute right-2 top-2 size-1.5 rounded-full bg-danger-500" />
           ) : null}
-        </Button>
+        </Link>
 
         <DropdownMenu>
           <DropdownMenuTrigger
