@@ -166,6 +166,15 @@ function handleProxyRoute(url: string, method: string): unknown {
     return paginated([MOCK_DISPUTE], page, limit);
   }
 
+  if (path === "/admin/content/stats") {
+    return {
+      pendingListings: 1,
+      pendingReports: 1,
+      dismissedReports: 0,
+      actionTakenReports: 0,
+    };
+  }
+
   if (path === "/admin/content") {
     return { jasa: [MOCK_JASA], projects: [] };
   }

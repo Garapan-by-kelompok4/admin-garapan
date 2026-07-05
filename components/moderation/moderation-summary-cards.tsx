@@ -1,40 +1,34 @@
-import { AlertTriangle, CheckCircle, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, Flag, Trash2 } from "lucide-react";
+
+import type { ModerationSummaryStats } from "@/hooks/use-moderation-summary-stats";
 
 interface ModerationSummaryCardsProps {
-  pendingCount: number;
-  totalCount: number;
-  safeCount: number;
-  removedCount: number;
+  stats: ModerationSummaryStats | undefined;
 }
 
-export function ModerationSummaryCards({
-  pendingCount,
-  totalCount,
-  safeCount,
-  removedCount,
-}: ModerationSummaryCardsProps) {
+export function ModerationSummaryCards({ stats }: ModerationSummaryCardsProps) {
   const cards = [
     {
       label: "Perlu Ditinjau",
-      val: pendingCount,
+      val: stats?.pendingListings ?? 0,
       icon: AlertTriangle,
       color: "text-warn-500 bg-warn-50 border-warn-100",
     },
     {
-      label: "Total Flagged",
-      val: totalCount,
-      icon: AlertTriangle,
+      label: "Laporan Pending",
+      val: stats?.pendingReports ?? 0,
+      icon: Flag,
       color: "text-brand-500 bg-brand-50 border-brand-100",
     },
     {
       label: "Ditandai Aman",
-      val: safeCount,
+      val: stats?.dismissedReports ?? 0,
       icon: CheckCircle,
       color: "text-success-500 bg-success-50 border-success-100",
     },
     {
-      label: "Dihapus / Sembunyi",
-      val: removedCount,
+      label: "Dihapus / Ditindak",
+      val: stats?.actionTakenReports ?? 0,
       icon: Trash2,
       color: "text-danger-500 bg-danger-50 border-danger-100",
     },
@@ -42,9 +36,9 @@ export function ModerationSummaryCards({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((item, idx) => (
+      {cards.map((item) => (
         <div
-          key={idx}
+          key={item.label}
           className="bg-white border border-border rounded-xl p-5 flex items-center gap-4 shadow-sh-1"
         >
           <div

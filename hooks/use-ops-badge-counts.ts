@@ -28,7 +28,13 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
     queryKey: ["sidebarModerationCount"],
     queryFn: () =>
       contentApi
-        .list({ page: 1, limit: 1 })
+        .stats()
+        .then((stats) => ({
+          data: [],
+          total: stats.pendingListings,
+          page: 1,
+          limit: 1,
+        }))
         .catch(() => ({ data: [], total: 0, page: 1, limit: 1 })),
     refetchInterval: visibilityAwareInterval(
       OPS_BADGE_POLL_INTERVAL_MS,

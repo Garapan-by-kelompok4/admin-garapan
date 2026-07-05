@@ -5,19 +5,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { contentApi } from "@/lib/api/content";
+import { moderationContentLabels } from "@/lib/moderation/content-labels";
+import { invalidateModerationQueries } from "@/lib/moderation/invalidate-queries";
+import { MODERATION_PAGE_DESCRIPTION } from "@/lib/moderation/page-meta";
 import { getErrorMessage } from "@/lib/utils";
 import { useModerationSummaryStats } from "@/hooks/use-moderation-summary-stats";
 import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
 import { ModerationSummaryCards } from "@/components/moderation/moderation-summary-cards";
 import { ModerationToolbar } from "@/components/moderation/moderation-toolbar";
+import type { ModerationTypeFilter } from "@/components/moderation/moderation-toolbar";
 import { createModerationColumns } from "@/components/moderation/moderation-columns";
 import { ModerationDetailDialog } from "@/components/moderation/moderation-detail-dialog";
 
 export default function ModerationPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Ditinjau");
+  const [typeFilter, setTypeFilter] = useState<ModerationTypeFilter>("Semua");
   const [page, setPage] = useState(1);
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     null,
@@ -28,36 +32,51 @@ export default function ModerationPage() {
   const { data: summaryStats } = useModerationSummaryStats();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["content", page, search, statusFilter],
+    queryKey: ["content", page, search, typeFilter],
     queryFn: () =>
       contentApi.list({
         page,
         limit,
-        status: statusFilter === "Semua" ? undefined : statusFilter,
         search: search || undefined,
+        contentType: typeFilter === "Semua" ? undefined : typeFilter,
       }),
     placeholderData: paginatedListPlaceholder,
   });
 
   const { data: contentDetail, isLoading: isLoadingDetail } = useQuery({
-    queryKey: ["contentDetail", selectedContentId],
+    queryKey: ["contentDetail", selectedContentId, data?.data],
     queryFn: async () => {
       const found = data?.data?.find((c) => c.id === selectedContentId);
-      if (found) return found;
-      return found || null;
+      return found ?? null;
     },
     enabled: !!selectedContentId,
   });
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => contentApi.remove(id),
-    onSuccess: () => {
-      toast.success("Jasa berhasil dihapus");
-      queryClient.invalidateQueries({ queryKey: ["content"] });
+    onSuccess: (_data, id) => {
+      const item = data?.data?.find((entry) => entry.id === id);
+      const labels = moderationContentLabels(item?.contentType ?? "jasa");
+      toast.success(labels.removeSuccess);
+      invalidateModerationQueries(queryClient);
       setSelectedContentId(null);
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Gagal menghapus jasa");
+      toast.error(err.message || "Gagal menghapus konten");
+    },
+  });
+
+  const markSafeMutation = useMutation({
+    mutationFn: (id: string) => contentApi.markSafe(id),
+    onSuccess: (_data, id) => {
+      const item = data?.data?.find((entry) => entry.id === id);
+      const labels = moderationContentLabels(item?.contentType ?? "jasa");
+      toast.success(labels.markSafeSuccess);
+      invalidateModerationQueries(queryClient);
+      setSelectedContentId(null);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Gagal menandai konten sebagai aman");
     },
   });
 
@@ -67,22 +86,21 @@ export default function ModerationPage() {
 
   return (
     <div className="space-y-6">
-      <ModerationSummaryCards
-        pendingCount={summaryStats?.pendingCount ?? 0}
-        totalCount={summaryStats?.totalCount ?? 0}
-        safeCount={summaryStats?.safeCount ?? 0}
-        removedCount={summaryStats?.removedCount ?? 0}
-      />
+      <p className="text-sm font-medium text-ink-500 -mt-1">
+        {MODERATION_PAGE_DESCRIPTION}
+      </p>
+
+      <ModerationSummaryCards stats={summaryStats} />
 
       <ModerationToolbar
-        statusFilter={statusFilter}
-        onStatusFilterChange={(value) => {
-          setStatusFilter(value);
-          setPage(1);
-        }}
         search={search}
         onSearchChange={(value) => {
           setSearch(value);
+          setPage(1);
+        }}
+        typeFilter={typeFilter}
+        onTypeFilterChange={(value) => {
+          setTypeFilter(value);
           setPage(1);
         }}
       />
@@ -115,6 +133,9 @@ export default function ModerationPage() {
         contentDetail={contentDetail}
         isLoading={isLoadingDetail}
         onRemove={(id) => removeMutation.mutate(id)}
+        onMarkSafe={(id) => markSafeMutation.mutate(id)}
+        isRemovePending={removeMutation.isPending}
+        isMarkSafePending={markSafeMutation.isPending}
       />
     </div>
   );
