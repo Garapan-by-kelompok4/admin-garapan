@@ -97,10 +97,6 @@ export function UserDetailDialog({
                 ))}
               </div>
             </div>
-            <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end gap-2.5">
-              <div className="h-9 w-20 bg-surface-2 rounded-lg animate-pulse" />
-              <div className="h-9 w-28 bg-surface-2 rounded-lg animate-pulse" />
-            </div>
           </div>
         ) : userDetail ? (
           <div className="flex flex-col h-full max-h-[85vh]">
@@ -357,15 +353,6 @@ export function UserDetailDialog({
                   </div>
                 )}
               </div>
-            </div>
-
-            <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end gap-2.5">
-              <button
-                onClick={handleClose}
-                className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
-              >
-                <X className="h-3.5 w-3.5" /> Tutup
-              </button>
             </div>
           </div>
         ) : null}
