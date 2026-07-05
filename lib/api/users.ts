@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { asRecord, enumValue, recordList } from "./normalizers";
+import { asRecord, enumValue, nullableString, recordList } from "./normalizers";
 
 export type UserRole = "ADMIN" | "MAHASISWA" | "KLIEN";
 
@@ -10,6 +10,7 @@ export interface User {
   fullName: string;
   email: string;
   role: UserRole;
+  avatarUrl: string | null;
   university?: string;
   company?: string;
   rating?: number;
@@ -70,6 +71,7 @@ function normaliseUser(raw: unknown): User {
     ),
     email: String(r.email ?? ""),
     role: enumValue(r.role, USER_ROLES, "MAHASISWA"),
+    avatarUrl: nullableString(mahasiswa.avatarUrl ?? klien.avatarUrl),
     university: mahasiswa.university ? String(mahasiswa.university) : undefined,
     company: klien.companyName ? String(klien.companyName) : undefined,
     rating:

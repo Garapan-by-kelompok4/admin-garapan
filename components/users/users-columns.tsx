@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Star, Eye, Ban, Unlock } from "lucide-react";
 import { User } from "@/lib/api/users";
-import { avatarClass, initials } from "@/lib/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { formatDate } from "@/lib/utils";
 import { UserStatusPill } from "./user-status-pill";
 
@@ -67,11 +67,11 @@ export function createUsersColumns({
       header: activeTab === "MAHASISWA" ? "Mahasiswa" : "Klien",
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div
-            className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${avatarClass(row.original.fullName)}`}
-          >
-            {initials(row.original.fullName)}
-          </div>
+          <UserAvatar
+            name={row.original.fullName}
+            avatarUrl={row.original.avatarUrl}
+            className="size-9"
+          />
           <div>
             <div className="font-semibold text-ink-900 leading-tight">
               {row.original.fullName || "User"}
