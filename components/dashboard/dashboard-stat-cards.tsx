@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 import type { DashboardStats } from "@/lib/api/dashboard";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 function formatDelta(val: number | null | undefined) {
   if (val == null) return null;
@@ -76,7 +76,7 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
       label: "Total User Aktif",
       val:
         stats?.activeUsers != null
-          ? new Intl.NumberFormat("id-ID").format(stats.activeUsers)
+          ? formatNumber(stats.activeUsers)
           : "-",
       delta: stats?.activeUsersDelta ?? null,
       spark: [] as number[],
@@ -88,7 +88,7 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
       label: "Transaksi Bulan Ini",
       val:
         stats?.transactionsCount != null
-          ? new Intl.NumberFormat("id-ID").format(stats.transactionsCount)
+          ? formatNumber(stats.transactionsCount)
           : "-",
       delta: stats?.transactionsDelta ?? null,
       spark: [] as number[],

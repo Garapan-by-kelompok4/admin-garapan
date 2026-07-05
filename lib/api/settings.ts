@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { asRecord, textFromValue } from "./normalizers";
 
 export interface SkillItem {
   id: string;
@@ -23,39 +24,21 @@ export interface AdminProfile {
   role: string;
 }
 
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? (value as UnknownRecord) : {};
-}
-
-function valueToText(value: unknown, fallback = ""): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean")
-    return String(value);
-  if (!value) return fallback;
-  const record = asRecord(value);
-  return valueToText(
-    record.name ?? record.title ?? record.label ?? record.message,
-    fallback,
-  );
-}
-
 function normaliseProfile(raw: unknown): AdminProfile {
   const record = asRecord(raw);
   return {
     ...record,
     // Backend may return `name` instead of `fullName`
     id: String(record.id ?? ""),
-    fullName: valueToText(
+    fullName: textFromValue(
       record.fullName ?? record.name ?? record.displayName,
       "",
     ),
-    email: valueToText(record.email, ""),
-    phone: valueToText(record.phone ?? record.phoneNumber ?? record.telp, ""),
-    bio: valueToText(record.bio ?? record.description ?? record.about, ""),
-    avatarUrl: valueToText(record.avatarUrl, ""),
-    role: valueToText(record.role, "ADMIN"),
+    email: textFromValue(record.email, ""),
+    phone: textFromValue(record.phone ?? record.phoneNumber ?? record.telp, ""),
+    bio: textFromValue(record.bio ?? record.description ?? record.about, ""),
+    avatarUrl: textFromValue(record.avatarUrl, ""),
+    role: textFromValue(record.role, "ADMIN"),
   };
 }
 
@@ -77,14 +60,14 @@ function normaliseSkills(raw: unknown): SkillItem[] {
     const kategoriObj = asRecord(s.kategori);
     return {
       id: String(s.id || s._id || `skill-${index}`),
-      name: valueToText(s.name || s.skillName || s.title, ""),
-      category: valueToText(
+      name: textFromValue(s.name || s.skillName || s.title, ""),
+      category: textFromValue(
         Object.keys(kategoriObj).length > 0
           ? kategoriObj.name
           : s.category || s.kategori || s.type,
         "",
       ),
-      createdAt: valueToText(
+      createdAt: textFromValue(
         s.createdAt || s.created_at,
         new Date().toISOString(),
       ),
@@ -154,14 +137,14 @@ export const settingsApi = {
     const kategoriObj = asRecord(item.kategori);
     return {
       id: String(item.id || ""),
-      name: valueToText(item.name, payload.name),
-      category: valueToText(
+      name: textFromValue(item.name, payload.name),
+      category: textFromValue(
         Object.keys(kategoriObj).length > 0
           ? kategoriObj.name
           : item.category || item.kategori,
         "",
       ),
-      createdAt: valueToText(item.createdAt, new Date().toISOString()),
+      createdAt: textFromValue(item.createdAt, new Date().toISOString()),
     };
   },
 

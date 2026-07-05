@@ -15,6 +15,7 @@ import {
   Article,
   ArticleStatusFilter,
 } from "@/lib/api/articles";
+import { formatNumber } from "@/lib/utils";
 
 export function statusLabel(status: ArticleStatusFilter) {
   if (status === "draft") return "Draf";
@@ -86,7 +87,7 @@ export function ArticleList({
               Total Artikel
             </div>
             <div className="mt-1 text-2xl font-extrabold leading-none tracking-tight text-ink-900">
-              {new Intl.NumberFormat("id-ID").format(total)}
+              {formatNumber(total)}
             </div>
             <div className="mt-1 text-[11px] font-medium text-ink-400">
               Halaman ini: {pageStats.published} Published · {pageStats.draft}{" "}
@@ -103,7 +104,7 @@ export function ArticleList({
               Total Views Halaman Ini
             </div>
             <div className="mt-1 text-2xl font-extrabold leading-none tracking-tight text-ink-900">
-              {new Intl.NumberFormat("id-ID").format(pageStats.views)}
+              {formatNumber(pageStats.views)}
             </div>
             <div className="mt-1 text-[11px] font-bold text-success-700">
               Berdasarkan hasil filter aktif

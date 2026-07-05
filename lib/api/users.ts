@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { asRecord, type UnknownRecord } from "./normalizers";
 
 export type UserRole = "ADMIN" | "MAHASISWA" | "KLIEN";
 
@@ -46,12 +47,6 @@ export interface UserDetail extends User {
     date: string;
     status: string;
   }>;
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
 function normaliseUser(raw: unknown): User {

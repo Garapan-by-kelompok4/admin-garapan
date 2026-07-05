@@ -3,17 +3,16 @@
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { ActivityItem } from "@/lib/api/dashboard";
+import { formatDateTime } from "@/lib/utils";
 
 export interface SettingsAuditTabProps {
   auditLogs: ActivityItem[];
   isLoadingAudit: boolean;
-  formatDate: (dateStr: string) => string;
 }
 
 export function SettingsAuditTab({
   auditLogs,
   isLoadingAudit,
-  formatDate,
 }: SettingsAuditTabProps) {
   return (
     <div className="space-y-6">
@@ -83,7 +82,7 @@ export function SettingsAuditTab({
                   </span>
                   <span className="text-ink-200 mx-1.5">•</span>
                   <span className="text-[10px] text-ink-400">
-                    {formatDate(log.createdAt)}
+                    {formatDateTime(log.createdAt)}
                   </span>
                 </div>
                 <p className="text-xs text-ink-700 mt-1 font-semibold">

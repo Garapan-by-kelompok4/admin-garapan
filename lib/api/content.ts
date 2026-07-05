@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { asRecord, type UnknownRecord } from "./normalizers";
 
 export interface FlaggedContent {
   id: string;
@@ -38,12 +39,6 @@ export interface ListContentResponse {
   total: number;
   page: number;
   limit: number;
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
 function mapContentStatus(

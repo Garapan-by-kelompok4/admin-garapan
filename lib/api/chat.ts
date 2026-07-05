@@ -1,4 +1,12 @@
 import { apiClient } from "./client";
+import {
+  asRecord,
+  listFromResponse,
+  textFromValue,
+  numberFromValue,
+  booleanFromValue,
+  dateValue,
+} from "./normalizers";
 
 export interface ChatMessage {
   id: string;
@@ -32,54 +40,6 @@ export interface ChatThreadPage {
   total: number;
   page: number;
   limit: number;
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? (value as UnknownRecord) : {};
-}
-
-function listFromResponse(raw: unknown, keys: string[] = []): unknown[] {
-  const record = asRecord(raw);
-  const data = asRecord(record.data);
-
-  if (Array.isArray(raw)) return raw;
-
-  for (const key of keys) {
-    if (Array.isArray(record[key])) return record[key];
-    if (Array.isArray(data[key])) return data[key];
-  }
-
-  if (Array.isArray(record.data)) return record.data;
-  if (Array.isArray(record.items)) return record.items;
-  if (Array.isArray(data.items)) return data.items;
-  return [];
-}
-
-function textFromValue(value: unknown, fallback = ""): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean")
-    return String(value);
-  if (!value) return fallback;
-  const record = asRecord(value);
-  return textFromValue(
-    record.message ?? record.text ?? record.content ?? record.body,
-    fallback,
-  );
-}
-
-function numberFromValue(value: unknown, fallback = 0): number {
-  return typeof value === "number" ? value : fallback;
-}
-
-function booleanFromValue(value: unknown, fallback = false): boolean {
-  return typeof value === "boolean" ? value : fallback;
-}
-
-function dateValue(value: unknown): number {
-  const time = new Date(textFromValue(value, "")).getTime();
-  return Number.isNaN(time) ? 0 : time;
 }
 
 function normaliseMessage(raw: unknown, index = 0): ChatMessage {

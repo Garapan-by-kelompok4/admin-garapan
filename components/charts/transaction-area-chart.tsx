@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 import type { AnalyticsResponse } from "@/lib/api/dashboard";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export type ChartPeriod = "7H" | "30H" | "90H" | "1T";
 
@@ -61,7 +61,7 @@ export function TransactionAreaChart({
           {
             label: "Total Pesanan",
             val: analytics?.timeSeries
-              ? new Intl.NumberFormat("id-ID").format(
+              ? formatNumber(
                   analytics.timeSeries.reduce((s, p) => s + p.orderCount, 0),
                 )
               : "-",

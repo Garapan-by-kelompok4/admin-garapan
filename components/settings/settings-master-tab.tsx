@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { KategoriItem, SkillItem } from "@/lib/api/settings";
+import { formatDateTime } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,6 @@ export interface SettingsMasterTabProps {
   isAddPending: boolean;
   onAddSkill: (values: AddSkillInput) => void;
   onDeleteSkill: (id: string, name: string) => void;
-  formatDate: (dateStr: string) => string;
 }
 
 export function SettingsMasterTab({
@@ -33,7 +33,6 @@ export function SettingsMasterTab({
   isAddPending,
   onAddSkill,
   onDeleteSkill,
-  formatDate,
 }: SettingsMasterTabProps) {
   return (
     <div className="space-y-6">
@@ -93,7 +92,7 @@ export function SettingsMasterTab({
                     </span>
                   </td>
                   <td className="py-3 px-4 text-ink-400">
-                    {formatDate(skill.createdAt).split(" ")[0]}
+                    {formatDateTime(skill.createdAt).split(" ")[0]}
                   </td>
                   <td className="py-3 px-4 text-right">
                     <Button
