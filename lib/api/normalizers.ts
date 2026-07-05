@@ -84,3 +84,47 @@ export function dateValue(value: unknown): number {
   const time = new Date(textFromValue(value, "")).getTime();
   return Number.isNaN(time) ? 0 : time;
 }
+
+/** Coerce an unknown array to object records (filters non-objects). */
+export function recordList(value: unknown): UnknownRecord[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is UnknownRecord =>
+      item !== null && typeof item === "object" && !Array.isArray(item),
+  );
+}
+
+/** Coerce an unknown value to a finite number, or null when absent/invalid. */
+export function nullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+/** Coerce an unknown array to finite numbers (invalid entries become 0). */
+export function numberList(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.map((item) => {
+    if (typeof item === "number" && Number.isFinite(item)) return item;
+    if (typeof item === "string") {
+      const parsed = Number(item);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
+  });
+}
+
+/** Pick a string enum member when value is in the allowed set. */
+export function enumValue<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  fallback: T,
+): T {
+  const candidate = typeof value === "string" ? value : String(value ?? "");
+  return allowed.includes(candidate as T) ? (candidate as T) : fallback;
+}

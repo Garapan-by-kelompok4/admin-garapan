@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { asRecord, type UnknownRecord } from "./normalizers";
+import { asRecord, recordList } from "./normalizers";
 
 export type DisputePriority = "Tinggi" | "Sedang" | "Rendah";
 export type DisputeStatus = "Terbuka" | "Diproses" | "Selesai" | "Ditolak";
@@ -113,10 +113,15 @@ function normaliseListResponse(
   if (!raw) return { data: [], total: 0, page, limit };
 
   const r = asRecord(raw);
-  let items: UnknownRecord[] = [];
-  if (Array.isArray(r.data)) items = r.data as UnknownRecord[];
-  else if (Array.isArray(r.items)) items = r.items as UnknownRecord[];
-  else if (Array.isArray(raw)) items = raw as UnknownRecord[];
+  const items = recordList(
+    Array.isArray(r.data)
+      ? r.data
+      : Array.isArray(r.items)
+        ? r.items
+        : Array.isArray(raw)
+          ? raw
+          : [],
+  );
 
   return {
     data: items.map(normaliseDispute),

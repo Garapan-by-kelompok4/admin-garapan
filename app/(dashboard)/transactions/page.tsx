@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { ordersApi } from "@/lib/api/orders";
+import { getErrorMessage } from "@/lib/utils";
 import { DataTable } from "@/components/data-table/data-table";
 import { TransactionsSummaryCards } from "@/components/transactions/transactions-summary-cards";
 import { TransactionsToolbar } from "@/components/transactions/transactions-toolbar";
@@ -70,7 +71,7 @@ export default function TransactionsPage() {
             Gagal memuat data
           </h3>
           <p className="text-xs text-ink-400 mt-1">
-            {(error as Error).message || "Terjadi kesalahan koneksi"}
+            {getErrorMessage(error)}
           </p>
         </div>
       ) : (

@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { usersApi } from "@/lib/api/users";
+import { getErrorMessage } from "@/lib/utils";
 import { DataTable } from "@/components/data-table/data-table";
 import { UsersToolbar } from "@/components/users/users-toolbar";
 import { createUsersColumns } from "@/components/users/users-columns";
@@ -130,7 +131,7 @@ export default function UsersPage() {
             Gagal memuat data
           </h3>
           <p className="text-xs text-ink-400 mt-1">
-            {(error as Error).message || "Terjadi kesalahan koneksi"}
+            {getErrorMessage(error)}
           </p>
         </div>
       ) : (

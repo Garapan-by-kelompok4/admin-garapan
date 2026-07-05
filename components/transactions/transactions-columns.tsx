@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
-import { OrderTransaction, EscrowStatus } from "@/lib/api/orders";
+import { OrderTransaction } from "@/lib/api/orders";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { TransactionStatusPill } from "./transaction-status-pill";
@@ -85,14 +85,14 @@ export function createTransactionsColumns({
     {
       accessorKey: "escrowStatus",
       header: "Status Escrow",
-      cell: ({ getValue }) => (
-        <TransactionStatusPill status={getValue() as EscrowStatus} />
+      cell: ({ row }) => (
+        <TransactionStatusPill status={row.original.escrowStatus} />
       ),
     },
     {
       accessorKey: "createdAt",
       header: "Tanggal Transaksi",
-      cell: ({ getValue }) => formatDate(getValue() as string),
+      cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
       id: "actions",

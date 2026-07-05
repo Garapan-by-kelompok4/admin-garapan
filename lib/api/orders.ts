@@ -1,7 +1,13 @@
 import { apiClient } from "./client";
-import { asRecord } from "./normalizers";
+import { asRecord, enumValue } from "./normalizers";
 
 export type EscrowStatus = "Ditahan" | "Dicairkan" | "Refund";
+
+const ESCROW_STATUSES = [
+  "Ditahan",
+  "Dicairkan",
+  "Refund",
+] as const satisfies readonly EscrowStatus[];
 
 export interface OrderTransaction {
   id: string;
@@ -103,8 +109,11 @@ function normaliseOrder(raw: unknown): OrderTransaction {
         r.value ??
         0,
     ),
-    escrowStatus: (r.escrowStatus ||
-      mapEscrowStatus(String(r.status ?? ""))) as EscrowStatus,
+    escrowStatus: enumValue(
+      r.escrowStatus ?? mapEscrowStatus(String(r.status ?? "")),
+      ESCROW_STATUSES,
+      "Ditahan",
+    ),
     createdAt: String(
       r.createdAt ?? r.date ?? r.createdDate ?? new Date().toISOString(),
     ),
@@ -148,6 +157,6 @@ export const ordersApi = {
 
   getById: async (id: string): Promise<OrderDetail> => {
     const raw = await apiClient<unknown>(`/admin/orders/${id}`);
-    return normaliseOrder(raw) as OrderDetail;
+    return normaliseOrder(raw);
   },
 };

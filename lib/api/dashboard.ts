@@ -1,5 +1,11 @@
 import { apiClient } from "./client";
-import { asRecord, listFromResponse, type UnknownRecord } from "./normalizers";
+import {
+  asRecord,
+  listFromResponse,
+  nullableNumber,
+  numberList,
+  recordList,
+} from "./normalizers";
 
 export interface ActivityItem {
   id: string;
@@ -80,19 +86,6 @@ export interface DashboardStats {
   pendingReportsSparkline: number[];
 }
 
-function numberList(value: unknown): number[] {
-  if (!Array.isArray(value)) return [];
-
-  return value.map((item) => {
-    if (typeof item === "number" && Number.isFinite(item)) return item;
-    if (typeof item === "string") {
-      const parsed = Number(item);
-      return Number.isFinite(parsed) ? parsed : 0;
-    }
-    return 0;
-  });
-}
-
 function normaliseStatsSparklines(raw: unknown) {
   const sparklines = asRecord(asRecord(raw).sparklines);
 
@@ -137,8 +130,10 @@ export interface AnalyticsResponse {
 
 function normaliseAnalytics(raw: unknown): AnalyticsResponse {
   const r = asRecord(raw);
-  const timeSeries = (r.timeSeries ?? []) as UnknownRecord[];
-  const categoryBreakdown = (r.categoryBreakdown ?? []) as UnknownRecord[];
+  const timeSeries = recordList(r.timeSeries);
+  const categoryBreakdown = recordList(r.categoryBreakdown);
+  const periodRecord = asRecord(r.period);
+  const deltasRecord = asRecord(r.deltas);
 
   const totalOrders = timeSeries.reduce(
     (sum, p) => sum + Number(p.orderCount ?? 0),
@@ -162,8 +157,21 @@ function normaliseAnalytics(raw: unknown): AnalyticsResponse {
         : 0,
   }));
 
+  const deltas =
+    r.deltas === undefined
+      ? undefined
+      : {
+          orders: nullableNumber(deltasRecord.orders),
+          revenue: nullableNumber(deltasRecord.revenue),
+          users: nullableNumber(deltasRecord.users),
+        };
+
   return {
-    period: asRecord(r.period) as AnalyticsResponse["period"],
+    period: {
+      days: Number(periodRecord.days ?? 0),
+      start: String(periodRecord.start ?? ""),
+      end: String(periodRecord.end ?? ""),
+    },
     timeSeries: timeSeries.map((p) => ({
       date: String(p.date ?? ""),
       orderCount: Number(p.orderCount ?? 0),
@@ -175,7 +183,7 @@ function normaliseAnalytics(raw: unknown): AnalyticsResponse {
       count: Number(c.count ?? 0),
       revenue: Number(c.revenue ?? 0),
     })),
-    deltas: r.deltas as AnalyticsResponse["deltas"],
+    deltas,
     ordersLine,
     categoriesDonut,
   };
