@@ -110,13 +110,15 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
             <div className="text-[12.5px] text-ink-450 font-semibold">
               {item.label}
             </div>
-            <div className="flex items-end justify-between gap-2 mt-1.5 min-w-0">
-              <div className="min-w-0 flex-1 text-xl lg:text-2xl font-extrabold text-ink-900 leading-none tracking-tight font-heading">
+            <div className="mt-1.5">
+              <div className="text-xl lg:text-2xl font-extrabold text-ink-900 leading-none tracking-tight font-heading tabular-nums">
                 {item.val}
               </div>
-              <div className="h-7 w-[68px] shrink-0 overflow-hidden">
-                <StatSparkline points={item.spark} color={item.color} />
-              </div>
+              {item.spark.length >= 2 ? (
+                <div className="mt-2 flex h-7 justify-end">
+                  <StatSparkline points={item.spark} color={item.color} />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

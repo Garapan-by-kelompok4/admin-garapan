@@ -2,10 +2,17 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { useDocumentVisible } from "@/hooks/use-document-visible";
 import { chatApi } from "@/lib/api/chat";
 import { contentApi } from "@/lib/api/content";
 import { disputesApi } from "@/lib/api/disputes";
 import { ordersApi } from "@/lib/api/orders";
+import {
+  CHAT_POLL_INTERVAL_MS,
+  OPS_BADGE_POLL_INTERVAL_MS,
+  TRANSACTIONS_BADGE_POLL_INTERVAL_MS,
+  visibilityAwareInterval,
+} from "@/lib/query/polling";
 
 export interface OpsBadgeCounts {
   moderation: number;
@@ -15,13 +22,18 @@ export interface OpsBadgeCounts {
 }
 
 export function useOpsBadgeCounts(): OpsBadgeCounts {
+  const isDocumentVisible = useDocumentVisible();
+
   const { data: moderationRes } = useQuery({
     queryKey: ["sidebarModerationCount"],
     queryFn: () =>
       contentApi
         .list({ page: 1, limit: 1 })
         .catch(() => ({ data: [], total: 0, page: 1, limit: 1 })),
-    refetchInterval: 30_000,
+    refetchInterval: visibilityAwareInterval(
+      OPS_BADGE_POLL_INTERVAL_MS,
+      isDocumentVisible,
+    ),
   });
 
   const { data: disputesRes } = useQuery({
@@ -30,13 +42,16 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
       disputesApi
         .list({ page: 1, limit: 1 })
         .catch(() => ({ data: [], total: 0, page: 1, limit: 1 })),
-    refetchInterval: 30_000,
+    refetchInterval: visibilityAwareInterval(
+      OPS_BADGE_POLL_INTERVAL_MS,
+      isDocumentVisible,
+    ),
   });
 
   const { data: chatSessions = [] } = useQuery({
     queryKey: ["chatSessions"],
     queryFn: () => chatApi.listSessions().catch(() => []),
-    refetchInterval: 5_000,
+    refetchInterval: CHAT_POLL_INTERVAL_MS,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
   });
@@ -47,7 +62,10 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
       ordersApi
         .list({ page: 1, limit: 1 })
         .catch(() => ({ data: [], total: 0, page: 1, limit: 1 })),
-    refetchInterval: 60_000,
+    refetchInterval: visibilityAwareInterval(
+      TRANSACTIONS_BADGE_POLL_INTERVAL_MS,
+      isDocumentVisible,
+    ),
   });
 
   const unreadChatCount = chatSessions.reduce(

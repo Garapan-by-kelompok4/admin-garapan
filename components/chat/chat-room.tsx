@@ -11,8 +11,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { chatApi, ChatMessage, ChatThreadPage, ChatSession } from "@/lib/api/chat";
 import { usersApi } from "@/lib/api/users";
 import { avatarClass, initials } from "@/lib/avatar";
-import { formatTime, formatDateLabel, quickReplies } from "@/lib/chat-utils";
+import { formatDateLabel, quickReplies } from "@/lib/chat-utils";
 import { formatDate } from "@/lib/utils";
+import { ChatMessageBubble } from "@/components/chat/chat-message-bubble";
+import { useDocumentVisible } from "@/hooks/use-document-visible";
+import {
+  CHAT_POLL_INTERVAL_MS,
+  visibilityAwareInterval,
+} from "@/lib/query/polling";
 import {
   Send,
   Phone,
@@ -40,6 +46,7 @@ export function ChatRoom({
 }: ChatRoomProps) {
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
+  const isDocumentVisible = useDocumentVisible();
   const [showUserInfo, setShowUserInfo] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [olderMessages, setOlderMessages] = useState<ChatMessage[]>([]);
@@ -73,7 +80,11 @@ export function ChatRoom({
       queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
       return page;
     },
-    refetchInterval: 5000,
+    refetchInterval: visibilityAwareInterval(
+      CHAT_POLL_INTERVAL_MS,
+      isDocumentVisible,
+    ),
+    refetchOnWindowFocus: true,
   });
 
   const liveMessages = useMemo(() => livePage?.messages ?? [], [livePage?.messages]);
@@ -303,7 +314,7 @@ export function ChatRoom({
                     new Date(msg.createdAt).toDateString();
 
                 return (
-                  <React.Fragment key={`${msg.id}-${msg.createdAt}-${idx}`}>
+                  <React.Fragment key={msg.id}>
                     {showDateSeparator && (
                       <div className="flex items-center justify-center my-3">
                         <span className="px-3 py-0.5 rounded border border-border bg-white text-[10px] font-bold text-ink-400 shadow-sm">
@@ -312,33 +323,7 @@ export function ChatRoom({
                       </div>
                     )}
 
-                    <div
-                      className={`flex ${isMe ? "justify-end" : "justify-start"} items-end gap-2`}
-                    >
-                      {!isMe && (
-                        <div
-                          className={`h-6 w-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 shadow-sm ${avatarClass(msg.senderName)}`}
-                        >
-                          {initials(msg.senderName)}
-                        </div>
-                      )}
-                      <div className="max-w-[70%]">
-                        <div
-                          className={`p-3 text-xs font-medium leading-relaxed rounded-xl shadow-sm ${
-                            isMe
-                              ? "bg-brand-500 text-white rounded-br-xs"
-                              : "bg-white text-ink-900 border border-border rounded-bl-xs"
-                          }`}
-                        >
-                          {msg.message}
-                        </div>
-                        <span
-                          className={`block text-[9.5px] text-ink-400 font-medium mt-1 ${isMe ? "text-right" : "text-left"}`}
-                        >
-                          {formatTime(msg.createdAt)}
-                        </span>
-                      </div>
-                    </div>
+                    <ChatMessageBubble message={msg} isMe={!!isMe} />
                   </React.Fragment>
                 );
               })}
