@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   settingsApi,
@@ -9,7 +9,9 @@ import {
   KategoriItem,
 } from "@/lib/api/settings";
 import { dashboardApi, ActivityItem } from "@/lib/api/dashboard";
-import { avatarClass, initials } from "@/lib/avatar";
+import { AddSkillForm } from "@/components/settings/add-skill-form";
+import { ChangePasswordForm } from "@/components/settings/change-password-form";
+import { ProfileForm } from "@/components/settings/profile-form";
 import {
   User,
   Lock,
@@ -28,6 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import type { AddSkillInput, ProfileInput } from "@/lib/validators/settings";
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -35,23 +38,8 @@ export default function SettingsPage() {
     "profile" | "security" | "notifications" | "master" | "audit"
   >("profile");
 
-  // --- TAB 1: PROFILE STATE ---
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [bio, setBio] = useState("");
-
-  // --- TAB 2: SECURITY STATE ---
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-
-  // --- TAB 4: MASTER DATA STATE ---
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
-  const [newSkillName, setNewSkillName] = useState("");
-  const [newSkillCategoryId, setNewSkillCategoryId] = useState<
-    string | undefined
-  >(undefined);
 
   // 1. Fetch current profile
   const { data: profile, isLoading: isLoadingProfile } = useQuery<
@@ -61,17 +49,6 @@ export default function SettingsPage() {
     queryKey: ["adminProfile"],
     queryFn: () => settingsApi.getProfile(),
   });
-
-  // Sync state manually on success because v5 does not support onSuccess on useQuery anymore
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    if (profile) {
-      setFullName(profile.fullName);
-      setPhone(profile.phone || "");
-      setBio(profile.bio || "");
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [profile]);
 
   // 2. Fetch master data skills
   const { data: skills = [], isLoading: isLoadingSkills } = useQuery<
@@ -116,9 +93,6 @@ export default function SettingsPage() {
       settingsApi.changePassword(payload),
     onSuccess: () => {
       toast.success("Password berhasil diubah");
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
     },
     onError: (err: Error) => {
       toast.error(err.message || "Gagal mengubah password");
@@ -132,8 +106,6 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success("Kompetensi master berhasil ditambahkan");
       queryClient.invalidateQueries({ queryKey: ["masterSkills"] });
-      setNewSkillName("");
-      setNewSkillCategoryId(undefined);
       setIsAddSkillOpen(false);
     },
     onError: (err: Error) => {
@@ -153,34 +125,14 @@ export default function SettingsPage() {
     },
   });
 
-  // Form handlers
-  const handleProfileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate({ fullName, phone, bio });
+  const handleProfileSubmit = (values: ProfileInput) => {
+    updateProfileMutation.mutate(values);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error("Konfirmasi password baru tidak cocok");
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error("Password baru minimal 6 karakter");
-      return;
-    }
-    changePasswordMutation.mutate({ oldPassword, newPassword });
-  };
-
-  const handleAddSkillSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSkillName.trim()) {
-      toast.error("Nama kompetensi wajib diisi");
-      return;
-    }
+  const handleAddSkillSubmit = (values: AddSkillInput) => {
     addSkillMutation.mutate({
-      name: newSkillName.trim(),
-      kategoriId: newSkillCategoryId,
+      name: values.name,
+      kategoriId: values.kategoriId,
     });
   };
 
@@ -250,116 +202,12 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            {isLoadingProfile ? (
-              <div className="p-8 text-center text-xs text-ink-500 font-medium">
-                Memuat detail profil...
-              </div>
-            ) : (
-              <form onSubmit={handleProfileSubmit} className="space-y-5">
-                {/* Avatar upload panel */}
-                <div className="flex items-center gap-4 border-b border-border/50 pb-5">
-                  <div
-                    className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border border-border shadow-sm ${avatarClass(fullName || "AD")}`}
-                  >
-                    {initials(fullName || "AD")}
-                  </div>
-                  <div>
-                    <h4 className="font-heading font-bold text-sm text-ink-900">
-                      Foto Profil
-                    </h4>
-                    <p className="text-[10px] text-ink-400 font-semibold mt-0.5">
-                      Initials avatar otomatis dibuat berdasarkan nama lengkap
-                      Anda.
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        type="button"
-                        disabled
-                        className="px-2.5 py-1.5 border border-border bg-white text-[10px] font-bold text-ink-400 rounded cursor-not-allowed opacity-50"
-                        title="Upload dinonaktifkan"
-                      >
-                        Ganti Foto
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">
-                      Nama Lengkap
-                    </label>
-                    <input
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-border rounded-lg text-xs placeholder:text-ink-350 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">
-                      Alamat Email (Akun)
-                    </label>
-                    <input
-                      type="email"
-                      value={profile?.email || ""}
-                      className="w-full h-10 px-3 bg-surface-2 border border-border rounded-lg text-xs text-ink-450 font-medium cursor-not-allowed"
-                      disabled
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">
-                      Nomor Telepon
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: 081234567890"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-border rounded-lg text-xs placeholder:text-ink-350 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">
-                      Peran Akses (Role)
-                    </label>
-                    <span className="w-full h-10 px-3 bg-surface-2 border border-border rounded-lg text-xs text-ink-450 flex items-center font-bold capitalize select-none cursor-not-allowed">
-                      {profile?.role?.toLowerCase() || "Super Admin"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink-700">
-                    Biografi Diri
-                  </label>
-                  <textarea
-                    rows={4}
-                    placeholder="Tuliskan biografi singkat mengenai diri Anda..."
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="w-full p-3 bg-white border border-border rounded-lg text-xs placeholder:text-ink-350 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-none"
-                  />
-                </div>
-
-                <div className="flex justify-end pt-3">
-                  <button
-                    type="submit"
-                    disabled={updateProfileMutation.isPending}
-                    className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {updateProfileMutation.isPending
-                      ? "Menyimpan..."
-                      : "Simpan Perubahan"}
-                  </button>
-                </div>
-              </form>
-            )}
+            <ProfileForm
+              profile={profile}
+              isLoading={isLoadingProfile}
+              isPending={updateProfileMutation.isPending}
+              onSubmit={handleProfileSubmit}
+            />
           </div>
         )}
 
@@ -375,61 +223,10 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            <form
-              onSubmit={handlePasswordSubmit}
-              className="space-y-4 max-w-lg"
-            >
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink-700">
-                  Password Lama
-                </label>
-                <input
-                  type="password"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  className="w-full h-10 px-3 bg-white border border-border rounded-lg text-xs placeholder:text-ink-350 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink-700">
-                  Password Baru
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full h-10 px-3 bg-white border border-border rounded-lg text-xs placeholder:text-ink-350 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink-700">
-                  Konfirmasi Password Baru
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full h-10 px-3 bg-white border border-border rounded-lg text-xs placeholder:text-ink-350 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end pt-3">
-                <button
-                  type="submit"
-                  disabled={changePasswordMutation.isPending}
-                  className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {changePasswordMutation.isPending
-                    ? "Memproses..."
-                    : "Ganti Password"}
-                </button>
-              </div>
-            </form>
+            <ChangePasswordForm
+              isPending={changePasswordMutation.isPending}
+              onSubmit={(values) => changePasswordMutation.mutate(values)}
+            />
 
             {/* 2FA Card */}
             <div className="border border-border rounded-lg p-4 bg-surface-2 flex items-center justify-between mt-6 select-none">
@@ -691,13 +488,7 @@ export default function SettingsPage() {
             {/* Modal Tambah Kompetensi */}
             <Dialog
               open={isAddSkillOpen}
-              onOpenChange={(open) => {
-                if (!open) {
-                  setIsAddSkillOpen(false);
-                  setNewSkillName("");
-                  setNewSkillCategoryId(undefined);
-                }
-              }}
+              onOpenChange={setIsAddSkillOpen}
             >
               <DialogContent className="max-w-[400px] rounded-xl p-5 border-border bg-white shadow-sh-3">
                 <DialogHeader className="border-b border-border pb-3">
@@ -705,60 +496,12 @@ export default function SettingsPage() {
                     Tambah Kompetensi Master
                   </DialogTitle>
                 </DialogHeader>
-                <form
+                <AddSkillForm
+                  kategoriList={kategoriList}
+                  isPending={addSkillMutation.isPending}
                   onSubmit={handleAddSkillSubmit}
-                  className="space-y-4 pt-3"
-                >
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">
-                      Nama Kompetensi
-                    </label>
-                    <input
-                      placeholder="Contoh: Flutter Mobile App"
-                      value={newSkillName}
-                      onChange={(e) => setNewSkillName(e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-border rounded-lg text-xs placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">
-                      Kategori Jasa
-                    </label>
-                    <select
-                      value={newSkillCategoryId || ""}
-                      onChange={(e) =>
-                        setNewSkillCategoryId(e.target.value || undefined)
-                      }
-                      className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-xs font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
-                    >
-                      <option value="">Pilih Kategori (opsional)</option>
-                      {kategoriList.map((kat) => (
-                        <option key={kat.id} value={kat.id}>
-                          {kat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-2 border-t border-border mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddSkillOpen(false)}
-                      className="px-4 py-2 text-xs font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={addSkillMutation.isPending}
-                      className="px-4 py-2 text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-colors cursor-pointer shadow-sm disabled:opacity-50"
-                    >
-                      {addSkillMutation.isPending ? "Menambahkan..." : "Tambah"}
-                    </button>
-                  </div>
-                </form>
+                  onCancel={() => setIsAddSkillOpen(false)}
+                />
               </DialogContent>
             </Dialog>
           </div>

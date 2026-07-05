@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import LinkExtension from "@tiptap/extension-link";
@@ -44,6 +46,11 @@ import {
   articlesApi,
   CreateArticlePayload,
 } from "@/lib/api/articles";
+import {
+  articleFormSchema,
+  articleTagInputSchema,
+  type ArticleFormInput,
+} from "@/lib/validators/articles";
 
 interface RichEditorProps {
   content: string;
@@ -259,16 +266,43 @@ export default function ArticlesPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [isFetchingArticle, setIsFetchingArticle] = useState(false);
-
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [category, setCategory] = useState("Umum");
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-  const [seoDescription, setSeoDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState("");
   const [coverRemoved, setCoverRemoved] = useState(false);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors, isValid },
+  } = useForm<ArticleFormInput>({
+    resolver: zodResolver(articleFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      title: "",
+      content: "",
+      category: "Umum",
+      tags: [],
+      seoDescription: "",
+    },
+  });
+
+  const {
+    register: registerTag,
+    handleSubmit: handleTagSubmit,
+    reset: resetTag,
+    formState: { errors: tagErrors },
+  } = useForm<{ tag: string }>({
+    resolver: zodResolver(articleTagInputSchema),
+    defaultValues: { tag: "" },
+  });
+
+  const tags = watch("tags");
+  const seoDescription = watch("seoDescription") ?? "";
 
   const limit = 10;
 
@@ -332,11 +366,13 @@ export default function ArticlesPage() {
   }, [visibleArticles]);
 
   const fillEditor = (article: Article) => {
-    setTitle(article.title);
-    setContent(article.content);
-    setCategory(article.category || "Umum");
-    setTags(article.tags);
-    setSeoDescription(article.seoDescription);
+    reset({
+      title: article.title,
+      content: article.content,
+      category: article.category || "Umum",
+      tags: article.tags,
+      seoDescription: article.seoDescription,
+    });
     setCoverPreview(article.imageUrl);
     setCoverFile(null);
     setCoverRemoved(false);
@@ -351,12 +387,14 @@ export default function ArticlesPage() {
   const resetEditor = () => {
     setIsEditing(false);
     setEditingArticleId(null);
-    setTitle("");
-    setContent("");
-    setCategory("Umum");
-    setTags([]);
-    setTagInput("");
-    setSeoDescription("");
+    reset({
+      title: "",
+      content: "",
+      category: "Umum",
+      tags: [],
+      seoDescription: "",
+    });
+    resetTag({ tag: "" });
     setCoverFile(null);
     setCoverPreview("");
     setCoverRemoved(false);
@@ -364,6 +402,7 @@ export default function ArticlesPage() {
 
   const saveMutation = useMutation({
     mutationFn: async (publishAfterSave: boolean) => {
+      const values = getValues();
       let finalImageUrl = coverPreview;
 
       if (coverFile) {
@@ -380,12 +419,12 @@ export default function ArticlesPage() {
       }
 
       const payload: CreateArticlePayload = {
-        title: title.trim(),
-        content,
+        title: values.title.trim(),
+        content: values.content,
         imageUrl: coverRemoved ? "" : finalImageUrl || undefined,
-        category: category.trim() || "Umum",
-        tags,
-        seoDescription: seoDescription.trim() || undefined,
+        category: values.category.trim() || "Umum",
+        tags: values.tags,
+        seoDescription: values.seoDescription?.trim() || undefined,
       };
 
       const saved = editingArticleId
@@ -502,13 +541,23 @@ export default function ArticlesPage() {
     setCoverRemoved(false);
   };
 
-  const handleAddTag = (event: React.FormEvent) => {
-    event.preventDefault();
-    const value = tagInput.trim();
-    if (!value || tags.includes(value)) return;
-    setTags([...tags, value]);
-    setTagInput("");
-  };
+  const handleAddTag = handleTagSubmit(({ tag }) => {
+    const currentTags = getValues("tags");
+    if (currentTags.includes(tag)) {
+      resetTag({ tag: "" });
+      return;
+    }
+    setValue("tags", [...currentTags, tag], { shouldValidate: true });
+    resetTag({ tag: "" });
+  });
+
+  const handleSave = handleSubmit(() => {
+    saveMutation.mutate(false);
+  });
+
+  const handlePublish = handleSubmit(() => {
+    saveMutation.mutate(true);
+  });
 
   const columns: ColumnDef<Article>[] = [
     {
@@ -683,10 +732,7 @@ export default function ArticlesPage() {
     },
   ];
 
-  const canSave =
-    title.trim().length > 0 &&
-    content.trim().length > 0 &&
-    !saveMutation.isPending;
+  const canSave = isValid && !saveMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -891,13 +937,18 @@ export default function ArticlesPage() {
           ) : (
             <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
               <div className="space-y-5 rounded-xl border border-border bg-white p-5 shadow-sh-1 lg:col-span-2">
-                <input
-                  type="text"
-                  placeholder="Judul Artikel..."
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  className="w-full border-b border-border/80 pb-2 font-heading text-2xl font-extrabold tracking-tight text-ink-900 placeholder:text-ink-300 focus:border-brand-400 focus:outline-none"
-                />
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    placeholder="Judul Artikel..."
+                    className="w-full border-b border-border/80 pb-2 font-heading text-2xl font-extrabold tracking-tight text-ink-900 placeholder:text-ink-300 focus:border-brand-400 focus:outline-none"
+                    aria-invalid={Boolean(errors.title)}
+                    {...register("title")}
+                  />
+                  {errors.title && (
+                    <p className="text-xs text-danger-500">{errors.title.message}</p>
+                  )}
+                </div>
 
                 <div className="space-y-2">
                   <span className="text-xs font-bold text-ink-700">
@@ -960,7 +1011,21 @@ export default function ArticlesPage() {
                   <span className="text-xs font-bold text-ink-700">
                     Isi Konten Artikel
                   </span>
-                  <RichEditor content={content} onChange={setContent} />
+                  <Controller
+                    name="content"
+                    control={control}
+                    render={({ field }) => (
+                      <RichEditor
+                        content={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  {errors.content && (
+                    <p className="text-xs text-danger-500">
+                      {errors.content.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -975,11 +1040,16 @@ export default function ArticlesPage() {
                       Kategori
                     </label>
                     <input
-                      value={category}
-                      onChange={(event) => setCategory(event.target.value)}
                       placeholder="Tulis kategori artikel..."
                       className="h-[38px] w-full rounded-lg border border-border bg-white px-3 text-xs font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
+                      aria-invalid={Boolean(errors.category)}
+                      {...register("category")}
                     />
+                    {errors.category && (
+                      <p className="text-xs text-danger-500">
+                        {errors.category.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -989,11 +1059,14 @@ export default function ArticlesPage() {
                     <form onSubmit={handleAddTag} className="flex gap-1.5">
                       <input
                         placeholder="Tekan enter untuk tambah..."
-                        value={tagInput}
-                        onChange={(event) => setTagInput(event.target.value)}
                         className="h-[36px] flex-1 rounded-lg border border-border bg-white px-3 text-xs font-medium transition-all placeholder:text-ink-300 focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
+                        aria-invalid={Boolean(tagErrors.tag)}
+                        {...registerTag("tag")}
                       />
                     </form>
+                    {tagErrors.tag && (
+                      <p className="text-xs text-danger-500">{tagErrors.tag.message}</p>
+                    )}
                     {tagOptions.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1">
                         {tagOptions.slice(0, 8).map((option) => (
@@ -1002,7 +1075,9 @@ export default function ArticlesPage() {
                             type="button"
                             onClick={() =>
                               !tags.includes(option) &&
-                              setTags([...tags, option])
+                              setValue("tags", [...tags, option], {
+                                shouldValidate: true,
+                              })
                             }
                             className="inline-flex items-center gap-1 rounded bg-surface-2 px-2 py-0.5 text-[10px] font-semibold text-ink-600 hover:bg-brand-50 hover:text-brand-700"
                           >
@@ -1023,7 +1098,11 @@ export default function ArticlesPage() {
                             <button
                               type="button"
                               onClick={() =>
-                                setTags(tags.filter((item) => item !== tag))
+                                setValue(
+                                  "tags",
+                                  tags.filter((item) => item !== tag),
+                                  { shouldValidate: true },
+                                )
                               }
                               className="bg-transparent p-0.5 text-brand-500 hover:text-brand-700"
                             >
@@ -1047,19 +1126,22 @@ export default function ArticlesPage() {
                     <textarea
                       rows={3}
                       placeholder="Masukkan ringkasan singkat artikel untuk hasil pencarian Google..."
-                      value={seoDescription}
-                      onChange={(event) =>
-                        setSeoDescription(event.target.value.substring(0, 160))
-                      }
                       className="w-full resize-none rounded-lg border border-border bg-white p-2.5 text-xs font-medium transition-all placeholder:text-ink-300 focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
+                      aria-invalid={Boolean(errors.seoDescription)}
+                      {...register("seoDescription")}
                     />
+                    {errors.seoDescription && (
+                      <p className="text-xs text-danger-500">
+                        {errors.seoDescription.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="mt-4 flex flex-col gap-2 border-t border-border pt-2">
                     <button
                       type="button"
                       disabled={!canSave}
-                      onClick={() => saveMutation.mutate(true)}
+                      onClick={handlePublish}
                       className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-brand-500 text-xs font-bold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <CheckCircle2 className="h-4 w-4" />
@@ -1070,7 +1152,7 @@ export default function ArticlesPage() {
                     <button
                       type="button"
                       disabled={!canSave}
-                      onClick={() => saveMutation.mutate(false)}
+                      onClick={handleSave}
                       className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-white text-xs font-bold text-ink-700 transition-colors hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <FileEdit className="h-4 w-4" />
