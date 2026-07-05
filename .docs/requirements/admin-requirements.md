@@ -258,7 +258,7 @@ Umum
 
 Manajemen
   Manajemen User
-  Moderasi Konten      [badge]
+  Moderasi Jasa & Proyek [badge]
   Dispute & Laporan    [badge]
   Transaksi & Escrow
 
