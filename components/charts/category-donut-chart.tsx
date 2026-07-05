@@ -2,9 +2,8 @@
 
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
+import { DONUT_COLORS } from "@/components/charts/chart-tokens";
 import type { AnalyticsResponse } from "@/lib/api/dashboard";
-
-const donutColors = ["#2047C9", "#4A68E0", "#7E95F0", "#B6C3F9", "#DCE4FD"];
 
 interface CategoryDonutChartProps {
   analytics?: AnalyticsResponse;
@@ -15,6 +14,9 @@ export function CategoryDonutChart({
   analytics,
   isLoading,
 }: CategoryDonutChartProps) {
+  const categories = analytics?.categoriesDonut || [];
+  const totalServices = categories.reduce((sum, category) => sum + category.value, 0);
+
   return (
     <div className="bg-white border border-border rounded-xl p-5 space-y-4 shadow-sh-1 flex flex-col justify-between">
       <div className="border-b border-border pb-3 flex-shrink-0">
@@ -35,7 +37,7 @@ export function CategoryDonutChart({
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={analytics?.categoriesDonut || []}
+                    data={categories}
                     cx="50%"
                     cy="50%"
                     innerRadius={48}
@@ -43,10 +45,10 @@ export function CategoryDonutChart({
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {(analytics?.categoriesDonut || []).map((entry, index) => (
+                    {categories.map((entry, index) => (
                       <Cell
-                        key={`cell-${index}`}
-                        fill={donutColors[index % donutColors.length]}
+                        key={`${entry.name}-${index}`}
+                        fill={DONUT_COLORS[index % DONUT_COLORS.length]}
                       />
                     ))}
                   </Pie>
@@ -55,10 +57,7 @@ export function CategoryDonutChart({
 
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className="text-[20px] font-extrabold text-ink-900 leading-none tracking-tight font-heading">
-                  {analytics?.categoriesDonut?.reduce(
-                    (s, c) => s + c.value,
-                    0,
-                  ) ?? "-"}
+                  {categories.length > 0 ? totalServices : "-"}
                 </span>
                 <span className="text-[10px] text-ink-400 font-semibold uppercase mt-0.5">
                   total jasa
@@ -67,9 +66,9 @@ export function CategoryDonutChart({
             </div>
 
             <div className="flex-1 space-y-2 max-w-[130px]">
-              {(analytics?.categoriesDonut || []).map((cat, index) => (
+              {categories.map((cat, index) => (
                 <div
-                  key={index}
+                  key={`${cat.name}-${index}`}
                   className="flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -77,7 +76,7 @@ export function CategoryDonutChart({
                       className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
                       style={{
                         backgroundColor:
-                          donutColors[index % donutColors.length],
+                          DONUT_COLORS[index % DONUT_COLORS.length],
                       }}
                     />
                     <span className="text-ink-600 font-semibold truncate">

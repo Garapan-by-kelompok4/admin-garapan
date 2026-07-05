@@ -7,6 +7,8 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+import { SPARKLINE_COLORS } from "@/components/charts/chart-tokens";
+import { StatSparkline } from "@/components/charts/stat-sparkline";
 import type { DashboardStats } from "@/lib/api/dashboard";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
@@ -32,40 +34,6 @@ function formatDelta(val: number | null | undefined) {
   );
 }
 
-function renderSparkline(points: number[], color: string) {
-  const width = 110;
-  const height = 28;
-  const max = Math.max(...points, 1);
-  const min = Math.min(...points, 0);
-  const range = max - min;
-  const step = width / (points.length - 1);
-
-  const svgPoints = points
-    .map((p, idx) => {
-      const x = idx * step;
-      const y = height - ((p - min) / range) * height + 2;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg
-      width={width}
-      height={height}
-      className="overflow-visible select-none pointer-events-none"
-    >
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        points={svgPoints}
-      />
-    </svg>
-  );
-}
-
 interface DashboardStatCardsProps {
   stats?: DashboardStats;
 }
@@ -79,8 +47,8 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
           ? formatNumber(stats.activeUsers)
           : "-",
       delta: stats?.activeUsersDelta ?? null,
-      spark: [] as number[],
-      color: "#2047C9",
+      spark: stats?.activeUsersSparkline ?? [],
+      color: SPARKLINE_COLORS.brand,
       icon: Users,
       iconBg: "bg-brand-50 text-brand-500 border-brand-100",
     },
@@ -91,8 +59,8 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
           ? formatNumber(stats.transactionsCount)
           : "-",
       delta: stats?.transactionsDelta ?? null,
-      spark: [] as number[],
-      color: "#10B981",
+      spark: stats?.transactionsSparkline ?? [],
+      color: SPARKLINE_COLORS.success,
       icon: CheckCircle,
       iconBg: "bg-success-50 text-success-500 border-success-100",
     },
@@ -100,8 +68,8 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
       label: "Total Pendapatan Selesai",
       val: stats?.revenue ? formatCurrency(stats.revenue) : "-",
       delta: stats?.revenueDelta ?? null,
-      spark: [] as number[],
-      color: "#F59E0B",
+      spark: stats?.revenueSparkline ?? [],
+      color: SPARKLINE_COLORS.warn,
       icon: Wallet,
       iconBg: "bg-warn-50 text-warn-500 border-warn-100",
     },
@@ -109,8 +77,8 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
       label: "Laporan Pending",
       val: stats?.pendingReports ?? "-",
       delta: stats?.pendingReportsDelta ?? null,
-      spark: [] as number[],
-      color: "#EF4444",
+      spark: stats?.pendingReportsSparkline ?? [],
+      color: SPARKLINE_COLORS.danger,
       icon: AlertTriangle,
       iconBg: "bg-danger-50 text-danger-500 border-danger-100",
     },
@@ -118,10 +86,10 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((item, idx) => (
+      {cards.map((item) => (
         <div
-          key={idx}
-          className="bg-white border border-border rounded-xl p-5 space-y-4 shadow-sh-1 hover:shadow-sh-2 transition-all"
+          key={item.label}
+          className="bg-white border border-border rounded-xl p-5 space-y-4 shadow-sh-1 hover:shadow-sh-2 transition-all overflow-hidden"
         >
           <div className="flex justify-between items-start">
             <div
@@ -142,11 +110,13 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
             <div className="text-[12.5px] text-ink-450 font-semibold">
               {item.label}
             </div>
-            <div className="flex justify-between items-end mt-1.5">
-              <div className="text-2xl font-extrabold text-ink-900 leading-none tracking-tight font-heading">
+            <div className="flex items-end justify-between gap-2 mt-1.5 min-w-0">
+              <div className="min-w-0 flex-1 text-xl lg:text-2xl font-extrabold text-ink-900 leading-none tracking-tight font-heading">
                 {item.val}
               </div>
-              {renderSparkline(item.spark, item.color)}
+              <div className="h-7 w-[68px] shrink-0 overflow-hidden">
+                <StatSparkline points={item.spark} color={item.color} />
+              </div>
             </div>
           </div>
         </div>

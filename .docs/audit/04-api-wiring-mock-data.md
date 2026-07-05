@@ -80,7 +80,7 @@ All 9 dashboard routes already used TanStack Query via `lib/api/*`. No `fetch()`
 | Page-local summary stats (moderation/disputes/transactions/articles) | Counts from current page slice, not global totals | **11-pagination-client-filtering** |
 | `contentApi` — no per-post report counts | Backend `GET /admin/content` lacks counts | Backend v2 + ADR 001 |
 | Global search — users only | No cross-entity search endpoint | Future `lib/api/search.ts` |
-| Sparklines empty in stat cards | No mini-series endpoint | **07-charts-organization** or hide UI |
+| Sparklines empty in stat cards | No mini-series endpoint | **fixed** — `GET /admin/stats?sparklineDays=7&includeSparklines=true` (backend PR #113); wired in `lib/api/dashboard.ts` |
 
 ---
 
