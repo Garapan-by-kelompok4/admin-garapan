@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { ordersApi } from "@/lib/api/orders";
 import { getErrorMessage } from "@/lib/utils";
+import { useTransactionsSummaryStats } from "@/hooks/use-transactions-summary-stats";
+import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
 import { TransactionsSummaryCards } from "@/components/transactions/transactions-summary-cards";
 import { TransactionsToolbar } from "@/components/transactions/transactions-toolbar";
@@ -19,6 +21,8 @@ export default function TransactionsPage() {
 
   const limit = 10;
 
+  const { data: summaryStats } = useTransactionsSummaryStats();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["transactions", page, search, statusFilter],
     queryFn: async () => {
@@ -27,14 +31,14 @@ export default function TransactionsPage() {
       else if (statusFilter === "Dicairkan") apiStatus = "COMPLETED";
       else if (statusFilter === "Refund") apiStatus = "CANCELLED";
 
-      const res = await ordersApi.list({
+      return ordersApi.list({
         page,
         limit,
         status: apiStatus,
         search: search || undefined,
       });
-      return res;
     },
+    placeholderData: paginatedListPlaceholder,
   });
 
   const { data: orderDetail, isLoading: isLoadingDetail } = useQuery({
@@ -49,7 +53,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <TransactionsSummaryCards items={data?.data} />
+      <TransactionsSummaryCards stats={summaryStats} />
 
       <TransactionsToolbar
         search={search}

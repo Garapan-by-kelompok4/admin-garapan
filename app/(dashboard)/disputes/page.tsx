@@ -4,12 +4,10 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import {
-  disputesApi,
-  DisputeDetail,
-  ResolveDisputePayload,
-} from "@/lib/api/disputes";
+import { disputesApi, DisputeDetail, ResolveDisputePayload } from "@/lib/api/disputes";
 import { getErrorMessage } from "@/lib/utils";
+import { useDisputesSummaryStats } from "@/hooks/use-disputes-summary-stats";
+import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
 import { DisputesSummaryCards } from "@/components/disputes/disputes-summary-cards";
 import { DisputesToolbar } from "@/components/disputes/disputes-toolbar";
@@ -27,24 +25,18 @@ export default function DisputesPage() {
 
   const limit = 10;
 
+  const { data: summaryStats } = useDisputesSummaryStats();
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ["disputes", page, search, statusFilter],
-    queryFn: async () => {
-      const res = await disputesApi.list({
+    queryKey: ["disputes", page, statusFilter],
+    queryFn: () =>
+      disputesApi.list({
         page,
         limit,
         status: statusFilter === "Semua" ? undefined : statusFilter,
-        search: search || undefined,
-      });
-      return res;
-    },
+      }),
+    placeholderData: paginatedListPlaceholder,
   });
-
-  const openCount =
-    data?.data?.filter((d) => d.status === "Terbuka").length ?? 0;
-  const processingCount =
-    data?.data?.filter((d) => d.status === "Diproses").length ?? 0;
-  const totalCount = data?.total ?? 0;
 
   const { data: disputeDetail, isLoading: isLoadingDetail } = useQuery<
     DisputeDetail,
@@ -80,10 +72,10 @@ export default function DisputesPage() {
   return (
     <div className="space-y-6">
       <DisputesSummaryCards
-        openCount={openCount}
-        processingCount={processingCount}
-        totalCount={totalCount}
-        items={data?.data}
+        openCount={summaryStats?.openCount ?? 0}
+        processingCount={summaryStats?.processingCount ?? 0}
+        totalCount={summaryStats?.totalCount ?? 0}
+        resolvedCount={summaryStats?.resolvedCount ?? 0}
       />
 
       <DisputesToolbar

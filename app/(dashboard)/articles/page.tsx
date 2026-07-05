@@ -27,6 +27,7 @@ import {
   articleTagInputSchema,
   type ArticleFormInput,
 } from "@/lib/validators/articles";
+import { paginatedListPlaceholder } from "@/lib/query/pagination";
 
 export default function ArticlesPage() {
   const queryClient = useQueryClient();
@@ -88,6 +89,7 @@ export default function ArticlesPage() {
         category: categoryFilter === "all" ? undefined : categoryFilter,
         tag: tagFilter === "all" ? undefined : tagFilter,
       }),
+    placeholderData: paginatedListPlaceholder,
   });
 
   const categoriesQuery = useQuery({

@@ -1,4 +1,5 @@
 import { Search, X } from "lucide-react";
+import type { UserStatusFilter } from "@/lib/api/users";
 
 type UserRoleTab = "MAHASISWA" | "KLIEN";
 
@@ -7,8 +8,8 @@ interface UsersToolbarProps {
   onTabChange: (tab: UserRoleTab) => void;
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: string;
-  onStatusFilterChange: (value: string) => void;
+  statusFilter: UserStatusFilter;
+  onStatusFilterChange: (value: UserStatusFilter) => void;
 }
 
 export function UsersToolbar({
@@ -71,7 +72,9 @@ export function UsersToolbar({
           </span>
           <select
             value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
+            onChange={(e) =>
+              onStatusFilterChange(e.target.value as UserStatusFilter)
+            }
             className="h-[38px] px-3 bg-white border border-border rounded-lg text-[13.5px] font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
           >
             <option value="Semua">Semua Status</option>

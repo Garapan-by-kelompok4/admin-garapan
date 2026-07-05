@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { usersApi } from "@/lib/api/users";
+import { usersApi, type UserStatusFilter } from "@/lib/api/users";
 import { getErrorMessage } from "@/lib/utils";
+import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
 import { UsersToolbar } from "@/components/users/users-toolbar";
 import { createUsersColumns } from "@/components/users/users-columns";
@@ -20,7 +21,7 @@ export default function UsersPage() {
     "MAHASISWA",
   );
   const [search, setSearch] = useState(initialSearch);
-  const [statusFilter, setStatusFilter] = useState("Semua");
+  const [statusFilter, setStatusFilter] = useState<UserStatusFilter>("Semua");
   const [page, setPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
@@ -28,33 +29,15 @@ export default function UsersPage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["users", activeTab, page, search, statusFilter],
-    queryFn: async () => {
-      const res = await usersApi.list({
+    queryFn: () =>
+      usersApi.listWithStatusFilter({
         page,
         limit,
         search: search || undefined,
         role: activeTab === "MAHASISWA" ? "MAHASISWA" : "KLIEN",
-      });
-
-      if (statusFilter !== "Semua") {
-        const filtered = res.data.filter((u) => {
-          const isBanned = u.bannedAt !== null;
-          const isPending = !u.emailVerified;
-
-          if (statusFilter === "Suspended") return isBanned;
-          if (statusFilter === "Pending") return isPending && !isBanned;
-          if (statusFilter === "Aktif") return !isBanned && !isPending;
-          return true;
-        });
-        return {
-          ...res,
-          data: filtered,
-          total: filtered.length,
-        };
-      }
-
-      return res;
-    },
+        statusFilter,
+      }),
+    placeholderData: paginatedListPlaceholder,
   });
 
   const { data: userDetail, isLoading: isLoadingDetail } = useQuery({
