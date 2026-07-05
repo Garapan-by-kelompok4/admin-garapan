@@ -3,11 +3,14 @@ import {
   Dispute,
 } from "@/lib/api/disputes";
 import { CopyIdButton } from "@/components/data-table/copy-id-button";
+import {
+  StatusIndicator,
+  StatusStack,
+} from "@/components/data-table/status-indicator";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatDate } from "@/lib/utils";
 import {
-  DisputePriorityPill,
-  DisputeStatusPill,
+  disputeStatusTone,
 } from "./dispute-status-pill";
 
 function shortId(id: string) {
@@ -90,12 +93,22 @@ export function createDisputesColumns({
     {
       id: "state",
       header: "Status",
-      cell: ({ row }) => (
-        <div className="flex w-[110px] flex-col items-start gap-1.5">
-          <DisputePriorityPill priority={row.original.priority} />
-          <DisputeStatusPill status={row.original.status} />
-        </div>
-      ),
+      cell: ({ row }) => {
+        const statusTone = disputeStatusTone(row.original.status);
+
+        return (
+          <StatusStack
+            className="w-[110px]"
+            sublabel={row.original.priority}
+          >
+            <StatusIndicator
+              label={row.original.status}
+              dotClassName={statusTone.dotClassName}
+              labelClassName={statusTone.labelClassName}
+            />
+          </StatusStack>
+        );
+      },
     },
     {
       accessorKey: "createdAt",

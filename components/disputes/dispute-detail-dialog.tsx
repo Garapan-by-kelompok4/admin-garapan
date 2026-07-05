@@ -6,7 +6,6 @@ import {
   CalendarDays,
   ClipboardList,
   FileText,
-  MessageSquare,
   ReceiptText,
   X,
 } from "lucide-react";
@@ -266,7 +265,7 @@ export function DisputeDetailDialog({
                       Deskripsi Masalah
                     </h4>
                   </div>
-                  <div className="mt-4 rounded-lg border border-border border-l-2 border-l-brand-400 bg-white p-4">
+                  <div className="mt-4 rounded-lg border border-border bg-white p-4">
                     <span className="inline-block rounded bg-brand-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-600">
                       {disputeDetail.issueType}
                     </span>
@@ -274,54 +273,6 @@ export function DisputeDetailDialog({
                       {disputeDetail.description ||
                         "Tidak ada deskripsi laporan tertulis."}
                     </p>
-                  </div>
-                </section>
-
-                <section className="rounded-lg border border-border bg-white p-5 shadow-sh-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-brand-500" />
-                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-                        Riwayat Komunikasi &amp; Laporan
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-semibold text-ink-400">
-                      {disputeDetail.communicationHistory?.length ?? 0} entri
-                    </span>
-                  </div>
-                  <div className="mt-4">
-                    {disputeDetail.communicationHistory &&
-                    disputeDetail.communicationHistory.length > 0 ? (
-                      <div className="relative ml-2.5 space-y-4 border-l border-border pl-5">
-                        {disputeDetail.communicationHistory.map((item) => (
-                          <div key={item.id} className="relative">
-                            <span className="absolute -left-[26px] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-brand-500 shadow-sm" />
-                            <div className="text-[11px] text-ink-500">
-                              <span className="font-semibold text-ink-900">
-                                {item.senderName}
-                              </span>{" "}
-                              <span className="rounded bg-surface-3 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-ink-400">
-                                {item.senderRole}
-                              </span>
-                              <span className="mx-1 text-ink-300">•</span>
-                              <span className="text-ink-400">
-                                {formatDate(item.createdAt)}
-                              </span>
-                            </div>
-                            <p className="mt-1.5 rounded-lg border border-border/50 bg-surface-2 p-3 text-xs font-medium text-ink-700">
-                              {item.message}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="rounded-lg border border-dashed border-border bg-surface-2 px-5 py-10 text-center">
-                        <MessageSquare className="mx-auto mb-2 h-8 w-8 text-ink-300" />
-                        <p className="text-xs font-medium text-ink-400">
-                          Belum ada riwayat percakapan dispute.
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </section>
               </main>
@@ -347,24 +298,9 @@ export function DisputeDetailDialog({
                     key={disputeDetail.id}
                     disputeDetail={disputeDetail}
                     onResolve={onResolve}
-                    onClose={handleClose}
                     isPending={isResolvePending}
                     className="pt-4"
                   />
-
-                  {disputeDetail.status !== "Terbuka" &&
-                    disputeDetail.status !== "Diproses" && (
-                      <div className="pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleClose}
-                          className="w-full text-sm font-semibold"
-                        >
-                          <X className="h-3.5 w-3.5" /> Tutup Detail
-                        </Button>
-                      </div>
-                    )}
                 </div>
               </aside>
             </div>

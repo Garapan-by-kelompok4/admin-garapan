@@ -2,9 +2,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
 import { OrderTransaction } from "@/lib/api/orders";
 import { CopyIdButton } from "@/components/data-table/copy-id-button";
+import {
+  StatusIndicator,
+  StatusStack,
+} from "@/components/data-table/status-indicator";
 import { avatarClass, initials } from "@/lib/avatar";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { TransactionStatusPill } from "./transaction-status-pill";
+import { transactionStatusTone } from "./transaction-status-pill";
 
 function shortId(id: string) {
   return id ? `${id.slice(0, 8)}...${id.slice(-4)}` : "-";
@@ -95,14 +99,22 @@ export function createTransactionsColumns({
     {
       id: "state",
       header: "Status",
-      cell: ({ row }) => (
-        <div className="flex w-[132px] flex-col items-start gap-1.5">
-          <TransactionStatusPill status={row.original.escrowStatus} />
-          <span className="text-[11px] font-medium text-ink-400">
-            {formatDate(row.original.createdAt)}
-          </span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const tone = transactionStatusTone(row.original.escrowStatus);
+
+        return (
+          <StatusStack
+            className="w-[132px]"
+            sublabel={formatDate(row.original.createdAt)}
+          >
+            <StatusIndicator
+              label={row.original.escrowStatus}
+              dotClassName={tone.dotClassName}
+              labelClassName={tone.labelClassName}
+            />
+          </StatusStack>
+        );
+      },
     },
     {
       id: "actions",

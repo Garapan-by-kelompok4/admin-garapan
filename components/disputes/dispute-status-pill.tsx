@@ -1,5 +1,62 @@
 import { Dispute, DisputePriority } from "@/lib/api/disputes";
 
+type StatusTone = {
+  dotClassName?: string;
+  labelClassName: string;
+};
+
+export function disputePriorityTone(
+  priority: Dispute["priority"],
+): StatusTone {
+  switch (priority) {
+    case "Tinggi":
+      return {
+        labelClassName: "text-[11px] font-bold text-danger-700",
+      };
+    case "Sedang":
+      return {
+        labelClassName: "text-[11px] font-bold text-warn-700",
+      };
+    case "Rendah":
+      return {
+        labelClassName: "text-[11px] font-bold text-slate-700",
+      };
+    default:
+      return {
+        labelClassName: "text-xs font-semibold text-ink-700",
+      };
+  }
+}
+
+export function disputeStatusTone(status: Dispute["status"]): StatusTone {
+  switch (status) {
+    case "Terbuka":
+      return {
+        dotClassName: "bg-danger-500",
+        labelClassName: "text-xs font-semibold text-danger-700",
+      };
+    case "Diproses":
+      return {
+        dotClassName: "bg-warn-500",
+        labelClassName: "text-xs font-semibold text-warn-700",
+      };
+    case "Selesai":
+      return {
+        dotClassName: "bg-success-500",
+        labelClassName: "text-xs font-semibold text-success-700",
+      };
+    case "Ditolak":
+      return {
+        dotClassName: "bg-slate-500",
+        labelClassName: "text-xs font-semibold text-slate-700",
+      };
+    default:
+      return {
+        labelClassName: "text-xs font-semibold text-ink-700",
+      };
+  }
+}
+
 export function DisputePriorityPill({
   priority,
 }: {

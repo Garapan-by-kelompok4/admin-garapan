@@ -273,7 +273,7 @@ export function ModerationDetailDialog({
                         {labels.previewTitle}
                       </h4>
                     </div>
-                    <div className="mt-4 rounded-lg border border-border border-l-2 border-l-brand-400 bg-white p-4">
+                    <div className="mt-4 rounded-lg border border-border bg-white p-4">
                       <h4 className="text-sm font-semibold text-ink-900 leading-snug">
                         {contentDetail.title}
                       </h4>
@@ -374,15 +374,6 @@ export function ModerationDetailDialog({
                           </Button>
                         </>
                       )}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClose}
-                        disabled={isActionPending}
-                        className="w-full text-sm font-semibold"
-                      >
-                        <X className="h-3.5 w-3.5" /> Tutup Detail
-                      </Button>
                     </div>
                   </div>
                 </aside>

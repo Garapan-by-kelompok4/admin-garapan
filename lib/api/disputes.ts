@@ -24,13 +24,6 @@ export interface Dispute {
 
 export interface DisputeDetail extends Dispute {
   evidenceUrls?: string[];
-  communicationHistory?: Array<{
-    id: string;
-    senderName: string;
-    senderRole: string;
-    message: string;
-    createdAt: string;
-  }>;
 }
 
 export interface ListDisputesParams {

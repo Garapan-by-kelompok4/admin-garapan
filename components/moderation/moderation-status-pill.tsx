@@ -1,5 +1,41 @@
 import { FlaggedContent } from "@/lib/api/content";
 
+type StatusTone = {
+  dotClassName?: string;
+  labelClassName: string;
+};
+
+export function moderationStatusTone(
+  status: FlaggedContent["status"],
+): StatusTone {
+  switch (status) {
+    case "Ditinjau":
+      return {
+        dotClassName: "bg-warn-500",
+        labelClassName: "text-xs font-semibold text-warn-700",
+      };
+    case "Aman":
+      return {
+        dotClassName: "bg-success-500",
+        labelClassName: "text-xs font-semibold text-success-700",
+      };
+    case "Dihapus":
+      return {
+        dotClassName: "bg-danger-500",
+        labelClassName: "text-xs font-semibold text-danger-700",
+      };
+    case "Disembunyikan":
+      return {
+        dotClassName: "bg-slate-500",
+        labelClassName: "text-xs font-semibold text-slate-700",
+      };
+    default:
+      return {
+        labelClassName: "text-xs font-semibold text-slate-700",
+      };
+  }
+}
+
 export function ModerationStatusPill({
   status,
 }: {
