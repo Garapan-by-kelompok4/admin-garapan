@@ -26,15 +26,19 @@ export interface AdminProfile {
 type UnknownRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): UnknownRecord {
-  return value && typeof value === "object" ? value as UnknownRecord : {};
+  return value && typeof value === "object" ? (value as UnknownRecord) : {};
 }
 
 function valueToText(value: unknown, fallback = ""): string {
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
   if (!value) return fallback;
   const record = asRecord(value);
-  return valueToText(record.name ?? record.title ?? record.label ?? record.message, fallback);
+  return valueToText(
+    record.name ?? record.title ?? record.label ?? record.message,
+    fallback,
+  );
 }
 
 function normaliseProfile(raw: unknown): AdminProfile {
@@ -43,7 +47,10 @@ function normaliseProfile(raw: unknown): AdminProfile {
     ...record,
     // Backend may return `name` instead of `fullName`
     id: String(record.id ?? ""),
-    fullName: valueToText(record.fullName ?? record.name ?? record.displayName, ""),
+    fullName: valueToText(
+      record.fullName ?? record.name ?? record.displayName,
+      "",
+    ),
     email: valueToText(record.email, ""),
     phone: valueToText(record.phone ?? record.phoneNumber ?? record.telp, ""),
     bio: valueToText(record.bio ?? record.description ?? record.about, ""),
@@ -58,7 +65,13 @@ function normaliseSkills(raw: unknown): SkillItem[] {
   const data = asRecord(record.data);
   const items = Array.isArray(raw)
     ? raw
-    : (Array.isArray(record.data) ? record.data : (Array.isArray(record.items) ? record.items : (Array.isArray(data.items) ? data.items : [])));
+    : Array.isArray(record.data)
+      ? record.data
+      : Array.isArray(record.items)
+        ? record.items
+        : Array.isArray(data.items)
+          ? data.items
+          : [];
   return items.map((item, index: number) => {
     const s = asRecord(item);
     const kategoriObj = asRecord(s.kategori);
@@ -69,9 +82,12 @@ function normaliseSkills(raw: unknown): SkillItem[] {
         Object.keys(kategoriObj).length > 0
           ? kategoriObj.name
           : s.category || s.kategori || s.type,
-        ""
+        "",
       ),
-      createdAt: valueToText(s.createdAt || s.created_at, new Date().toISOString()),
+      createdAt: valueToText(
+        s.createdAt || s.created_at,
+        new Date().toISOString(),
+      ),
     };
   });
 }
@@ -82,18 +98,29 @@ export const settingsApi = {
     return normaliseProfile(raw);
   },
 
-  updateProfile: async (payload: Partial<AdminProfile>): Promise<AdminProfile> => {
+  updateProfile: async (
+    payload: Partial<AdminProfile>,
+  ): Promise<AdminProfile> => {
+    const body: Record<string, unknown> = {};
+    if (payload.fullName !== undefined) body.displayName = payload.fullName;
+
     const raw = await apiClient<unknown>("/admin/me", {
       method: "PATCH",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
     return normaliseProfile(raw);
   },
 
-  changePassword: async (payload: { oldPassword: string; newPassword: string }): Promise<void> => {
-    return apiClient<void>("/admin/me/password", {
-      method: "PATCH",
-      body: JSON.stringify(payload),
+  changePassword: async (payload: {
+    oldPassword: string;
+    newPassword: string;
+  }): Promise<void> => {
+    return apiClient<void>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({
+        currentPassword: payload.oldPassword,
+        newPassword: payload.newPassword,
+      }),
     });
   },
 
@@ -111,7 +138,10 @@ export const settingsApi = {
     return normaliseSkills(raw);
   },
 
-  createSkill: async (payload: { name: string; kategoriId?: string }): Promise<SkillItem> => {
+  createSkill: async (payload: {
+    name: string;
+    kategoriId?: string;
+  }): Promise<SkillItem> => {
     const raw = await apiClient<unknown>("/admin/skills", {
       method: "POST",
       body: JSON.stringify({
@@ -129,7 +159,7 @@ export const settingsApi = {
         Object.keys(kategoriObj).length > 0
           ? kategoriObj.name
           : item.category || item.kategori,
-        ""
+        "",
       ),
       createdAt: valueToText(item.createdAt, new Date().toISOString()),
     };

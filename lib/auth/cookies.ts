@@ -33,7 +33,10 @@ export type TokenPair = {
   refreshToken: string;
 };
 
-export function setAuthCookies(response: NextResponse, tokens: TokenPair): void {
+export function setAuthCookies(
+  response: NextResponse,
+  tokens: TokenPair,
+): void {
   response.cookies.set(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
     httpOnly: true,
     secure,

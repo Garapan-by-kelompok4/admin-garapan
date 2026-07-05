@@ -61,7 +61,11 @@ export function LoginForm() {
         Gunakan email kantor dan password yang diberikan oleh Super Admin.
       </p>
 
-      <form className="mt-7 space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form
+        className="mt-7 space-y-4"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
@@ -103,7 +107,9 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+              aria-label={
+                showPassword ? "Sembunyikan password" : "Lihat password"
+              }
               aria-pressed={showPassword}
               className="absolute right-1.5 top-1.5 grid size-8 place-items-center rounded-md text-ink-400 transition-colors hover:bg-surface-3 hover:text-ink-700"
             >
@@ -136,8 +142,8 @@ export function LoginForm() {
       </form>
 
       <p className="mt-7 text-center text-xs text-ink-400">
-        Akses dibatasi untuk admin terdaftar. Semua aktivitas dicatat dalam audit
-        log.
+        Akses dibatasi untuk admin terdaftar. Semua aktivitas dicatat dalam
+        audit log.
       </p>
     </div>
   );

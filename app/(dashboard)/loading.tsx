@@ -8,7 +8,10 @@ export default function Loading() {
       {/* Stat Cards Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, idx) => (
-          <div key={idx} className="bg-white border border-border rounded-xl p-5 space-y-4 shadow-sm">
+          <div
+            key={idx}
+            className="bg-white border border-border rounded-xl p-5 space-y-4 shadow-sm"
+          >
             <div className="flex justify-between items-start">
               <div className="h-9 w-9 rounded-lg bg-surface-3" />
               <div className="h-4 w-12 bg-surface-3 rounded-full" />

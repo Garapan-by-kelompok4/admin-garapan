@@ -11,10 +11,13 @@ export class AuthError extends Error {
   }
 }
 
-async function readMessage(response: Response, fallback: string): Promise<string> {
-  const body = (await response.json().catch(() => null)) as
-    | { message?: unknown }
-    | null;
+async function readMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  const body = (await response.json().catch(() => null)) as {
+    message?: unknown;
+  } | null;
   return typeof body?.message === "string" ? body.message : fallback;
 }
 
@@ -48,7 +51,9 @@ export async function logout(): Promise<void> {
  * expired) it tries /api/auth/refresh once and retries, so a still-valid 7d
  * session is not dropped on a hard refresh.
  */
-export async function fetchMe(retryOnUnauthorized = true): Promise<{ user: AdminUser }> {
+export async function fetchMe(
+  retryOnUnauthorized = true,
+): Promise<{ user: AdminUser }> {
   const response = await fetch("/api/auth/me", { credentials: "include" });
 
   if (response.status === 401 && retryOnUnauthorized) {

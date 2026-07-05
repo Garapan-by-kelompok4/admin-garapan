@@ -49,10 +49,16 @@ export interface ListDisputesResponse {
 export interface ResolveDisputePayload {
   outcome: DisputeOutcome;
   resolutionNote: string;
-  refundAmount?: number;
+  refundAmount?: string;
 }
 
-function normaliseDispute(raw: any): Dispute {
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === "object" ? (value as UnknownRecord) : {};
+}
+
+function normaliseDispute(raw: unknown): Dispute {
   if (!raw) {
     return {
       id: "",
@@ -72,58 +78,67 @@ function normaliseDispute(raw: any): Dispute {
     };
   }
 
-  // Bidirectional Mapping: Incoming English Prisma enums to Indonesian UI strings
+  const r = asRecord(raw);
+  const reporter = asRecord(r.reporter);
+  const target = asRecord(r.target);
+  const pesanan = asRecord(r.pesanan);
+
   let status: DisputeStatus = "Terbuka";
-  if (raw.status === "RESOLVED") {
-    status = "Selesai";
-  } else if (raw.status === "REJECTED") {
-    status = "Ditolak";
-  } else if (raw.status === "PENDING") {
-    status = "Terbuka";
-  } else if (raw.status) {
-    status = raw.status as DisputeStatus;
-  }
+  if (r.status === "RESOLVED") status = "Selesai";
+  else if (r.status === "REJECTED") status = "Ditolak";
+  else if (r.status === "PENDING") status = "Terbuka";
 
   return {
-    ...raw,
+    id: String(r.id ?? ""),
+    orderId: String(r.pesananId ?? pesanan.id ?? ""),
+    reporterId: String(reporter.id ?? r.reporterId ?? ""),
+    reporterName: String(
+      reporter.fullName ?? reporter.displayName ?? reporter.email ?? "-",
+    ),
+    reporterEmail: String(reporter.email ?? "-"),
+    reportedId: String(target.id ?? r.targetId ?? ""),
+    reportedName: String(
+      target.fullName ?? target.displayName ?? target.email ?? "-",
+    ),
+    reportedEmail: String(target.email ?? "-"),
+    issueType: String(r.reason ?? "-"),
+    description: String(r.reason ?? ""),
+    priority: "Sedang",
     status,
-    priority: raw.priority || "Sedang",
-    reporterName: raw.reporterName || raw.reporter?.name || raw.reporter?.displayName || "-",
-    reporterEmail: raw.reporterEmail || raw.reporter?.email || "-",
-    reportedName: raw.reportedName || raw.reported?.name || raw.reported?.displayName || "-",
-    reportedEmail: raw.reportedEmail || raw.reported?.email || "-",
-    orderAmount: raw.orderAmount ?? raw.order?.amount ?? raw.order?.totalAmount ?? 0,
-    createdAt: raw.createdAt || raw.createdDate || new Date().toISOString(),
-  } as Dispute;
+    createdAt: String(r.createdAt ?? new Date().toISOString()),
+    orderAmount: Number(pesanan.totalPrice ?? 0),
+  };
 }
 
-function normaliseListResponse(raw: any, page = 1, limit = 10): ListDisputesResponse {
+function normaliseListResponse(
+  raw: unknown,
+  page = 1,
+  limit = 10,
+): ListDisputesResponse {
   if (!raw) return { data: [], total: 0, page, limit };
-  
-  let items: any[] = [];
-  if (Array.isArray(raw.data)) {
-    items = raw.data;
-  } else if (Array.isArray(raw.items)) {
-    items = raw.items;
-  } else if (Array.isArray(raw)) {
-    items = raw;
-  }
+
+  const r = asRecord(raw);
+  let items: UnknownRecord[] = [];
+  if (Array.isArray(r.data)) items = r.data as UnknownRecord[];
+  else if (Array.isArray(r.items)) items = r.items as UnknownRecord[];
+  else if (Array.isArray(raw)) items = raw as UnknownRecord[];
 
   return {
     data: items.map(normaliseDispute),
-    total: raw.total ?? raw.count ?? items.length,
-    page: raw.page ?? page,
-    limit: raw.limit ?? limit,
+    total: Number(r.total ?? r.count ?? items.length),
+    page: Number(r.page ?? page),
+    limit: Number(r.limit ?? limit),
   };
 }
 
 export const disputesApi = {
-  list: async (params: ListDisputesParams = {}): Promise<ListDisputesResponse> => {
+  list: async (
+    params: ListDisputesParams = {},
+  ): Promise<ListDisputesResponse> => {
     const query = new URLSearchParams();
     if (params.page) query.set("page", String(params.page));
     if (params.limit) query.set("limit", String(params.limit));
-    
-    // Outgoing Request Mapping: Translate UI dropdown values to English Prisma enums
+
     if (params.status) {
       let backendStatus = params.status;
       if (params.status === "Terbuka" || params.status === "Diproses") {
@@ -135,24 +150,26 @@ export const disputesApi = {
       }
       query.set("status", backendStatus);
     }
-    
-    if (params.search) query.set("search", params.search);
 
     const queryString = query.toString();
     const path = `/admin/disputes${queryString ? `?${queryString}` : ""}`;
-    const raw = await apiClient<any>(path);
+    const raw = await apiClient<unknown>(path);
     return normaliseListResponse(raw, params.page, params.limit);
   },
 
   getById: async (id: string): Promise<DisputeDetail> => {
-    const raw = await apiClient<any>(`/admin/disputes/${id}`);
+    const raw = await apiClient<unknown>(`/admin/disputes/${id}`);
     return {
-      ...raw,
       ...normaliseDispute(raw),
-    } as DisputeDetail;
+      evidenceUrls: [],
+      communicationHistory: [],
+    };
   },
 
-  resolve: async (id: string, payload: ResolveDisputePayload): Promise<void> => {
+  resolve: async (
+    id: string,
+    payload: ResolveDisputePayload,
+  ): Promise<void> => {
     return apiClient<void>(`/admin/disputes/${id}/resolve`, {
       method: "PATCH",
       body: JSON.stringify(payload),

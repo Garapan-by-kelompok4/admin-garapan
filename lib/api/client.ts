@@ -20,7 +20,7 @@ export async function apiClient<T>(
   const hasBody = "body" in init && init.body !== undefined;
   const mergedHeaders: Record<string, string> = {
     "Cache-Control": "no-cache",
-    "Pragma": "no-cache",
+    Pragma: "no-cache",
   };
   if (hasBody) {
     mergedHeaders["Content-Type"] = "application/json";
@@ -43,12 +43,19 @@ export async function apiClient<T>(
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const detail = typeof error.message === "string"
-      ? error.message
-      : Array.isArray(error.message)
-        ? error.message.join("; ")
-        : JSON.stringify(error);
+    const text = await response.text().catch(() => "");
+    let detail = "";
+    try {
+      const error = JSON.parse(text) as Record<string, unknown>;
+      detail =
+        typeof error.message === "string"
+          ? error.message
+          : Array.isArray(error.message)
+            ? error.message.join("; ")
+            : JSON.stringify(error);
+    } catch {
+      detail = text.slice(0, 500);
+    }
     throw new Error(
       detail.length > 0 && detail !== "{}"
         ? detail

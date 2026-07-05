@@ -21,12 +21,13 @@ export default function Error({
       <div className="h-14 w-14 rounded-full bg-danger-50 text-danger-500 border border-danger-100 flex items-center justify-center shadow-sm mb-4">
         <AlertTriangle className="h-7 w-7" />
       </div>
-      
+
       <h2 className="font-heading font-bold text-lg text-ink-900 leading-tight">
         Terjadi Kesalahan Sistem
       </h2>
       <p className="text-xs text-ink-500 max-w-sm mt-2 leading-relaxed">
-        Gagal memuat halaman ini karena masalah koneksi atau rendering data. Silakan coba memuat kembali halaman.
+        Gagal memuat halaman ini karena masalah koneksi atau rendering data.
+        Silakan coba memuat kembali halaman.
       </p>
 
       {error.digest && (

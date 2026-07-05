@@ -2,25 +2,24 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { settingsApi, AdminProfile, SkillItem, KategoriItem } from "@/lib/api/settings";
+import {
+  settingsApi,
+  AdminProfile,
+  SkillItem,
+  KategoriItem,
+} from "@/lib/api/settings";
 import { dashboardApi, ActivityItem } from "@/lib/api/dashboard";
 import { avatarClass, initials } from "@/lib/avatar";
-import { 
-  User, 
-  Lock, 
-  Bell, 
-  Database, 
-  Activity, 
-  ShieldCheck, 
-  Mail, 
-  Phone, 
-  Globe, 
-  Plus, 
-  Trash2, 
-  FileText,
-  AlertTriangle,
+import {
+  User,
+  Lock,
+  Bell,
+  Database,
+  Activity,
+  ShieldCheck,
+  Plus,
+  Trash2,
   Download,
-  Info
 } from "lucide-react";
 import {
   Dialog,
@@ -32,7 +31,9 @@ import { toast } from "sonner";
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"profile" | "security" | "notifications" | "master" | "audit">("profile");
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "security" | "notifications" | "master" | "audit"
+  >("profile");
 
   // --- TAB 1: PROFILE STATE ---
   const [fullName, setFullName] = useState("");
@@ -48,25 +49,34 @@ export default function SettingsPage() {
   // --- TAB 4: MASTER DATA STATE ---
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
   const [newSkillName, setNewSkillName] = useState("");
-  const [newSkillCategoryId, setNewSkillCategoryId] = useState<string | undefined>(undefined);
+  const [newSkillCategoryId, setNewSkillCategoryId] = useState<
+    string | undefined
+  >(undefined);
 
   // 1. Fetch current profile
-  const { data: profile, isLoading: isLoadingProfile } = useQuery<AdminProfile, Error>({
+  const { data: profile, isLoading: isLoadingProfile } = useQuery<
+    AdminProfile,
+    Error
+  >({
     queryKey: ["adminProfile"],
     queryFn: () => settingsApi.getProfile(),
   });
 
   // Sync state manually on success because v5 does not support onSuccess on useQuery anymore
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (profile) {
       setFullName(profile.fullName);
       setPhone(profile.phone || "");
       setBio(profile.bio || "");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [profile]);
 
   // 2. Fetch master data skills
-  const { data: skills = [], isLoading: isLoadingSkills } = useQuery<SkillItem[]>({
+  const { data: skills = [], isLoading: isLoadingSkills } = useQuery<
+    SkillItem[]
+  >({
     queryKey: ["masterSkills"],
     queryFn: () => settingsApi.listSkills(),
     enabled: activeTab === "master",
@@ -79,7 +89,9 @@ export default function SettingsPage() {
   });
 
   // 3. Fetch audit logs
-  const { data: auditLogs = [], isLoading: isLoadingAudit } = useQuery<ActivityItem[]>({
+  const { data: auditLogs = [], isLoading: isLoadingAudit } = useQuery<
+    ActivityItem[]
+  >({
     queryKey: ["auditLogs"],
     queryFn: () => dashboardApi.getActivityLog(),
     enabled: activeTab === "audit",
@@ -87,14 +99,15 @@ export default function SettingsPage() {
 
   // Profile Mutation
   const updateProfileMutation = useMutation({
-    mutationFn: (payload: Partial<AdminProfile>) => settingsApi.updateProfile(payload),
+    mutationFn: (payload: Partial<AdminProfile>) =>
+      settingsApi.updateProfile(payload),
     onSuccess: (updated) => {
       toast.success("Profil berhasil diperbarui");
       queryClient.setQueryData(["adminProfile"], updated);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Gagal memperbarui profil");
-    }
+    },
   });
 
   // Password Mutation
@@ -107,9 +120,9 @@ export default function SettingsPage() {
       setNewPassword("");
       setConfirmPassword("");
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Gagal mengubah password");
-    }
+    },
   });
 
   // Add Skill Mutation
@@ -123,9 +136,9 @@ export default function SettingsPage() {
       setNewSkillCategoryId(undefined);
       setIsAddSkillOpen(false);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Gagal menambahkan kompetensi");
-    }
+    },
   });
 
   // Delete Skill Mutation
@@ -135,9 +148,9 @@ export default function SettingsPage() {
       toast.success("Kompetensi master berhasil dihapus");
       queryClient.invalidateQueries({ queryKey: ["masterSkills"] });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Gagal menghapus kompetensi");
-    }
+    },
   });
 
   // Form handlers
@@ -165,7 +178,10 @@ export default function SettingsPage() {
       toast.error("Nama kompetensi wajib diisi");
       return;
     }
-    addSkillMutation.mutate({ name: newSkillName.trim(), kategoriId: newSkillCategoryId });
+    addSkillMutation.mutate({
+      name: newSkillName.trim(),
+      kategoriId: newSkillCategoryId,
+    });
   };
 
   const formatDate = (dateStr: string) => {
@@ -189,12 +205,11 @@ export default function SettingsPage() {
     { id: "security", label: "Keamanan & Akses", icon: Lock },
     { id: "notifications", label: "Notifikasi Sistem", icon: Bell },
     { id: "master", label: "Master Data Kompetensi", icon: Database },
-    { id: "audit", label: "Log Aktivitas", icon: Activity }
+    { id: "audit", label: "Log Aktivitas", icon: Activity },
   ] as const;
 
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start select-none">
-      
       {/* 1. Left Panel: Settings Sidebar Menu (240px) */}
       <div className="w-full md:w-[240px] bg-white border border-border rounded-xl p-2.5 flex-shrink-0 shadow-sh-1">
         <nav className="flex flex-col gap-0.5">
@@ -211,7 +226,9 @@ export default function SettingsPage() {
                     : "text-ink-700 hover:bg-surface-3 hover:text-ink-900"
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isActive ? "text-brand-500" : "text-ink-400"}`} />
+                <Icon
+                  className={`h-4 w-4 ${isActive ? "text-brand-500" : "text-ink-400"}`}
+                />
                 <span>{item.label}</span>
               </button>
             );
@@ -221,12 +238,13 @@ export default function SettingsPage() {
 
       {/* 2. Right Panel: Active Sub-tab Workspace Content */}
       <div className="flex-1 w-full bg-white border border-border rounded-xl p-5 md:p-6 shadow-sh-1 min-h-[480px]">
-        
         {/* --- SUB-TAB: INFORMASI PROFIL --- */}
         {activeTab === "profile" && (
           <div className="space-y-6">
             <div className="border-b border-border pb-3">
-              <h3 className="font-heading font-bold text-sm text-ink-900">Informasi Profil</h3>
+              <h3 className="font-heading font-bold text-sm text-ink-900">
+                Informasi Profil
+              </h3>
               <p className="text-[11px] text-ink-400 font-medium mt-0.5">
                 Kelola data diri administrasi Anda di platform GARAPAN.
               </p>
@@ -240,12 +258,19 @@ export default function SettingsPage() {
               <form onSubmit={handleProfileSubmit} className="space-y-5">
                 {/* Avatar upload panel */}
                 <div className="flex items-center gap-4 border-b border-border/50 pb-5">
-                  <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border border-border shadow-sm ${avatarClass(fullName || "AD")}`}>
+                  <div
+                    className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold border border-border shadow-sm ${avatarClass(fullName || "AD")}`}
+                  >
                     {initials(fullName || "AD")}
                   </div>
                   <div>
-                    <h4 className="font-heading font-bold text-sm text-ink-900">Foto Profil</h4>
-                    <p className="text-[10px] text-ink-400 font-semibold mt-0.5">Initials avatar otomatis dibuat berdasarkan nama lengkap Anda.</p>
+                    <h4 className="font-heading font-bold text-sm text-ink-900">
+                      Foto Profil
+                    </h4>
+                    <p className="text-[10px] text-ink-400 font-semibold mt-0.5">
+                      Initials avatar otomatis dibuat berdasarkan nama lengkap
+                      Anda.
+                    </p>
                     <div className="flex gap-2 mt-2">
                       <button
                         type="button"
@@ -262,7 +287,9 @@ export default function SettingsPage() {
                 {/* Form fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">Nama Lengkap</label>
+                    <label className="text-xs font-bold text-ink-700">
+                      Nama Lengkap
+                    </label>
                     <input
                       type="text"
                       value={fullName}
@@ -273,7 +300,9 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">Alamat Email (Akun)</label>
+                    <label className="text-xs font-bold text-ink-700">
+                      Alamat Email (Akun)
+                    </label>
                     <input
                       type="email"
                       value={profile?.email || ""}
@@ -283,7 +312,9 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">Nomor Telepon</label>
+                    <label className="text-xs font-bold text-ink-700">
+                      Nomor Telepon
+                    </label>
                     <input
                       type="text"
                       placeholder="Contoh: 081234567890"
@@ -294,7 +325,9 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">Peran Akses (Role)</label>
+                    <label className="text-xs font-bold text-ink-700">
+                      Peran Akses (Role)
+                    </label>
                     <span className="w-full h-10 px-3 bg-surface-2 border border-border rounded-lg text-xs text-ink-450 flex items-center font-bold capitalize select-none cursor-not-allowed">
                       {profile?.role?.toLowerCase() || "Super Admin"}
                     </span>
@@ -302,7 +335,9 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink-700">Biografi Diri</label>
+                  <label className="text-xs font-bold text-ink-700">
+                    Biografi Diri
+                  </label>
                   <textarea
                     rows={4}
                     placeholder="Tuliskan biografi singkat mengenai diri Anda..."
@@ -318,7 +353,9 @@ export default function SettingsPage() {
                     disabled={updateProfileMutation.isPending}
                     className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {updateProfileMutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
+                    {updateProfileMutation.isPending
+                      ? "Menyimpan..."
+                      : "Simpan Perubahan"}
                   </button>
                 </div>
               </form>
@@ -330,15 +367,22 @@ export default function SettingsPage() {
         {activeTab === "security" && (
           <div className="space-y-6">
             <div className="border-b border-border pb-3">
-              <h3 className="font-heading font-bold text-sm text-ink-900">Keamanan & Akses</h3>
+              <h3 className="font-heading font-bold text-sm text-ink-900">
+                Keamanan & Akses
+              </h3>
               <p className="text-[11px] text-ink-400 font-medium mt-0.5">
                 Konfigurasi kata sandi akun dan otentikasi keamanan ganda.
               </p>
             </div>
 
-            <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-lg">
+            <form
+              onSubmit={handlePasswordSubmit}
+              className="space-y-4 max-w-lg"
+            >
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink-700">Password Lama</label>
+                <label className="text-xs font-bold text-ink-700">
+                  Password Lama
+                </label>
                 <input
                   type="password"
                   value={oldPassword}
@@ -349,7 +393,9 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink-700">Password Baru</label>
+                <label className="text-xs font-bold text-ink-700">
+                  Password Baru
+                </label>
                 <input
                   type="password"
                   value={newPassword}
@@ -360,7 +406,9 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink-700">Konfirmasi Password Baru</label>
+                <label className="text-xs font-bold text-ink-700">
+                  Konfirmasi Password Baru
+                </label>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -376,7 +424,9 @@ export default function SettingsPage() {
                   disabled={changePasswordMutation.isPending}
                   className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {changePasswordMutation.isPending ? "Memproses..." : "Ganti Password"}
+                  {changePasswordMutation.isPending
+                    ? "Memproses..."
+                    : "Ganti Password"}
                 </button>
               </div>
             </form>
@@ -388,8 +438,12 @@ export default function SettingsPage() {
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-ink-900 leading-tight">Otentikasi Dua Faktor (2FA)</h4>
-                  <p className="text-[10px] text-ink-400 font-semibold mt-0.5">Tingkatkan keamanan panel dengan verifikasi OTP tambahan.</p>
+                  <h4 className="text-xs font-bold text-ink-900 leading-tight">
+                    Otentikasi Dua Faktor (2FA)
+                  </h4>
+                  <p className="text-[10px] text-ink-400 font-semibold mt-0.5">
+                    Tingkatkan keamanan panel dengan verifikasi OTP tambahan.
+                  </p>
                 </div>
               </div>
               <div>
@@ -397,9 +451,9 @@ export default function SettingsPage() {
                   onClick={() => {
                     setIs2FAEnabled((prev) => !prev);
                     toast.success(
-                      !is2FAEnabled 
-                        ? "2FA berhasil diaktifkan" 
-                        : "2FA dinonaktifkan"
+                      !is2FAEnabled
+                        ? "2FA berhasil diaktifkan"
+                        : "2FA dinonaktifkan",
                     );
                   }}
                   className={`px-3 py-1.5 text-[10.5px] font-bold rounded border transition-all cursor-pointer ${
@@ -419,9 +473,12 @@ export default function SettingsPage() {
         {activeTab === "notifications" && (
           <div className="space-y-6">
             <div className="border-b border-border pb-3">
-              <h3 className="font-heading font-bold text-sm text-ink-900">Notifikasi Sistem</h3>
+              <h3 className="font-heading font-bold text-sm text-ink-900">
+                Notifikasi Sistem
+              </h3>
               <p className="text-[11px] text-ink-400 font-medium mt-0.5">
-                Pilih notifikasi otomatis yang ingin Anda terima sebagai administrator.
+                Pilih notifikasi otomatis yang ingin Anda terima sebagai
+                administrator.
               </p>
             </div>
 
@@ -429,44 +486,102 @@ export default function SettingsPage() {
               <table className="w-full border-collapse text-left text-xs font-medium">
                 <thead>
                   <tr className="bg-surface-2 border-b border-border">
-                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">Peristiwa / Event</th>
-                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-center">Email</th>
-                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-center">Push</th>
-                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-center">SMS</th>
+                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">
+                      Peristiwa / Event
+                    </th>
+                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-center">
+                      Email
+                    </th>
+                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-center">
+                      Push
+                    </th>
+                    <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-center">
+                      SMS
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {/* Category 1 */}
                   <tr className="bg-surface-2/60">
-                    <td colSpan={4} className="py-2 px-4 font-bold text-ink-800">Laporan & Dispute</td>
+                    <td
+                      colSpan={4}
+                      className="py-2 px-4 font-bold text-ink-800"
+                    >
+                      Laporan & Dispute
+                    </td>
                   </tr>
                   {[
                     "Laporan baru dari pengguna",
                     "Dispute naik banding",
-                    "Penyelesaian sengketa escrow"
+                    "Penyelesaian sengketa escrow",
                   ].map((evt, idx) => (
-                    <tr key={idx} className="hover:bg-surface-2/40 transition-colors">
+                    <tr
+                      key={idx}
+                      className="hover:bg-surface-2/40 transition-colors"
+                    >
                       <td className="py-2.5 px-4 text-ink-700">{evt}</td>
-                      <td className="text-center py-2.5 px-4"><input type="checkbox" defaultChecked className="h-4 w-4 accent-brand-500 cursor-pointer" /></td>
-                      <td className="text-center py-2.5 px-4"><input type="checkbox" defaultChecked className="h-4 w-4 accent-brand-500 cursor-pointer" /></td>
-                      <td className="text-center py-2.5 px-4"><input type="checkbox" className="h-4 w-4 accent-brand-500 cursor-pointer" /></td>
+                      <td className="text-center py-2.5 px-4">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="h-4 w-4 accent-brand-500 cursor-pointer"
+                        />
+                      </td>
+                      <td className="text-center py-2.5 px-4">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="h-4 w-4 accent-brand-500 cursor-pointer"
+                        />
+                      </td>
+                      <td className="text-center py-2.5 px-4">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-brand-500 cursor-pointer"
+                        />
+                      </td>
                     </tr>
                   ))}
 
                   {/* Category 2 */}
                   <tr className="bg-surface-2/60">
-                    <td colSpan={4} className="py-2 px-4 font-bold text-ink-800">Transaksi Keuangan</td>
+                    <td
+                      colSpan={4}
+                      className="py-2 px-4 font-bold text-ink-800"
+                    >
+                      Transaksi Keuangan
+                    </td>
                   </tr>
                   {[
                     "Pembayaran escrow masuk",
                     "Pencairan dana order selesai",
-                    "Refund dana ke klien disetujui"
+                    "Refund dana ke klien disetujui",
                   ].map((evt, idx) => (
-                    <tr key={idx} className="hover:bg-surface-2/40 transition-colors">
+                    <tr
+                      key={idx}
+                      className="hover:bg-surface-2/40 transition-colors"
+                    >
                       <td className="py-2.5 px-4 text-ink-700">{evt}</td>
-                      <td className="text-center py-2.5 px-4"><input type="checkbox" defaultChecked className="h-4 w-4 accent-brand-500 cursor-pointer" /></td>
-                      <td className="text-center py-2.5 px-4"><input type="checkbox" className="h-4 w-4 accent-brand-500 cursor-pointer" /></td>
-                      <td className="text-center py-2.5 px-4"><input type="checkbox" defaultChecked className="h-4 w-4 accent-brand-500 cursor-pointer" /></td>
+                      <td className="text-center py-2.5 px-4">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="h-4 w-4 accent-brand-500 cursor-pointer"
+                        />
+                      </td>
+                      <td className="text-center py-2.5 px-4">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-brand-500 cursor-pointer"
+                        />
+                      </td>
+                      <td className="text-center py-2.5 px-4">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="h-4 w-4 accent-brand-500 cursor-pointer"
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -476,7 +591,9 @@ export default function SettingsPage() {
             <div className="flex justify-end pt-2">
               <button
                 type="button"
-                onClick={() => toast.success("Preferensi notifikasi berhasil disimpan")}
+                onClick={() =>
+                  toast.success("Preferensi notifikasi berhasil disimpan")
+                }
                 className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs shadow-sm transition-colors cursor-pointer"
               >
                 Simpan Preferensi
@@ -490,9 +607,12 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center border-b border-border pb-3 gap-4">
               <div>
-                <h3 className="font-heading font-bold text-sm text-ink-900">Master Data Kompetensi</h3>
+                <h3 className="font-heading font-bold text-sm text-ink-900">
+                  Master Data Kompetensi
+                </h3>
                 <p className="text-[11px] text-ink-400 font-medium mt-0.5">
-                  Daftar skill keahlian mahasiswa yang dapat ditawarkan sebagai jasa.
+                  Daftar skill keahlian mahasiswa yang dapat ditawarkan sebagai
+                  jasa.
                 </p>
               </div>
               <button
@@ -513,26 +633,45 @@ export default function SettingsPage() {
                 <table className="w-full border-collapse text-left text-xs font-medium">
                   <thead>
                     <tr className="bg-surface-2 border-b border-border">
-                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">Nama Kompetensi</th>
-                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">Kategori Jasa</th>
-                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">Tgl. Dibuat</th>
-                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-right"><span className="sr-only">Aksi</span></th>
+                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">
+                        Nama Kompetensi
+                      </th>
+                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">
+                        Kategori Jasa
+                      </th>
+                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider">
+                        Tgl. Dibuat
+                      </th>
+                      <th className="py-2.5 px-4 text-ink-400 font-bold uppercase tracking-wider text-right">
+                        <span className="sr-only">Aksi</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {skills.map((skill) => (
-                      <tr key={skill.id} className="hover:bg-[#F7F8FB] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-ink-900">{skill.name}</td>
+                      <tr
+                        key={skill.id}
+                        className="hover:bg-[#F7F8FB] transition-colors"
+                      >
+                        <td className="py-3 px-4 font-semibold text-ink-900">
+                          {skill.name}
+                        </td>
                         <td className="py-3 px-4">
                           <span className="inline-flex px-2 py-0.5 rounded border border-border bg-surface-2 text-[10.5px] font-bold text-ink-500">
                             {skill.category}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-ink-400">{formatDate(skill.createdAt).split(" ")[0]}</td>
+                        <td className="py-3 px-4 text-ink-400">
+                          {formatDate(skill.createdAt).split(" ")[0]}
+                        </td>
                         <td className="py-3 px-4 text-right">
                           <button
                             onClick={() => {
-                              if (confirm(`Apakah Anda yakin ingin menghapus kompetensi ${skill.name}?`)) {
+                              if (
+                                confirm(
+                                  `Apakah Anda yakin ingin menghapus kompetensi ${skill.name}?`,
+                                )
+                              ) {
                                 deleteSkillMutation.mutate(skill.id);
                               }
                             }}
@@ -550,22 +689,30 @@ export default function SettingsPage() {
             )}
 
             {/* Modal Tambah Kompetensi */}
-            <Dialog open={isAddSkillOpen} onOpenChange={(open) => {
-              if (!open) {
-                setIsAddSkillOpen(false);
-                setNewSkillName("");
-                setNewSkillCategoryId(undefined);
-              }
-            }}>
+            <Dialog
+              open={isAddSkillOpen}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIsAddSkillOpen(false);
+                  setNewSkillName("");
+                  setNewSkillCategoryId(undefined);
+                }
+              }}
+            >
               <DialogContent className="max-w-[400px] rounded-xl p-5 border-border bg-white shadow-sh-3">
                 <DialogHeader className="border-b border-border pb-3">
                   <DialogTitle className="font-heading font-bold text-base text-ink-900">
                     Tambah Kompetensi Master
                   </DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleAddSkillSubmit} className="space-y-4 pt-3">
+                <form
+                  onSubmit={handleAddSkillSubmit}
+                  className="space-y-4 pt-3"
+                >
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">Nama Kompetensi</label>
+                    <label className="text-xs font-bold text-ink-700">
+                      Nama Kompetensi
+                    </label>
                     <input
                       placeholder="Contoh: Flutter Mobile App"
                       value={newSkillName}
@@ -576,15 +723,21 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink-700">Kategori Jasa</label>
+                    <label className="text-xs font-bold text-ink-700">
+                      Kategori Jasa
+                    </label>
                     <select
                       value={newSkillCategoryId || ""}
-                      onChange={(e) => setNewSkillCategoryId(e.target.value || undefined)}
+                      onChange={(e) =>
+                        setNewSkillCategoryId(e.target.value || undefined)
+                      }
                       className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-xs font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
                     >
                       <option value="">Pilih Kategori (opsional)</option>
                       {kategoriList.map((kat) => (
-                        <option key={kat.id} value={kat.id}>{kat.name}</option>
+                        <option key={kat.id} value={kat.id}>
+                          {kat.name}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -616,9 +769,12 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center border-b border-border pb-3 gap-4">
               <div>
-                <h3 className="font-heading font-bold text-sm text-ink-900">Log Aktivitas Admin</h3>
+                <h3 className="font-heading font-bold text-sm text-ink-900">
+                  Log Aktivitas Admin
+                </h3>
                 <p className="text-[11px] text-ink-400 font-medium mt-0.5">
-                  Audit log terperinci dari seluruh operasi perubahan data dalam platform.
+                  Audit log terperinci dari seluruh operasi perubahan data dalam
+                  platform.
                 </p>
               </div>
               <button
@@ -643,14 +799,20 @@ export default function SettingsPage() {
                   if (log.action === "report") indicatorColor = "bg-danger-500";
                   return (
                     <div key={log.id} className="relative">
-                      <span className={`absolute -left-[32px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white ${indicatorColor} shadow-sm`} />
+                      <span
+                        className={`absolute -left-[32px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white ${indicatorColor} shadow-sm`}
+                      />
                       <div className="text-xs text-ink-550">
-                        <span className="font-bold text-ink-900">{log.actorName}</span>{" "}
+                        <span className="font-bold text-ink-900">
+                          {log.actorName}
+                        </span>{" "}
                         <span className="text-[9px] bg-surface-3 px-1 rounded text-ink-450 font-bold uppercase tracking-wide">
                           {log.actorRole}
                         </span>
                         <span className="text-ink-200 mx-1.5">•</span>
-                        <span className="text-[10px] text-ink-400">{formatDate(log.createdAt)}</span>
+                        <span className="text-[10px] text-ink-400">
+                          {formatDate(log.createdAt)}
+                        </span>
                       </div>
                       <p className="text-xs text-ink-700 mt-1 font-semibold">
                         {log.message}
@@ -662,9 +824,7 @@ export default function SettingsPage() {
             )}
           </div>
         )}
-
       </div>
-
     </div>
   );
 }

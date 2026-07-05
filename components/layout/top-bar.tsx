@@ -80,11 +80,16 @@ export function TopBar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-1.5 py-1.5">
-              <div className="truncate text-sm font-semibold text-ink-900">{name}</div>
+              <div className="truncate text-sm font-semibold text-ink-900">
+                {name}
+              </div>
               <div className="truncate text-xs text-ink-400">{user?.email}</div>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={() => void logout()}>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => void logout()}
+            >
               <LogOut />
               Keluar
             </DropdownMenuItem>
