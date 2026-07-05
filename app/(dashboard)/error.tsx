@@ -4,6 +4,8 @@ import React, { useEffect } from "react";
 import { AlertTriangle, RotateCcw, Home } from "lucide-react";
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+
 export default function Error({
   error,
   reset,
@@ -37,18 +39,20 @@ export default function Error({
       )}
 
       <div className="flex items-center gap-3 mt-6">
-        <button
+        <Button
+          type="button"
           onClick={() => reset()}
-          className="h-9 px-4 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+          className="h-9 bg-brand-500 px-4 text-xs font-bold text-white shadow-sm hover:bg-brand-600"
         >
           <RotateCcw className="h-4 w-4" /> Coba Lagi
-        </button>
-        <Link
-          href="/dashboard"
-          className="h-9 px-4 border border-border bg-white text-ink-700 hover:bg-surface-3 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+        </Button>
+        <Button
+          variant="outline"
+          render={<Link href="/dashboard" />}
+          className="h-9 px-4 text-xs font-bold text-ink-700 shadow-sm"
         >
           <Home className="h-4 w-4" /> Kembali ke Home
-        </Link>
+        </Button>
       </div>
     </div>
   );

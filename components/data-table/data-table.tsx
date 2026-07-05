@@ -15,7 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
@@ -172,35 +174,45 @@ export function DataTable<TData, TValue>({
           </div>
 
           <div className="flex items-center gap-1">
-            <button
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
               onClick={() => onPageChange(page - 1)}
               disabled={!hasPreviousPage}
-              className="h-8 w-8 rounded-lg border border-border bg-white flex items-center justify-center text-ink-500 hover:bg-surface-3 transition-colors disabled:opacity-40 disabled:hover:bg-white cursor-pointer disabled:cursor-default"
+              className="h-8 w-8 bg-white text-ink-500 hover:bg-surface-3 disabled:hover:bg-white"
             >
               <ChevronLeft className="h-4 w-4" />
-            </button>
+            </Button>
 
             {getPageNumbers().map((p) => (
-              <button
+              <Button
                 key={p}
+                type="button"
+                variant="outline"
+                size="icon"
                 onClick={() => onPageChange(p)}
-                className={`h-8 w-8 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                className={cn(
+                  "h-8 w-8 text-xs font-bold",
                   p === page
-                    ? "bg-brand-500 border-brand-500 text-white shadow-sm"
-                    : "border-border bg-white text-ink-700 hover:bg-surface-3"
-                }`}
+                    ? "border-brand-500 bg-brand-500 text-white shadow-sm hover:bg-brand-500"
+                    : "bg-white text-ink-700 hover:bg-surface-3",
+                )}
               >
                 {p}
-              </button>
+              </Button>
             ))}
 
-            <button
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
               onClick={() => onPageChange(page + 1)}
               disabled={!hasNextPage}
-              className="h-8 w-8 rounded-lg border border-border bg-white flex items-center justify-center text-ink-500 hover:bg-surface-3 transition-colors disabled:opacity-40 disabled:hover:bg-white cursor-pointer disabled:cursor-default"
+              className="h-8 w-8 bg-white text-ink-500 hover:bg-surface-3 disabled:hover:bg-white"
             >
               <ChevronRight className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </div>
       )}

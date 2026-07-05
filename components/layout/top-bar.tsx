@@ -3,6 +3,7 @@
 import { Bell, ChevronDown, CircleHelp, LogOut, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLogout } from "@/hooks/use-logout";
 import { avatarClass, initials } from "@/lib/avatar";
+import { Input } from "@/components/ui/input";
 import { pageTitle } from "@/lib/nav";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -33,8 +35,8 @@ export function TopBar() {
 
       <div className="flex h-9 max-w-[520px] flex-1 items-center gap-2 rounded-[9px] border border-border bg-surface-2 px-3 text-ink-400">
         <Search className="size-4 shrink-0" strokeWidth={1.75} />
-        <input
-          className="h-full flex-1 bg-transparent text-sm text-ink-700 outline-none placeholder:text-ink-400"
+        <Input
+          className="h-full flex-1 border-0 bg-transparent px-0 text-sm text-ink-700 shadow-none focus-visible:border-transparent focus-visible:ring-0"
           placeholder="Cari user, transaksi, laporan…"
         />
         <span className="rounded border border-border bg-surface px-1.5 py-0.5 text-[11px] font-medium text-ink-400">
@@ -43,28 +45,33 @@ export function TopBar() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           title="Bantuan"
-          className="grid size-9 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-surface-3"
+          className="text-ink-500 hover:bg-surface-3"
         >
           <CircleHelp className="size-[18px]" strokeWidth={1.75} />
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           title="Notifikasi"
-          className="relative grid size-9 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-surface-3"
+          className="relative text-ink-500 hover:bg-surface-3"
         >
           <Bell className="size-[18px]" strokeWidth={1.75} />
           <span className="absolute right-2 top-2 size-1.5 rounded-full bg-danger-500" />
-        </button>
+        </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <button
+              <Button
                 type="button"
-                className="flex items-center gap-2 rounded-full border border-border py-1 pl-1 pr-2.5 transition-colors hover:bg-surface-3"
+                variant="ghost"
+                className="h-auto rounded-full border border-border py-1 pl-1 pr-2.5 hover:bg-surface-3"
               />
             }
           >

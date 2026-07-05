@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import { useLogout } from "@/hooks/use-logout";
 import { avatarClass, initials } from "@/lib/avatar";
 import { NAV_GROUPS } from "@/lib/nav";
@@ -142,14 +143,16 @@ export function Sidebar() {
           </div>
           <div className="truncate text-xs text-ink-400">Administrator</div>
         </div>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon-sm"
           onClick={() => void logout()}
           title="Keluar"
-          className="grid size-8 place-items-center rounded-[7px] border border-border bg-surface text-ink-500 transition-colors hover:bg-surface-3 hover:text-danger-500"
+          className="size-8 rounded-[7px] bg-surface text-ink-500 hover:bg-surface-3 hover:text-danger-500"
         >
           <LogOut className="size-4" strokeWidth={1.75} />
-        </button>
+        </Button>
       </div>
     </aside>
   );
