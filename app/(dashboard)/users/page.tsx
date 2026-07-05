@@ -150,8 +150,6 @@ export default function UsersPage() {
         onOpenChange={(open) => !open && setSelectedUserId(null)}
         userDetail={userDetail}
         isLoading={isLoadingDetail}
-        onBan={handleBan}
-        onUnban={(userId) => unbanMutation.mutate(userId)}
       />
     </div>
   );

@@ -58,7 +58,7 @@ export function LoginForm() {
         Masuk ke akun Admin
       </h2>
       <p className="mt-1.5 text-sm text-ink-400">
-        Gunakan email kantor dan password yang diberikan oleh Super Admin.
+        Gunakan email dan password akun admin internal GARAPAN.
       </p>
 
       <form

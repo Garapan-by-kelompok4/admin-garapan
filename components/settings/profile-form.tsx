@@ -135,7 +135,7 @@ export function ProfileForm({
             Peran Akses (Role)
           </Label>
           <span className="flex h-10 w-full cursor-not-allowed select-none items-center rounded-lg border border-border bg-surface-2 px-3 text-xs font-bold capitalize text-ink-450">
-            {profile?.role?.toLowerCase() || "Super Admin"}
+            {profile?.role?.toLowerCase() || "admin"}
           </span>
         </div>
       </div>

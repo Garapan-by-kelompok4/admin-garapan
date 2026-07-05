@@ -18,7 +18,6 @@ import {
   SettingsSidebar,
   SettingsTabId,
 } from "@/components/settings/settings-sidebar";
-import { SettingsNotificationsTab } from "@/components/settings/settings-notifications-tab";
 import { SettingsMasterTab } from "@/components/settings/settings-master-tab";
 import { SettingsAuditTab } from "@/components/settings/settings-audit-tab";
 import { SettingsSecurityTab } from "@/components/settings/settings-security-tab";
@@ -36,7 +35,6 @@ export default function SettingsPage() {
     if (
       tabParam === "profile" ||
       tabParam === "security" ||
-      tabParam === "notifications" ||
       tabParam === "master" ||
       tabParam === "audit"
     ) {
@@ -182,8 +180,6 @@ export default function SettingsPage() {
             />
           </div>
         )}
-
-        {activeTab === "notifications" && <SettingsNotificationsTab />}
 
         {activeTab === "master" && (
           <SettingsMasterTab

@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  User,
-  Lock,
-  Bell,
-  Database,
-  Activity,
-  LucideIcon,
-} from "lucide-react";
+import { User, Lock, Database, Activity, LucideIcon } from "lucide-react";
 
-export type SettingsTabId =
-  | "profile"
-  | "security"
-  | "notifications"
-  | "master"
-  | "audit";
+export type SettingsTabId = "profile" | "security" | "master" | "audit";
 
 const sidebarItems: {
   id: SettingsTabId;
@@ -23,7 +11,6 @@ const sidebarItems: {
 }[] = [
   { id: "profile", label: "Informasi Profil", icon: User },
   { id: "security", label: "Keamanan & Akses", icon: Lock },
-  { id: "notifications", label: "Notifikasi Sistem", icon: Bell },
   { id: "master", label: "Master Data Kompetensi", icon: Database },
   { id: "audit", label: "Log Aktivitas", icon: Activity },
 ];
