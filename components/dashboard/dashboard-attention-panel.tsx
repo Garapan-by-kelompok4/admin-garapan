@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight, HeartPulse } from "lucide-react";
 
 import type { OpsBadgeCounts } from "@/hooks/use-ops-badge-counts";
+import { MODERATION_PAGE_TITLE } from "@/lib/moderation/page-meta";
 
 const attentionLinks: Array<{
   label: string;
@@ -16,7 +17,7 @@ const attentionLinks: Array<{
     color: "bg-danger-50 border-danger-100 text-danger-700",
   },
   {
-    label: "Moderasi Konten",
+    label: MODERATION_PAGE_TITLE,
     href: "/moderation",
     countKey: "moderation",
     color: "bg-warn-50 border-warn-100 text-warn-700",
