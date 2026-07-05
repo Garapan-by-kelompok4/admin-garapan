@@ -1,4 +1,11 @@
 import { Search, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DisputesToolbarProps {
   search: string;
@@ -13,6 +20,14 @@ export function DisputesToolbar({
   statusFilter,
   onStatusFilterChange,
 }: DisputesToolbarProps) {
+  const statusOptions = [
+    { value: "Semua", label: "Semua Laporan" },
+    { value: "Terbuka", label: "Terbuka" },
+    { value: "Diproses", label: "Diproses" },
+    { value: "Selesai", label: "Selesai" },
+    { value: "Ditolak", label: "Ditolak" },
+  ];
+
   return (
     <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
       <div className="flex flex-1 max-w-sm relative">
@@ -33,21 +48,36 @@ export function DisputesToolbar({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-ink-500 font-semibold select-none">
-          Status:
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2 shadow-sh-1 md:justify-start">
+        <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-ink-400 select-none">
+          Status
         </span>
-        <select
+        <Select
           value={statusFilter}
-          onChange={(e) => onStatusFilterChange(e.target.value)}
-          className="h-[38px] px-3 bg-white border border-border rounded-lg text-[13.5px] font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
+          onValueChange={(value) => {
+            if (typeof value === "string") onStatusFilterChange(value);
+          }}
         >
-          <option value="Semua">Semua Laporan</option>
-          <option value="Terbuka">Terbuka</option>
-          <option value="Diproses">Diproses</option>
-          <option value="Selesai">Selesai</option>
-          <option value="Ditolak">Ditolak</option>
-        </select>
+          <SelectTrigger className="h-7 min-w-[132px] border-0 bg-surface-2 px-2 py-0 text-[13px] font-semibold text-ink-800 shadow-none focus-visible:ring-0">
+            <SelectValue>
+              {(value) =>
+                statusOptions.find((option) => option.value === value)
+                  ?.label ?? "Pilih status"
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align="end" className="min-w-[170px] p-1">
+            {statusOptions.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="px-2 py-1.5 text-[13px] font-semibold"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
