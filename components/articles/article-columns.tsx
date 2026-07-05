@@ -166,15 +166,7 @@ export function createArticleColumns(
             )}
             <button
               type="button"
-              onClick={() => {
-                if (
-                  confirm(
-                    "Hapus artikel ini? Artikel akan disembunyikan dari admin dan publik.",
-                  )
-                ) {
-                  handlers.onDelete(article.id);
-                }
-              }}
+              onClick={() => handlers.onDelete(article.id)}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white text-danger-600 shadow-sm transition-colors hover:bg-danger-50"
               title="Hapus artikel"
             >

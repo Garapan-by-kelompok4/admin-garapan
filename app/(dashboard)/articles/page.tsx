@@ -16,6 +16,7 @@ const ArticleEditor = dynamic(
 );
 import { createArticleColumns } from "@/components/articles/article-columns";
 import { ArticleList } from "@/components/articles/article-list";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   Article,
   ArticleStatusFilter,
@@ -42,6 +43,7 @@ export default function ArticlesPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState("");
   const [coverRemoved, setCoverRemoved] = useState(false);
+  const [deleteArticleId, setDeleteArticleId] = useState<string | null>(null);
 
   const {
     reset,
@@ -329,7 +331,7 @@ export default function ArticlesPage() {
         onEdit: handleEditClick,
         onPublish: (id) => publishMutation.mutate(id),
         onUnpublish: (id) => unpublishMutation.mutate(id),
-        onDelete: (id) => deleteMutation.mutate(id),
+        onDelete: (id) => setDeleteArticleId(id),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [publishMutation, unpublishMutation, deleteMutation],
@@ -425,6 +427,21 @@ export default function ArticlesPage() {
           onBack={resetEditor}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteArticleId !== null}
+        onOpenChange={(open) => !open && setDeleteArticleId(null)}
+        title="Hapus artikel ini?"
+        description="Artikel akan disembunyikan dari admin dan publik. Anda masih dapat memulihkannya dari notifikasi setelah penghapusan."
+        confirmLabel="Hapus Artikel"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteArticleId) {
+            deleteMutation.mutate(deleteArticleId);
+            setDeleteArticleId(null);
+          }
+        }}
+      />
     </div>
   );
 }

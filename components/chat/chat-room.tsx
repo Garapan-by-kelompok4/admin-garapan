@@ -14,6 +14,7 @@ import { avatarClass, initials } from "@/lib/avatar";
 import { formatDateLabel, quickReplies } from "@/lib/chat-utils";
 import { formatDate } from "@/lib/utils";
 import { ChatMessageBubble } from "@/components/chat/chat-message-bubble";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDocumentVisible } from "@/hooks/use-document-visible";
 import {
   CHAT_POLL_INTERVAL_MS,
@@ -49,6 +50,7 @@ export function ChatRoom({
   const isDocumentVisible = useDocumentVisible();
   const [showUserInfo, setShowUserInfo] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showBanConfirm, setShowBanConfirm] = useState(false);
   const [olderMessages, setOlderMessages] = useState<ChatMessage[]>([]);
   const [oldestPageLoaded, setOldestPageLoaded] = useState(1);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
@@ -384,39 +386,18 @@ export function ChatRoom({
           </form>
         </div>
 
-        {showCloseConfirm && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-border/85 animate-in zoom-in-95 duration-200">
-              <h4 className="font-heading font-bold text-sm text-ink-900 mb-2">
-                Tutup Sesi Chat
-              </h4>
-              <p className="text-xs text-ink-500 mb-6 leading-relaxed">
-                Apakah Anda yakin ingin mengakhiri sesi bantuan live support
-                chat ini? Tindakan ini akan menutup sesi obrolan aktif.
-              </p>
-              <div className="flex justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowCloseConfirm(false)}
-                  className="px-4 py-2 border border-border bg-white text-ink-700 hover:bg-surface-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCloseConfirm(false);
-                    onEndSession();
-                    toast.success("Sesi bantuan ditutup");
-                  }}
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
-                >
-                  Ya, Akhiri Sesi
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmDialog
+          open={showCloseConfirm}
+          onOpenChange={setShowCloseConfirm}
+          title="Tutup Sesi Chat"
+          description="Apakah Anda yakin ingin mengakhiri sesi bantuan live support chat ini? Tindakan ini akan menutup sesi obrolan aktif."
+          confirmLabel="Ya, Akhiri Sesi"
+          variant="destructive"
+          onConfirm={() => {
+            onEndSession();
+            toast.success("Sesi bantuan ditutup");
+          }}
+        />
       </div>
 
       {showUserInfo && (
@@ -448,15 +429,7 @@ export function ChatRoom({
 
                 <div className="flex justify-center gap-1.5 pt-2">
                   <button
-                    onClick={() => {
-                      if (
-                        confirm(
-                          `Apakah Anda yakin ingin memblokir ${activeSession.name}?`,
-                        )
-                      ) {
-                        banMutation.mutate();
-                      }
-                    }}
+                    onClick={() => setShowBanConfirm(true)}
                     disabled={banMutation.isPending || contactUser?.bannedAt != null}
                     className="px-4 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm w-full max-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -526,6 +499,16 @@ export function ChatRoom({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={showBanConfirm}
+        onOpenChange={setShowBanConfirm}
+        title={`Blokir ${activeSession?.name ?? "user"}?`}
+        description="User tidak akan bisa login atau menggunakan platform setelah diblokir. Anda dapat memulihkan akun dari halaman Users."
+        confirmLabel="Blokir User"
+        isLoading={banMutation.isPending}
+        onConfirm={() => banMutation.mutate()}
+      />
     </>
   );
 }
