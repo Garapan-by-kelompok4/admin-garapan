@@ -5,6 +5,7 @@ import {
   nullableNumber,
   numberList,
   recordList,
+  type UnknownRecord,
 } from "./normalizers";
 
 export interface ActivityItem {
@@ -32,6 +33,20 @@ const ACTIVITY_MESSAGES: Record<string, string> = {
   PROPOSAL_REJECTED: "Proposal ditolak",
 };
 
+function activityActorName(user: UnknownRecord, userId: string): string {
+  const mahasiswa = asRecord(user.mahasiswa);
+  const klien = asRecord(user.klien);
+
+  return String(
+    user.displayName ??
+      mahasiswa.fullName ??
+      klien.companyName ??
+      user.fullName ??
+      user.email ??
+      (userId ? `User ${userId.slice(0, 8)}` : "Sistem"),
+  );
+}
+
 function normaliseActivity(raw: unknown, index: number): ActivityItem {
   const record = asRecord(raw);
   const meta = asRecord(record.meta);
@@ -48,13 +63,8 @@ function normaliseActivity(raw: unknown, index: number): ActivityItem {
     message = `Pesanan ${String(meta.pesananId).slice(0, 8)}… — ${ACTIVITY_MESSAGES[action] ?? action.toLowerCase().replaceAll("_", " ")}`;
   }
 
-  const actorName = String(
-    user.displayName ??
-      user.fullName ??
-      user.email ??
-      (userId ? `User ${userId.slice(0, 8)}` : "Sistem"),
-  );
-  const actorRole = String(user.role ?? (action.includes("DISPUTE_RESOLVED") ? "ADMIN" : "USER"));
+  const actorName = activityActorName(user, userId);
+  const actorRole = String(user.role ?? "USER");
 
   return {
     id: String(record.id ?? record._id ?? `activity-${index}`),
