@@ -1,5 +1,34 @@
 import { EscrowStatus } from "@/lib/api/orders";
 
+type StatusTone = {
+  dotClassName?: string;
+  labelClassName: string;
+};
+
+export function transactionStatusTone(status: EscrowStatus): StatusTone {
+  switch (status) {
+    case "Ditahan":
+      return {
+        dotClassName: "bg-warn-500 animate-pulse",
+        labelClassName: "text-xs font-semibold text-warn-700",
+      };
+    case "Dicairkan":
+      return {
+        dotClassName: "bg-success-500",
+        labelClassName: "text-xs font-semibold text-success-700",
+      };
+    case "Refund":
+      return {
+        dotClassName: "bg-danger-500",
+        labelClassName: "text-xs font-semibold text-danger-700",
+      };
+    default:
+      return {
+        labelClassName: "text-xs font-semibold text-ink-700",
+      };
+  }
+}
+
 export function TransactionStatusPill({ status }: { status: EscrowStatus }) {
   switch (status) {
     case "Ditahan":

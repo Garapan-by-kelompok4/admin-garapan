@@ -29,7 +29,6 @@ import {
 interface ResolutionFormProps {
   disputeDetail: DisputeDetail;
   onResolve: (params: { id: string; payload: ResolveDisputePayload }) => void;
-  onClose: () => void;
   isPending: boolean;
   className?: string;
 }
@@ -37,7 +36,6 @@ interface ResolutionFormProps {
 export function ResolutionForm({
   disputeDetail,
   onResolve,
-  onClose,
   isPending,
   className,
 }: ResolutionFormProps) {
@@ -196,7 +194,7 @@ export function ResolutionForm({
         <Textarea
           id="resolutionNote"
           rows={3}
-          placeholder="Tuliskan keputusan resolusi, misal: 'Pengerjaan tidak lengkap, disetujui refund parsial 50%...'"
+          placeholder="Jelaskan alasan dan dasar keputusan resolusi."
           className="resize-none text-sm font-medium"
           aria-invalid={Boolean(errors.resolutionNote)}
           {...register("resolutionNote")}
@@ -208,19 +206,11 @@ export function ResolutionForm({
         )}
       </div>
 
-      <div className="flex flex-col-reverse gap-2.5 pt-1 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          className="text-sm font-semibold"
-        >
-          Batal
-        </Button>
+      <div className="pt-1">
         <Button
           type="submit"
           disabled={isPending}
-          className="text-sm font-semibold"
+          className="w-full text-sm font-semibold"
         >
           {isPending ? "Memproses..." : "Selesaikan Dispute"}
           {!isPending && <ArrowRight className="h-4 w-4" />}

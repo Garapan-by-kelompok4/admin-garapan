@@ -1,10 +1,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { FlaggedContent } from "@/lib/api/content";
 import { CopyIdButton } from "@/components/data-table/copy-id-button";
+import {
+  StatusIndicator,
+  StatusStack,
+} from "@/components/data-table/status-indicator";
 import { avatarClass, initials } from "@/lib/avatar";
 import { moderationContentLabels } from "@/lib/moderation/content-labels";
 import { formatDate } from "@/lib/utils";
-import { ModerationStatusPill } from "./moderation-status-pill";
+import { moderationStatusTone } from "./moderation-status-pill";
 import { ModerationTypePill } from "./moderation-type-pill";
 
 function shortId(id: string) {
@@ -114,14 +118,22 @@ export function createModerationColumns({
     {
       id: "state",
       header: "Status",
-      cell: ({ row }) => (
-        <div className="flex w-[132px] flex-col items-start gap-1.5">
-          <ModerationStatusPill status={row.original.status} />
-          <span className="text-[11px] font-medium text-ink-400">
-            {formatDate(row.original.createdAt)}
-          </span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const tone = moderationStatusTone(row.original.status);
+
+        return (
+          <StatusStack
+            className="w-[132px]"
+            sublabel={formatDate(row.original.createdAt)}
+          >
+            <StatusIndicator
+              label={row.original.status}
+              dotClassName={tone.dotClassName}
+              labelClassName={tone.labelClassName}
+            />
+          </StatusStack>
+        );
+      },
     },
     {
       id: "actions",
