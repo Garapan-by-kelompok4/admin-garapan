@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   settingsApi,
@@ -10,7 +10,6 @@ import {
   KategoriItem,
 } from "@/lib/api/settings";
 import { dashboardApi, ActivityItem } from "@/lib/api/dashboard";
-import { AddSkillForm } from "@/components/settings/add-skill-form";
 import { ChangePasswordForm } from "@/components/settings/change-password-form";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { toast } from "sonner";
@@ -23,24 +22,30 @@ import { SettingsAuditTab } from "@/components/settings/settings-audit-tab";
 import { SettingsSecurityTab } from "@/components/settings/settings-security-tab";
 import type { AddSkillInput, ProfileInput } from "@/lib/validators/settings";
 
+function parseSettingsTab(value: string | null): SettingsTabId | null {
+  if (
+    value === "profile" ||
+    value === "security" ||
+    value === "master" ||
+    value === "audit"
+  ) {
+    return value;
+  }
+  return null;
+}
+
 export default function SettingsPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<SettingsTabId>("profile");
+  const activeTab: SettingsTabId =
+    parseSettingsTab(searchParams.get("tab")) ?? "profile";
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
 
-  useEffect(() => {
-    if (
-      tabParam === "profile" ||
-      tabParam === "security" ||
-      tabParam === "master" ||
-      tabParam === "audit"
-    ) {
-      setActiveTab(tabParam);
-    }
-  }, [tabParam]);
+  const handleTabChange = (tab: SettingsTabId) => {
+    router.replace(`/settings?tab=${tab}`, { scroll: false });
+  };
 
   const { data: profile, isLoading: isLoadingProfile } = useQuery<
     AdminProfile,
@@ -128,7 +133,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start select-none">
-      <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <SettingsSidebar activeTab={activeTab} onTabChange={handleTabChange} />
 
       <div className="flex-1 w-full bg-white border border-border rounded-xl p-5 md:p-6 shadow-sh-1 min-h-[480px]">
         {activeTab === "profile" && (
