@@ -86,10 +86,10 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((item) => (
+      {cards.map((item, index) => (
         <div
           key={item.label}
-          className="bg-white border border-border rounded-xl p-5 space-y-4 shadow-sh-1 hover:shadow-sh-2 transition-all overflow-hidden"
+          className="flex min-h-[138px] flex-col bg-white border border-border rounded-xl p-5 shadow-sh-1 hover:shadow-sh-2 transition-all overflow-hidden"
         >
           <div className="flex justify-between items-start">
             <div
@@ -106,21 +106,23 @@ export function DashboardStatCards({ stats }: DashboardStatCardsProps) {
               ) : null}
             </div>
           </div>
-          <div>
+          <div className="mt-4">
             <div className="text-[12.5px] text-ink-450 font-semibold">
               {item.label}
             </div>
-            <div className="mt-1.5">
-              <div className="text-xl lg:text-2xl font-extrabold text-ink-900 leading-none tracking-tight font-heading tabular-nums">
-                {item.val}
-              </div>
-              {item.spark.length >= 2 ? (
-                <div className="mt-2 flex h-7 justify-end">
-                  <StatSparkline points={item.spark} color={item.color} />
-                </div>
-              ) : null}
+            <div className="mt-1.5 text-xl lg:text-2xl font-extrabold text-ink-900 leading-none tracking-tight font-heading tabular-nums">
+              {item.val}
             </div>
           </div>
+          {item.spark.length >= 2 ? (
+            <div className="mt-auto pt-4">
+              <StatSparkline
+                points={item.spark}
+                color={item.color}
+                delayMs={index * 80}
+              />
+            </div>
+          ) : null}
         </div>
       ))}
     </div>
