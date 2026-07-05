@@ -19,6 +19,9 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export default function ModerationPage() {
@@ -210,12 +213,14 @@ export default function ModerationPage() {
       header: () => <span className="sr-only">Aksi</span>,
       cell: ({ row }) => (
         <div className="text-right">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setSelectedContentId(row.original.id)}
-            className="px-3 py-1.5 text-xs font-semibold border border-border hover:bg-surface-3 bg-white text-ink-700 rounded-lg transition-colors cursor-pointer shadow-sm"
+            className="px-3 py-1.5 text-xs font-semibold border border-border hover:bg-surface-3 bg-white text-ink-700 rounded-lg shadow-sm"
           >
             Tinjau
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -278,31 +283,34 @@ export default function ModerationPage() {
       {/* Filter Segment & Search */}
       <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
         {/* Segmented control buttons */}
-        <div className="flex bg-surface-3/50 p-1 rounded-lg border border-border/80 self-start select-none">
-          {["Semua", "Ditinjau", "Aman", "Dihapus", "Disembunyikan"].map(
-            (st) => (
-              <button
-                key={st}
-                onClick={() => {
-                  setStatusFilter(st);
-                  setPage(1);
-                }}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                  statusFilter === st
-                    ? "bg-white text-ink-900 shadow-sm border border-border/30 font-bold"
-                    : "text-ink-500 hover:text-ink-900"
-                }`}
-              >
-                {st}
-              </button>
-            ),
-          )}
-        </div>
+        <Tabs
+          value={statusFilter}
+          onValueChange={(value) => {
+            if (value) {
+              setStatusFilter(value);
+              setPage(1);
+            }
+          }}
+        >
+          <TabsList className="flex bg-surface-3/50 p-1 rounded-lg border border-border/80 self-start select-none h-auto">
+            {["Semua", "Ditinjau", "Aman", "Dihapus", "Disembunyikan"].map(
+              (st) => (
+                <TabsTrigger
+                  key={st}
+                  value={st}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-md transition-all text-ink-500 hover:text-ink-900 h-auto data-active:bg-white data-active:text-ink-900 data-active:shadow-sm data-active:border data-active:border-border/30 data-active:font-bold"
+                >
+                  {st}
+                </TabsTrigger>
+              ),
+            )}
+          </TabsList>
+        </Tabs>
 
         {/* Search */}
         <div className="flex max-w-xs relative w-full md:w-64">
           <Search className="absolute left-3 top-2.5 h-[15px] w-[15px] text-ink-400 pointer-events-none" />
-          <input
+          <Input
             placeholder="Cari judul jasa atau pemilik..."
             value={search}
             onChange={(e) => {
@@ -312,15 +320,17 @@ export default function ModerationPage() {
             className="w-full h-[38px] pl-9 pr-8 bg-white border border-border rounded-lg text-[13.5px] placeholder:text-ink-400 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
           />
           {search && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={() => {
                 setSearch("");
                 setPage(1);
               }}
-              className="absolute right-2.5 top-2.5 p-0.5 text-ink-400 hover:text-ink-700 bg-transparent border-0 cursor-pointer"
+              className="absolute right-2.5 top-2.5 p-0.5 text-ink-400 hover:text-ink-700 bg-transparent border-0"
             >
               <X className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -489,14 +499,16 @@ export default function ModerationPage() {
 
               {/* Modal Footer */}
               <div className="p-4 border-t border-border bg-surface-2/40 flex justify-between items-center">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setSelectedContentId(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
+                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 shadow-sm"
                 >
                   Batal
-                </button>
+                </Button>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
+                    variant="destructive"
                     onClick={() => {
                       if (
                         confirm(
@@ -506,10 +518,10 @@ export default function ModerationPage() {
                         removeMutation.mutate(contentDetail.id);
                       }
                     }}
-                    className="px-4 py-2 text-sm font-semibold bg-danger-500 hover:bg-danger-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    className="px-4 py-2 text-sm font-semibold bg-danger-500 hover:bg-danger-600 text-white rounded-lg shadow-sm"
                   >
                     <Trash2 className="h-4 w-4" /> Hapus Jasa
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

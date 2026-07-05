@@ -104,21 +104,23 @@ export function LoginForm() {
               aria-invalid={Boolean(errors.password)}
               {...register("password")}
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               onClick={() => setShowPassword((value) => !value)}
               aria-label={
                 showPassword ? "Sembunyikan password" : "Lihat password"
               }
               aria-pressed={showPassword}
-              className="absolute right-1.5 top-1.5 grid size-8 place-items-center rounded-md text-ink-400 transition-colors hover:bg-surface-3 hover:text-ink-700"
+              className="absolute right-1.5 top-1.5 text-ink-400 hover:bg-surface-3 hover:text-ink-700"
             >
               {showPassword ? (
                 <EyeOff className="size-[18px]" strokeWidth={1.75} />
               ) : (
                 <Eye className="size-[18px]" strokeWidth={1.75} />
               )}
-            </button>
+            </Button>
           </div>
           {errors.password && (
             <p className="text-xs text-danger-500">{errors.password.message}</p>

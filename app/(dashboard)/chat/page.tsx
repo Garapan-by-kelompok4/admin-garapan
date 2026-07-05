@@ -25,6 +25,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth-store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 // Format date helpers
 const formatTime = (dateStr: string) => {
@@ -287,13 +290,13 @@ function ChatRoom({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => setShowCloseConfirm(true)}
               className="px-3 py-1.5 border border-danger-200 bg-danger-50/50 hover:bg-danger-55 hover:text-danger-700 text-xs font-bold text-danger-600 rounded-lg transition-colors cursor-pointer"
             >
               Tutup Sesi
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -395,13 +398,14 @@ function ChatRoom({
               <Sparkles className="h-3 w-3" /> Balas cepat:
             </span>
             {quickReplies.map((r, idx) => (
-              <button
+              <Button
                 key={idx}
+                type="button"
                 onClick={() => handleQuickReply(r)}
                 className="px-2.5 py-1 text-[11px] font-medium rounded-full border border-border bg-surface-2 hover:bg-surface-3 hover:text-ink-900 text-ink-600 transition-colors whitespace-nowrap cursor-pointer"
               >
                 {r}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -410,7 +414,7 @@ function ChatRoom({
             onSubmit={handleSendMessage}
             className="flex gap-2 items-end"
           >
-            <textarea
+            <Textarea
               rows={1}
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
@@ -424,7 +428,7 @@ function ChatRoom({
               }}
             />
 
-            <button
+            <Button
               type="submit"
               disabled={
                 sendMessageMutation.isPending || !messageInput.trim()
@@ -433,7 +437,7 @@ function ChatRoom({
             >
               <span>Kirim</span>
               <Send className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -449,14 +453,14 @@ function ChatRoom({
                 chat ini? Tindakan ini akan menutup sesi obrolan aktif.
               </p>
               <div className="flex justify-end gap-2.5">
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowCloseConfirm(false)}
                   className="px-4 py-2 border border-border bg-white text-ink-700 hover:bg-surface-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   Batal
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => {
                     setShowCloseConfirm(false);
@@ -466,7 +470,7 @@ function ChatRoom({
                   className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
                 >
                   Ya, Akhiri Sesi
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -504,7 +508,8 @@ function ChatRoom({
 
                 {/* Action buttons */}
                 <div className="flex justify-center gap-1.5 pt-2">
-                  <button
+                  <Button
+                    type="button"
                     onClick={() => {
                       if (
                         confirm(
@@ -517,7 +522,7 @@ function ChatRoom({
                     className="px-4 py-1.5 border border-danger-200 bg-danger-50 text-[11px] font-bold text-danger-700 rounded-lg hover:bg-danger-55 transition-colors cursor-pointer shadow-sm w-full max-w-[120px]"
                   >
                     Blokir
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -557,14 +562,15 @@ function ChatRoom({
                   <h5 className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                     Catatan Internal
                   </h5>
-                  <button
+                  <Button
+                    type="button"
                     onClick={handleSaveNote}
                     className="text-[10px] text-brand-600 hover:text-brand-700 font-bold bg-transparent border-0 cursor-pointer"
                   >
                     Simpan
-                  </button>
+                  </Button>
                 </div>
-                <textarea
+                <Textarea
                   rows={4}
                   value={adminNote}
                   onChange={(e) => setAdminNote(e.target.value)}
@@ -632,19 +638,20 @@ export default function ChatPage() {
         <div className="p-4 border-b border-border space-y-3">
           <div className="relative flex">
             <Search className="absolute left-3 top-2.5 h-[15px] w-[15px] text-ink-400 pointer-events-none" />
-            <input
+            <Input
               placeholder="Cari chat user..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full h-[36px] pl-9 pr-8 bg-surface-2 border border-border rounded-lg text-xs placeholder:text-ink-400 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
             />
             {search && (
-              <button
+              <Button
+                type="button"
                 onClick={() => setSearch("")}
                 className="absolute right-2 top-2 p-0.5 text-ink-400 hover:text-ink-700 bg-transparent border-0 cursor-pointer"
               >
                 <X className="h-3 w-3" />
-              </button>
+              </Button>
             )}
           </div>
 
@@ -658,8 +665,9 @@ export default function ChatPage() {
                 { id: "MAHASISWA", label: "Mahasiswa" },
               ] as const
             ).map((f) => (
-              <button
+              <Button
                 key={f.id}
+                type="button"
                 onClick={() => setRoleFilter(f.id)}
                 className={`px-2.5 py-1 text-[10.5px] font-bold rounded-md border transition-all whitespace-nowrap cursor-pointer ${
                   roleFilter === f.id
@@ -668,7 +676,7 @@ export default function ChatPage() {
                 }`}
               >
                 {f.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

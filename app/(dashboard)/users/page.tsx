@@ -26,6 +26,16 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -225,23 +235,29 @@ export default function UsersPage() {
         const isBanned = row.original.bannedAt !== null;
         return (
           <div className="flex items-center justify-end gap-1.5">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setSelectedUserId(row.original.id)}
-              className="h-8 w-8 rounded-lg border border-border bg-white flex items-center justify-center text-ink-500 hover:bg-surface-2 hover:text-brand-600 transition-colors shadow-sm cursor-pointer"
+              className="h-8 w-8 rounded-lg border border-border bg-white text-ink-500 hover:bg-surface-2 hover:text-brand-600 shadow-sm"
               title="Lihat Detail"
             >
               <Eye className="h-4 w-4" />
-            </button>
+            </Button>
             {isBanned ? (
-              <button
+              <Button
+                variant="outline"
+                size="icon"
                 onClick={() => unbanMutation.mutate(row.original.id)}
-                className="h-8 w-8 rounded-lg border border-success-200 bg-success-50/50 flex items-center justify-center text-success-600 hover:bg-success-50 hover:text-success-700 transition-colors shadow-sm cursor-pointer"
+                className="h-8 w-8 rounded-lg border border-success-200 bg-success-50/50 text-success-600 hover:bg-success-50 hover:text-success-700 shadow-sm"
                 title="Pulihkan Akun"
               >
                 <Unlock className="h-4 w-4" />
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
+                variant="outline"
+                size="icon"
                 onClick={() => {
                   const nameToBan = row.original.fullName || "User";
                   if (
@@ -250,11 +266,11 @@ export default function UsersPage() {
                     banMutation.mutate(row.original.id);
                   }
                 }}
-                className="h-8 w-8 rounded-lg border border-danger-200 bg-danger-50/50 flex items-center justify-center text-danger-600 hover:bg-danger-55 hover:text-danger-700 transition-colors shadow-sm cursor-pointer"
+                className="h-8 w-8 rounded-lg border border-danger-200 bg-danger-50/50 text-danger-600 hover:bg-danger-55 hover:text-danger-700 shadow-sm"
                 title="Blokir Akun"
               >
                 <Ban className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </div>
         );
@@ -266,41 +282,38 @@ export default function UsersPage() {
     <div className="space-y-6">
       {/* Tab Nav & Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-border pb-4 gap-4">
-        <div className="flex border-b border-transparent">
-          <button
-            onClick={() => {
-              setActiveTab("MAHASISWA");
-              setPage(1);
-            }}
-            className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
-              activeTab === "MAHASISWA"
-                ? "border-brand-500 text-brand-600 font-bold"
-                : "border-transparent text-ink-500 hover:text-ink-900"
-            }`}
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            setActiveTab(value as "MAHASISWA" | "KLIEN");
+            setPage(1);
+          }}
+        >
+          <TabsList
+            variant="line"
+            className="flex border-b border-transparent bg-transparent p-0 h-auto rounded-none gap-0"
           >
-            Mahasiswa
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("KLIEN");
-              setPage(1);
-            }}
-            className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
-              activeTab === "KLIEN"
-                ? "border-brand-500 text-brand-600 font-bold"
-                : "border-transparent text-ink-500 hover:text-ink-900"
-            }`}
-          >
-            Klien
-          </button>
-        </div>
+            <TabsTrigger
+              value="MAHASISWA"
+              className="pb-3 px-4 text-sm font-semibold border-b-2 rounded-none border-transparent text-ink-500 hover:text-ink-900 data-active:border-brand-500 data-active:text-brand-600 data-active:font-bold"
+            >
+              Mahasiswa
+            </TabsTrigger>
+            <TabsTrigger
+              value="KLIEN"
+              className="pb-3 px-4 text-sm font-semibold border-b-2 rounded-none border-transparent text-ink-500 hover:text-ink-900 data-active:border-brand-500 data-active:text-brand-600 data-active:font-bold"
+            >
+              Klien
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Filter Bar */}
       <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
         <div className="flex flex-1 max-w-sm relative">
           <Search className="absolute left-3 top-2.5 h-[15px] w-[15px] text-ink-400 pointer-events-none" />
-          <input
+          <Input
             placeholder="Cari nama, email, kampus..."
             value={search}
             onChange={(e) => {
@@ -310,15 +323,17 @@ export default function UsersPage() {
             className="w-full h-[38px] pl-9 pr-8 bg-white border border-border rounded-lg text-[13.5px] placeholder:text-ink-400 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
           />
           {search && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={() => {
                 setSearch("");
                 setPage(1);
               }}
-              className="absolute right-2.5 top-2.5 p-0.5 text-ink-400 hover:text-ink-700 bg-transparent border-0 cursor-pointer"
+              className="absolute right-2.5 top-2.5 p-0.5 text-ink-400 hover:text-ink-700 bg-transparent border-0"
             >
               <X className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
         </div>
 
@@ -326,19 +341,25 @@ export default function UsersPage() {
           <span className="text-xs text-ink-500 font-semibold select-none">
             Status:
           </span>
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
+            onValueChange={(value) => {
+              if (value) {
+                setStatusFilter(value);
+                setPage(1);
+              }
             }}
-            className="h-[38px] px-3 bg-white border border-border rounded-lg text-[13.5px] font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
           >
-            <option value="Semua">Semua Status</option>
-            <option value="Aktif">Aktif</option>
-            <option value="Suspended">Suspended</option>
-            <option value="Pending">Pending</option>
-          </select>
+            <SelectTrigger className="h-[38px] px-3 bg-white border border-border rounded-lg text-[13.5px] font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Semua">Semua Status</SelectItem>
+              <SelectItem value="Aktif">Aktif</SelectItem>
+              <SelectItem value="Suspended">Suspended</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -466,13 +487,15 @@ export default function UsersPage() {
                   {/* Zone 3: Status + Close */}
                   <div className="flex items-center gap-2.5 flex-shrink-0">
                     {renderStatusPill(userDetail)}
-                    <button
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => setSelectedUserId(null)}
                       aria-label="Tutup dialog"
-                      className="h-8 w-8 rounded-lg border border-border bg-white flex items-center justify-center text-ink-500 hover:bg-surface-2 hover:text-ink-900 transition-colors cursor-pointer shadow-sm flex-shrink-0"
+                      className="h-8 w-8 rounded-lg border border-border bg-white text-ink-500 hover:bg-surface-2 hover:text-ink-900 shadow-sm flex-shrink-0"
                     >
                       <X className="h-4 w-4" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -680,33 +703,35 @@ export default function UsersPage() {
 
               {/* Modal Footer */}
               <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end gap-2.5">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setSelectedUserId(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
+                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 shadow-sm"
                 >
                   <X className="h-3.5 w-3.5" /> Tutup
-                </button>
+                </Button>
                 {userDetail.bannedAt !== null ? (
-                  <button
+                  <Button
                     onClick={() => {
                       unbanMutation.mutate(userDetail.id);
                     }}
-                    className="px-4 py-2 text-sm font-semibold bg-success-500 hover:bg-success-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    className="px-4 py-2 text-sm font-semibold bg-success-500 hover:bg-success-600 text-white rounded-lg shadow-sm"
                   >
                     <Unlock className="h-4 w-4" /> Pulihkan Akun
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
+                    variant="destructive"
                     onClick={() => {
                       const nameToBan = userDetail.fullName || "User";
                       if (confirm(`Apakah Anda yakin ingin memblokir ${nameToBan}?`)) {
                         banMutation.mutate(userDetail.id);
                       }
                     }}
-                    className="px-4 py-2 text-sm font-semibold bg-danger-500 hover:bg-danger-600 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    className="px-4 py-2 text-sm font-semibold bg-danger-500 hover:bg-danger-600 text-white rounded-lg shadow-sm"
                   >
                     <Ban className="h-4 w-4" /> Blokir Akun
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

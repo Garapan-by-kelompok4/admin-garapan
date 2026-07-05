@@ -38,6 +38,16 @@ import {
 import { toast } from "sonner";
 
 import { DataTable } from "@/components/data-table/data-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Article,
   ArticleStatusFilter,
@@ -114,7 +124,7 @@ function RichEditor({ content, onChange }: RichEditorProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-white">
       <div className="flex flex-wrap items-center gap-1 border-b border-border bg-surface-2 p-2">
-        <button
+        <Button
           type="button"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
@@ -122,8 +132,8 @@ function RichEditor({ content, onChange }: RichEditorProps) {
           className={`${buttonClass()} disabled:cursor-not-allowed disabled:opacity-35`}
         >
           <Undo2 className="h-4 w-4" />
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
@@ -131,26 +141,26 @@ function RichEditor({ content, onChange }: RichEditorProps) {
           className={`${buttonClass()} disabled:cursor-not-allowed disabled:opacity-35`}
         >
           <Redo2 className="h-4 w-4" />
-        </button>
+        </Button>
         <div className="mx-1 h-6 w-px self-center bg-border" />
-        <button
+        <Button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
           title="Tebal"
           className={buttonClass(editor.isActive("bold"))}
         >
           <Bold className="h-4 w-4" />
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           title="Miring"
           className={buttonClass(editor.isActive("italic"))}
         >
           <Italic className="h-4 w-4" />
-        </button>
+        </Button>
         <div className="mx-1 h-6 w-px self-center bg-border" />
-        <button
+        <Button
           type="button"
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 1 }).run()
@@ -159,8 +169,8 @@ function RichEditor({ content, onChange }: RichEditorProps) {
           className={buttonClass(editor.isActive("heading", { level: 1 }))}
         >
           <Heading1 className="h-4 w-4" />
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
@@ -169,8 +179,8 @@ function RichEditor({ content, onChange }: RichEditorProps) {
           className={buttonClass(editor.isActive("heading", { level: 2 }))}
         >
           <Heading2 className="h-4 w-4" />
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           title="List Poin"
@@ -178,8 +188,8 @@ function RichEditor({ content, onChange }: RichEditorProps) {
         >
           <List className="h-4 w-4" />
           Poin
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           title="List Angka"
@@ -187,8 +197,8 @@ function RichEditor({ content, onChange }: RichEditorProps) {
         >
           <ListOrdered className="h-4 w-4" />
           Angka
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           title="Kutipan"
@@ -196,17 +206,17 @@ function RichEditor({ content, onChange }: RichEditorProps) {
         >
           <Quote className="h-4 w-4" />
           Kutipan
-        </button>
+        </Button>
         <div className="mx-1 h-6 w-px self-center bg-border" />
-        <button
+        <Button
           type="button"
           onClick={setLink}
           title="Tambah tautan"
           className={buttonClass(editor.isActive("link"))}
         >
           <LinkIcon className="h-4 w-4" />
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() =>
             editor.chain().focus().extendMarkRange("link").unsetLink().run()
@@ -216,7 +226,7 @@ function RichEditor({ content, onChange }: RichEditorProps) {
           className={`${buttonClass()} disabled:cursor-not-allowed disabled:opacity-35`}
         >
           <Unlink className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
       <EditorContent
         editor={editor}
@@ -636,32 +646,32 @@ export default function ArticlesPage() {
         const isPublished = article.status === "Published";
         return (
           <div className="flex items-center justify-end gap-1.5">
-            <button
+            <Button
               type="button"
               onClick={() => handleEditClick(article.id)}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white text-ink-500 shadow-sm transition-colors hover:bg-surface-2 hover:text-brand-600"
               title="Edit artikel"
             >
               <Edit2 className="h-3.5 w-3.5" />
-            </button>
+            </Button>
             {isPublished ? (
-              <button
+              <Button
                 type="button"
                 onClick={() => unpublishMutation.mutate(article.id)}
                 className="h-8 rounded-lg border border-border bg-white px-2.5 text-xs font-semibold text-ink-600 transition-colors hover:bg-surface-3"
               >
                 Tarik Draf
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 type="button"
                 onClick={() => publishMutation.mutate(article.id)}
                 className="h-8 rounded-lg bg-brand-500 px-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
               >
                 Terbitkan
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               type="button"
               onClick={() => {
                 if (
@@ -676,7 +686,7 @@ export default function ArticlesPage() {
               title="Hapus artikel"
             >
               <Trash2 className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           </div>
         );
       },
@@ -755,20 +765,20 @@ export default function ArticlesPage() {
             <h2 className="font-heading text-base font-bold leading-tight text-ink-900">
               Koleksi Artikel Edukasi
             </h2>
-            <button
+            <Button
               type="button"
               onClick={handleCreateNew}
               className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand-500 px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-brand-600"
             >
               <Plus className="h-4 w-4" />
               Buat Artikel Baru
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(260px,1fr)_auto_auto_auto] lg:items-center">
             <div className="relative max-w-md">
               <Search className="pointer-events-none absolute left-3 top-2.5 h-[15px] w-[15px] text-ink-400" />
-              <input
+              <Input
                 placeholder="Cari judul artikel..."
                 value={search}
                 onChange={(event) => {
@@ -778,7 +788,7 @@ export default function ArticlesPage() {
                 className="h-[38px] w-full rounded-lg border border-border bg-white pl-9 pr-8 text-[13.5px] font-medium transition-all placeholder:text-ink-400 focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
               />
               {search && (
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     setSearch("");
@@ -787,58 +797,76 @@ export default function ArticlesPage() {
                   className="absolute right-2.5 top-2.5 bg-transparent p-0.5 text-ink-400 hover:text-ink-700"
                 >
                   <X className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               )}
             </div>
 
-            <select
+            <Select
               value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value as ArticleStatusFilter);
-                setPage(1);
+              onValueChange={(value) => {
+                if (value) {
+                  setStatusFilter(value as ArticleStatusFilter);
+                  setPage(1);
+                }
               }}
-              className="h-[38px] rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
             >
-              {(["all", "published", "draft"] as ArticleStatusFilter[]).map(
-                (status) => (
-                  <option key={status} value={status}>
-                    {statusLabel(status)}
-                  </option>
-                ),
-              )}
-            </select>
+              <SelectTrigger className="h-[38px] w-full rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(["all", "published", "draft"] as ArticleStatusFilter[]).map(
+                  (status) => (
+                    <SelectItem key={status} value={status}>
+                      {statusLabel(status)}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
 
-            <select
+            <Select
               value={categoryFilter}
-              onChange={(event) => {
-                setCategoryFilter(event.target.value);
-                setPage(1);
+              onValueChange={(value) => {
+                if (value) {
+                  setCategoryFilter(value);
+                  setPage(1);
+                }
               }}
-              className="h-[38px] rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
             >
-              <option value="all">Semua Kategori</option>
-              {categoryOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-[38px] w-full rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kategori</SelectItem>
+                {categoryOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <select
+            <Select
               value={tagFilter}
-              onChange={(event) => {
-                setTagFilter(event.target.value);
-                setPage(1);
+              onValueChange={(value) => {
+                if (value) {
+                  setTagFilter(value);
+                  setPage(1);
+                }
               }}
-              className="h-[38px] rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50"
             >
-              <option value="all">Semua Tag</option>
-              {tagOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-[38px] w-full rounded-lg border border-border bg-white px-3 text-[13.5px] font-medium text-ink-700 transition-all focus:border-brand-400 focus:outline-none focus:ring-3 focus:ring-brand-50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Tag</SelectItem>
+                {tagOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {listQuery.error ? (
@@ -868,14 +896,14 @@ export default function ArticlesPage() {
       ) : (
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-border pb-4">
-            <button
+            <Button
               type="button"
               onClick={resetEditor}
               className="flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 shadow-sm transition-colors hover:bg-surface-3"
             >
               <ArrowLeft className="h-4 w-4" />
               Kembali ke List
-            </button>
+            </Button>
             <div className="text-xs font-semibold text-ink-400">
               {editingArticleId ? "Mengubah Artikel" : "Membuat Artikel Baru"}
             </div>
@@ -891,7 +919,7 @@ export default function ArticlesPage() {
           ) : (
             <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
               <div className="space-y-5 rounded-xl border border-border bg-white p-5 shadow-sh-1 lg:col-span-2">
-                <input
+                <Input
                   type="text"
                   placeholder="Judul Artikel..."
                   value={title}
@@ -917,7 +945,7 @@ export default function ArticlesPage() {
                         >
                           Ganti cover
                         </label>
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             setCoverFile(null);
@@ -928,7 +956,7 @@ export default function ArticlesPage() {
                           title="Hapus Gambar"
                         >
                           <X className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </>
                     ) : (
                       <div className="flex flex-col items-center space-y-2">
@@ -946,7 +974,7 @@ export default function ArticlesPage() {
                         </p>
                       </div>
                     )}
-                    <input
+                    <Input
                       id="cover-file"
                       type="file"
                       accept="image/*"
@@ -974,7 +1002,7 @@ export default function ArticlesPage() {
                     <label className="text-xs font-bold text-ink-700">
                       Kategori
                     </label>
-                    <input
+                    <Input
                       value={category}
                       onChange={(event) => setCategory(event.target.value)}
                       placeholder="Tulis kategori artikel..."
@@ -987,7 +1015,7 @@ export default function ArticlesPage() {
                       Tag Artikel
                     </label>
                     <form onSubmit={handleAddTag} className="flex gap-1.5">
-                      <input
+                      <Input
                         placeholder="Tekan enter untuk tambah..."
                         value={tagInput}
                         onChange={(event) => setTagInput(event.target.value)}
@@ -997,7 +1025,7 @@ export default function ArticlesPage() {
                     {tagOptions.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1">
                         {tagOptions.slice(0, 8).map((option) => (
-                          <button
+                          <Button
                             key={option}
                             type="button"
                             onClick={() =>
@@ -1008,7 +1036,7 @@ export default function ArticlesPage() {
                           >
                             <Tag className="h-2.5 w-2.5" />
                             {option}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     )}
@@ -1020,7 +1048,7 @@ export default function ArticlesPage() {
                             className="inline-flex items-center gap-1 rounded border border-brand-100 bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700"
                           >
                             {tag}
-                            <button
+                            <Button
                               type="button"
                               onClick={() =>
                                 setTags(tags.filter((item) => item !== tag))
@@ -1028,7 +1056,7 @@ export default function ArticlesPage() {
                               className="bg-transparent p-0.5 text-brand-500 hover:text-brand-700"
                             >
                               <X className="h-2.5 w-2.5" />
-                            </button>
+                            </Button>
                           </span>
                         ))}
                       </div>
@@ -1044,7 +1072,7 @@ export default function ArticlesPage() {
                         {seoDescription.length}/160
                       </span>
                     </div>
-                    <textarea
+                    <Textarea
                       rows={3}
                       placeholder="Masukkan ringkasan singkat artikel untuk hasil pencarian Google..."
                       value={seoDescription}
@@ -1056,7 +1084,7 @@ export default function ArticlesPage() {
                   </div>
 
                   <div className="mt-4 flex flex-col gap-2 border-t border-border pt-2">
-                    <button
+                    <Button
                       type="button"
                       disabled={!canSave}
                       onClick={() => saveMutation.mutate(true)}
@@ -1066,8 +1094,8 @@ export default function ArticlesPage() {
                       {saveMutation.isPending
                         ? "Menyimpan..."
                         : "Publikasikan Artikel"}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       disabled={!canSave}
                       onClick={() => saveMutation.mutate(false)}
@@ -1075,7 +1103,7 @@ export default function ArticlesPage() {
                     >
                       <FileEdit className="h-4 w-4" />
                       Simpan ke Draf
-                    </button>
+                    </Button>
                   </div>
                 </div>
 

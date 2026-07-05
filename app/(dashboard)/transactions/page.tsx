@@ -22,6 +22,15 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function TransactionsPage() {
@@ -177,13 +186,15 @@ export default function TransactionsPage() {
       header: () => <span className="sr-only">Aksi</span>,
       cell: ({ row }) => (
         <div className="text-right">
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => setSelectedOrderId(row.original.id)}
-            className="h-8 w-8 rounded-lg border border-border bg-white flex items-center justify-center text-ink-500 hover:bg-surface-2 hover:text-brand-600 transition-colors shadow-sm cursor-pointer"
+            className="h-8 w-8 rounded-lg border border-border bg-white text-ink-500 hover:bg-surface-2 hover:text-brand-600 shadow-sm"
             title="Lihat Detail Escrow"
           >
             <Eye className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -256,7 +267,7 @@ export default function TransactionsPage() {
       <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
         <div className="flex flex-1 max-w-sm relative">
           <Search className="absolute left-3 top-2.5 h-[15px] w-[15px] text-ink-400 pointer-events-none" />
-          <input
+          <Input
             placeholder="Cari ID transaksi, klien, freelancer..."
             value={search}
             onChange={(e) => {
@@ -266,15 +277,17 @@ export default function TransactionsPage() {
             className="w-full h-[38px] pl-9 pr-8 bg-white border border-border rounded-lg text-[13.5px] placeholder:text-ink-400 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium"
           />
           {search && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={() => {
                 setSearch("");
                 setPage(1);
               }}
-              className="absolute right-2.5 top-2.5 p-0.5 text-ink-400 hover:text-ink-700 bg-transparent border-0 cursor-pointer"
+              className="absolute right-2.5 top-2.5 p-0.5 text-ink-400 hover:text-ink-700 bg-transparent border-0"
             >
               <X className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
         </div>
 
@@ -282,19 +295,25 @@ export default function TransactionsPage() {
           <span className="text-xs text-ink-500 font-semibold select-none">
             Status Escrow:
           </span>
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
+            onValueChange={(value) => {
+              if (value) {
+                setStatusFilter(value);
+                setPage(1);
+              }
             }}
-            className="h-[38px] px-3 bg-white border border-border rounded-lg text-[13.5px] font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
           >
-            <option value="Semua">Semua Status</option>
-            <option value="Ditahan">Ditahan</option>
-            <option value="Dicairkan">Dicairkan</option>
-            <option value="Refund">Refund</option>
-          </select>
+            <SelectTrigger className="h-[38px] px-3 bg-white border border-border rounded-lg text-[13.5px] font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Semua">Semua Status</SelectItem>
+              <SelectItem value="Ditahan">Ditahan</SelectItem>
+              <SelectItem value="Dicairkan">Dicairkan</SelectItem>
+              <SelectItem value="Refund">Refund</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -614,12 +633,13 @@ export default function TransactionsPage() {
 
               {/* Modal Footer */}
               <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setSelectedOrderId(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
+                  className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 shadow-sm"
                 >
                   <X className="h-3.5 w-3.5" /> Tutup
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}

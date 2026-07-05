@@ -27,6 +27,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
@@ -217,8 +227,9 @@ export default function SettingsPage() {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
-              <button
+              <Button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveTab(item.id)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
                   isActive
@@ -230,7 +241,7 @@ export default function SettingsPage() {
                   className={`h-4 w-4 ${isActive ? "text-brand-500" : "text-ink-400"}`}
                 />
                 <span>{item.label}</span>
-              </button>
+              </Button>
             );
           })}
         </nav>
@@ -272,14 +283,14 @@ export default function SettingsPage() {
                       Anda.
                     </p>
                     <div className="flex gap-2 mt-2">
-                      <button
+                      <Button
                         type="button"
                         disabled
                         className="px-2.5 py-1.5 border border-border bg-white text-[10px] font-bold text-ink-400 rounded cursor-not-allowed opacity-50"
                         title="Upload dinonaktifkan"
                       >
                         Ganti Foto
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -290,7 +301,7 @@ export default function SettingsPage() {
                     <label className="text-xs font-bold text-ink-700">
                       Nama Lengkap
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -303,7 +314,7 @@ export default function SettingsPage() {
                     <label className="text-xs font-bold text-ink-700">
                       Alamat Email (Akun)
                     </label>
-                    <input
+                    <Input
                       type="email"
                       value={profile?.email || ""}
                       className="w-full h-10 px-3 bg-surface-2 border border-border rounded-lg text-xs text-ink-450 font-medium cursor-not-allowed"
@@ -315,7 +326,7 @@ export default function SettingsPage() {
                     <label className="text-xs font-bold text-ink-700">
                       Nomor Telepon
                     </label>
-                    <input
+                    <Input
                       type="text"
                       placeholder="Contoh: 081234567890"
                       value={phone}
@@ -338,7 +349,7 @@ export default function SettingsPage() {
                   <label className="text-xs font-bold text-ink-700">
                     Biografi Diri
                   </label>
-                  <textarea
+                  <Textarea
                     rows={4}
                     placeholder="Tuliskan biografi singkat mengenai diri Anda..."
                     value={bio}
@@ -348,7 +359,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end pt-3">
-                  <button
+                  <Button
                     type="submit"
                     disabled={updateProfileMutation.isPending}
                     className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -356,7 +367,7 @@ export default function SettingsPage() {
                     {updateProfileMutation.isPending
                       ? "Menyimpan..."
                       : "Simpan Perubahan"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -383,7 +394,7 @@ export default function SettingsPage() {
                 <label className="text-xs font-bold text-ink-700">
                   Password Lama
                 </label>
-                <input
+                <Input
                   type="password"
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
@@ -396,7 +407,7 @@ export default function SettingsPage() {
                 <label className="text-xs font-bold text-ink-700">
                   Password Baru
                 </label>
-                <input
+                <Input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -409,7 +420,7 @@ export default function SettingsPage() {
                 <label className="text-xs font-bold text-ink-700">
                   Konfirmasi Password Baru
                 </label>
-                <input
+                <Input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -419,7 +430,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex justify-end pt-3">
-                <button
+                <Button
                   type="submit"
                   disabled={changePasswordMutation.isPending}
                   className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -427,7 +438,7 @@ export default function SettingsPage() {
                   {changePasswordMutation.isPending
                     ? "Memproses..."
                     : "Ganti Password"}
-                </button>
+                </Button>
               </div>
             </form>
 
@@ -447,7 +458,8 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <button
+                <Button
+                  type="button"
                   onClick={() => {
                     setIs2FAEnabled((prev) => !prev);
                     toast.success(
@@ -463,7 +475,7 @@ export default function SettingsPage() {
                   }`}
                 >
                   {is2FAEnabled ? "Aktif" : "Nonaktif"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -521,21 +533,21 @@ export default function SettingsPage() {
                     >
                       <td className="py-2.5 px-4 text-ink-700">{evt}</td>
                       <td className="text-center py-2.5 px-4">
-                        <input
+                        <Input
                           type="checkbox"
                           defaultChecked
                           className="h-4 w-4 accent-brand-500 cursor-pointer"
                         />
                       </td>
                       <td className="text-center py-2.5 px-4">
-                        <input
+                        <Input
                           type="checkbox"
                           defaultChecked
                           className="h-4 w-4 accent-brand-500 cursor-pointer"
                         />
                       </td>
                       <td className="text-center py-2.5 px-4">
-                        <input
+                        <Input
                           type="checkbox"
                           className="h-4 w-4 accent-brand-500 cursor-pointer"
                         />
@@ -563,20 +575,20 @@ export default function SettingsPage() {
                     >
                       <td className="py-2.5 px-4 text-ink-700">{evt}</td>
                       <td className="text-center py-2.5 px-4">
-                        <input
+                        <Input
                           type="checkbox"
                           defaultChecked
                           className="h-4 w-4 accent-brand-500 cursor-pointer"
                         />
                       </td>
                       <td className="text-center py-2.5 px-4">
-                        <input
+                        <Input
                           type="checkbox"
                           className="h-4 w-4 accent-brand-500 cursor-pointer"
                         />
                       </td>
                       <td className="text-center py-2.5 px-4">
-                        <input
+                        <Input
                           type="checkbox"
                           defaultChecked
                           className="h-4 w-4 accent-brand-500 cursor-pointer"
@@ -589,7 +601,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex justify-end pt-2">
-              <button
+              <Button
                 type="button"
                 onClick={() =>
                   toast.success("Preferensi notifikasi berhasil disimpan")
@@ -597,7 +609,7 @@ export default function SettingsPage() {
                 className="h-10 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs shadow-sm transition-colors cursor-pointer"
               >
                 Simpan Preferensi
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -615,12 +627,13 @@ export default function SettingsPage() {
                   jasa.
                 </p>
               </div>
-              <button
+              <Button
+                type="button"
                 onClick={() => setIsAddSkillOpen(true)}
                 className="h-9 px-3.5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
               >
                 <Plus className="h-4 w-4" /> Tambah Kompetensi
-              </button>
+              </Button>
             </div>
 
             {/* List skills */}
@@ -665,7 +678,8 @@ export default function SettingsPage() {
                           {formatDate(skill.createdAt).split(" ")[0]}
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <button
+                          <Button
+                            type="button"
                             onClick={() => {
                               if (
                                 confirm(
@@ -679,7 +693,7 @@ export default function SettingsPage() {
                             title="Hapus Kompetensi"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -713,7 +727,7 @@ export default function SettingsPage() {
                     <label className="text-xs font-bold text-ink-700">
                       Nama Kompetensi
                     </label>
-                    <input
+                    <Input
                       placeholder="Contoh: Flutter Mobile App"
                       value={newSkillName}
                       onChange={(e) => setNewSkillName(e.target.value)}
@@ -726,37 +740,41 @@ export default function SettingsPage() {
                     <label className="text-xs font-bold text-ink-700">
                       Kategori Jasa
                     </label>
-                    <select
+                    <Select
                       value={newSkillCategoryId || ""}
-                      onChange={(e) =>
-                        setNewSkillCategoryId(e.target.value || undefined)
+                      onValueChange={(value) =>
+                        setNewSkillCategoryId(value || undefined)
                       }
-                      className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-xs font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer"
                     >
-                      <option value="">Pilih Kategori (opsional)</option>
-                      {kategoriList.map((kat) => (
-                        <option key={kat.id} value={kat.id}>
-                          {kat.name}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full h-[38px] px-3 bg-white border border-border rounded-lg text-xs font-medium text-ink-700 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all cursor-pointer">
+                        <SelectValue placeholder="Pilih Kategori (opsional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Pilih Kategori (opsional)</SelectItem>
+                        {kategoriList.map((kat) => (
+                          <SelectItem key={kat.id} value={kat.id}>
+                            {kat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="flex justify-end gap-2 pt-2 border-t border-border mt-4">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIsAddSkillOpen(false)}
                       className="px-4 py-2 text-xs font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm"
                     >
                       Batal
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
                       disabled={addSkillMutation.isPending}
                       className="px-4 py-2 text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-colors cursor-pointer shadow-sm disabled:opacity-50"
                     >
                       {addSkillMutation.isPending ? "Menambahkan..." : "Tambah"}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </DialogContent>
@@ -777,14 +795,15 @@ export default function SettingsPage() {
                   platform.
                 </p>
               </div>
-              <button
+              <Button
+                type="button"
                 onClick={() => {
                   toast.success("Log aktivitas berhasil diekspor (CSV)");
                 }}
                 className="h-9 px-3.5 border border-border bg-white text-[11px] font-bold text-ink-700 rounded-lg hover:bg-surface-3 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <Download className="h-4 w-4 text-ink-450" /> Ekspor Log
-              </button>
+              </Button>
             </div>
 
             {isLoadingAudit ? (

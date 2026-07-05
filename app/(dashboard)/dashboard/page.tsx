@@ -33,6 +33,7 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState<"7H" | "30H" | "90H" | "1T">("30H");
@@ -234,21 +235,24 @@ export default function DashboardPage() {
             </div>
 
             {/* Time Toggle */}
-            <div className="flex bg-surface-3 p-0.5 rounded-lg border border-border/40 select-none">
-              {(["7H", "30H", "90H", "1T"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setPeriod(t)}
-                  className={`px-2 py-1 text-[10.5px] font-bold rounded-md transition-all cursor-pointer ${
-                    period === t
-                      ? "bg-white text-ink-900 shadow-sm font-extrabold"
-                      : "text-ink-500 hover:text-ink-900"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              value={period}
+              onValueChange={(value) =>
+                setPeriod(value as "7H" | "30H" | "90H" | "1T")
+              }
+            >
+              <TabsList className="flex bg-surface-3 p-0.5 rounded-lg border border-border/40 select-none h-auto">
+                {(["7H", "30H", "90H", "1T"] as const).map((t) => (
+                  <TabsTrigger
+                    key={t}
+                    value={t}
+                    className="px-2 py-1 text-[10.5px] font-bold rounded-md transition-all text-ink-500 hover:text-ink-900 h-auto data-active:bg-white data-active:text-ink-900 data-active:shadow-sm data-active:font-extrabold"
+                  >
+                    {t}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </div>
 
           {/* Aggregated values above line chart */}
