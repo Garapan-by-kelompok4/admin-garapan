@@ -25,7 +25,7 @@ export function SettingsSidebar({
   onTabChange,
 }: SettingsSidebarProps) {
   return (
-    <div className="w-full md:w-[240px] bg-white border border-border rounded-xl p-2.5 flex-shrink-0 shadow-sh-1">
+    <div className="w-full shrink-0 md:w-[240px] bg-white border border-border rounded-xl p-2.5 shadow-sh-1">
       <nav className="flex flex-col gap-0.5">
         {sidebarItems.map((item) => {
           const Icon = item.icon;
@@ -34,16 +34,16 @@ export function SettingsSidebar({
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-bold transition-all cursor-pointer ${
                 isActive
                   ? "bg-brand-50 text-brand-600 font-extrabold"
                   : "text-ink-700 hover:bg-surface-3 hover:text-ink-900"
               }`}
             >
               <Icon
-                className={`h-4 w-4 ${isActive ? "text-brand-500" : "text-ink-400"}`}
+                className={`h-4 w-4 shrink-0 ${isActive ? "text-brand-500" : "text-ink-400"}`}
               />
-              <span>{item.label}</span>
+              <span className="min-w-0 leading-snug">{item.label}</span>
             </button>
           );
         })}

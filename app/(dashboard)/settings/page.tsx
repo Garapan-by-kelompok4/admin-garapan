@@ -136,10 +136,10 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 items-start select-none">
+    <div className="flex min-w-0 flex-col gap-5 md:flex-row md:gap-6 md:items-start select-none">
       <SettingsSidebar activeTab={activeTab} onTabChange={handleTabChange} />
 
-      <div className="flex-1 w-full bg-white border border-border rounded-xl p-5 md:p-6 shadow-sh-1 min-h-[480px]">
+      <div className="min-w-0 flex-1 w-full bg-white border border-border rounded-xl p-4 sm:p-5 md:p-6 shadow-sh-1 min-h-[480px]">
         {activeTab === "profile" && (
           <div className="space-y-6">
             <div className="border-b border-border pb-3">

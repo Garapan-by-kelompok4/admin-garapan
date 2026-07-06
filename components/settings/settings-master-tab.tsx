@@ -36,7 +36,7 @@ export function SettingsMasterTab({
 }: SettingsMasterTabProps) {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-border pb-3 gap-4">
+      <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div>
           <h3 className="font-heading font-bold text-sm text-ink-900">
             Master Data Kompetensi
@@ -59,7 +59,7 @@ export function SettingsMasterTab({
           Memuat kompetensi...
         </div>
       ) : (
-        <div className="border border-border rounded-lg bg-white overflow-hidden shadow-sh-1 select-none">
+        <div className="max-w-full overflow-x-auto rounded-lg border border-border bg-white shadow-sh-1 select-none">
           <table className="w-full border-collapse text-left text-xs font-medium">
             <thead>
               <tr className="bg-surface-2 border-b border-border">
