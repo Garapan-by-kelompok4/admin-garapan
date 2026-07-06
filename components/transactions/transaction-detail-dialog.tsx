@@ -4,6 +4,13 @@ import { CheckCircle2, Package, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { OrderDetail } from "@/lib/api/orders";
 import { avatarClass, initials } from "@/lib/avatar";
+import {
+  mobileSheetBodyPaddingClass,
+  mobileSheetDialogClass,
+  mobileSheetHandleClass,
+  mobileSheetScrollClass,
+  mobileSheetShellClass,
+} from "@/lib/mobile-sheet";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { TransactionStatusPill } from "./transaction-status-pill";
 
@@ -25,24 +32,32 @@ export function TransactionDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="!w-[min(980px,96vw)] !max-w-none sm:!max-w-none rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3"
+        className={`${mobileSheetDialogClass} sm:!w-[min(980px,96vw)]`}
         showCloseButton={false}
       >
         {isLoading ? (
-          <div className="flex flex-col h-full max-h-[85vh]">
-            <div className="px-5 py-4 border-b border-border bg-surface-2/50">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-4 bg-surface-2 rounded animate-pulse w-48" />
-                  <div className="h-5 bg-surface-2 rounded-full animate-pulse w-24" />
+          <div className={mobileSheetShellClass}>
+            <div className={mobileSheetHandleClass} aria-hidden>
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+            <div className="shrink-0 border-b border-border bg-surface-2/50 px-4 py-3.5 sm:px-5 sm:py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 bg-surface-2 rounded animate-pulse w-48" />
+                    <div className="h-5 bg-surface-2 rounded-full animate-pulse w-24" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 bg-surface-2 rounded animate-pulse w-28" />
+                    <div className="h-3 bg-surface-2 rounded animate-pulse w-32" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-3 bg-surface-2 rounded animate-pulse w-28" />
-                  <div className="h-3 bg-surface-2 rounded animate-pulse w-32" />
-                </div>
+                <div className="h-8 w-8 shrink-0 rounded-lg bg-surface-2 animate-pulse" />
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div
+              className={`${mobileSheetScrollClass} ${mobileSheetBodyPaddingClass} space-y-5`}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[1, 2].map((i) => (
                   <div
@@ -85,33 +100,42 @@ export function TransactionDetailDialog({
                 </div>
               </div>
             </div>
-            <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end">
-              <div className="h-9 w-20 bg-surface-2 rounded-lg animate-pulse" />
-            </div>
           </div>
         ) : orderDetail ? (
-          <div className="flex flex-col h-full max-h-[85vh]">
-            <div className="px-5 py-4 border-b border-border bg-surface-2/50">
+          <div className={mobileSheetShellClass}>
+            <div className={mobileSheetHandleClass} aria-hidden>
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+            <div className="shrink-0 border-b border-border bg-surface-2/50 px-4 py-3.5 sm:px-5 sm:py-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="font-heading font-bold text-[15px] text-ink-900 tracking-tight leading-tight">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="font-heading text-[15px] font-bold leading-tight tracking-tight text-ink-900">
                       Detail Transaksi Escrow
                     </h2>
                     <TransactionStatusPill status={orderDetail.escrowStatus} />
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-ink-400 font-medium">
-                    <span className="font-mono text-ink-500 bg-surface-3 px-1.5 py-0.5 rounded select-all">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-ink-400">
+                    <span className="select-all rounded bg-surface-3 px-1.5 py-0.5 font-mono text-ink-500">
                       {orderDetail.id.slice(0, 8)}…
                     </span>
                     <span>•</span>
                     <span>Dibuat {formatDate(orderDetail.createdAt)}</span>
                   </div>
                 </div>
+                <button
+                  onClick={handleClose}
+                  aria-label="Tutup dialog"
+                  className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-ink-500 shadow-sm transition-colors hover:bg-surface-2 hover:text-ink-900"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            <div
+              className={`${mobileSheetScrollClass} ${mobileSheetBodyPaddingClass} space-y-4`}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1 space-y-2.5">
                   <div className="flex items-center gap-2">
@@ -127,10 +151,10 @@ export function TransactionDetailDialog({
                       {initials(orderDetail.clientName)}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold text-ink-900 truncate">
+                      <div className="truncate text-sm font-semibold text-ink-900">
                         {orderDetail.clientName}
                       </div>
-                      <div className="text-[11px] text-ink-400 mt-0.5 font-medium font-mono">
+                      <div className="mt-0.5 break-all font-mono text-[11px] font-medium text-ink-400">
                         {orderDetail.clientId}
                       </div>
                     </div>
@@ -151,10 +175,10 @@ export function TransactionDetailDialog({
                       {initials(orderDetail.studentName)}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold text-ink-900 truncate">
+                      <div className="truncate text-sm font-semibold text-ink-900">
                         {orderDetail.studentName}
                       </div>
-                      <div className="text-[11px] text-ink-400 mt-0.5 font-medium font-mono">
+                      <div className="mt-0.5 break-all font-mono text-[11px] font-medium text-ink-400">
                         {orderDetail.studentId}
                       </div>
                     </div>
@@ -170,12 +194,12 @@ export function TransactionDetailDialog({
                     Detail Layanan Jasa
                   </span>
                 </div>
-                <div className="flex justify-between items-start gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <h4 className="text-sm font-semibold text-ink-900 leading-tight">
+                    <h4 className="text-sm font-semibold leading-snug text-ink-900">
                       {orderDetail.serviceTitle}
                     </h4>
-                    <p className="text-xs text-ink-500 font-medium mt-1">
+                    <p className="mt-1 text-xs font-medium text-ink-500">
                       Paket:{" "}
                       <span className="font-semibold text-ink-800">
                         {orderDetail.packageName || "Default"}
@@ -184,8 +208,8 @@ export function TransactionDetailDialog({
                         ` — ${orderDetail.packageDescription}`}
                     </p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <span className="text-lg font-extrabold text-ink-900 tracking-tight">
+                  <div className="shrink-0 sm:text-right">
+                    <span className="text-lg font-extrabold tracking-tight text-ink-900">
                       {formatCurrency(orderDetail.amount)}
                     </span>
                   </div>
@@ -301,15 +325,6 @@ export function TransactionDetailDialog({
                   )}
                 </div>
               </div>
-            </div>
-
-            <div className="px-5 py-3.5 border-t border-border bg-surface-2/40 flex justify-end">
-              <button
-                onClick={handleClose}
-                className="px-4 py-2 text-sm font-semibold border border-border bg-white rounded-lg text-ink-700 hover:bg-surface-3 transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
-              >
-                <X className="h-3.5 w-3.5" /> Tutup
-              </button>
             </div>
           </div>
         ) : null}
