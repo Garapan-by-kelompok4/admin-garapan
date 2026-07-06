@@ -62,13 +62,13 @@ export function ProfileForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-      <div className="flex items-center gap-4 border-b border-border/50 pb-5">
+      <div className="flex items-start gap-4 border-b border-border/50 pb-5">
         <div
-          className={`flex h-16 w-16 items-center justify-center rounded-full border border-border text-xl font-bold text-white shadow-sm ${avatarClass(fullName || "AD")}`}
+          className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-white shadow-sm ${avatarClass(fullName || "AD")}`}
         >
           {initials(fullName || "AD")}
         </div>
-        <div>
+        <div className="min-w-0">
           <h4 className="font-heading text-sm font-bold text-ink-900">
             Foto Profil
           </h4>

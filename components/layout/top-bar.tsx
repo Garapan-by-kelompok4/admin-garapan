@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Flag,
   LogOut,
+  Menu,
   MessageCircle,
   Search,
   ShieldAlert,
@@ -33,6 +34,12 @@ import { pageTitle } from "@/lib/nav";
 import { CHAT_POLL_INTERVAL_MS } from "@/lib/query/polling";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
+import { SidebarContent } from "@/components/layout/sidebar";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 export function TopBar() {
   const pathname = usePathname();
@@ -55,6 +62,7 @@ export function TopBar() {
     .slice(0, 3);
   const totalNotificationCount =
     opsCounts.moderation + opsCounts.disputes + opsCounts.chat;
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -75,17 +83,38 @@ export function TopBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-[62px] items-center gap-5 border-b border-border bg-surface/85 px-7 backdrop-blur-md backdrop-saturate-150">
-      <div className="min-w-[180px]">
+    <header className="sticky top-0 z-40 flex h-[58px] items-center gap-3 border-b border-border bg-surface/85 px-4 backdrop-blur-md backdrop-saturate-150 md:h-[62px] md:gap-5 md:px-7">
+      <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Buka navigasi"
+          onClick={() => setIsMobileNavOpen(true)}
+          className="shrink-0 text-ink-600 hover:bg-surface-3 md:hidden"
+        >
+          <Menu className="size-[19px]" strokeWidth={1.8} />
+        </Button>
+        <SheetContent
+          side="left"
+          className="w-[286px] max-w-[86vw] gap-0 p-0"
+          showCloseButton={false}
+        >
+          <SheetTitle className="sr-only">Navigasi admin</SheetTitle>
+          <SidebarContent onNavigate={() => setIsMobileNavOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      <div className="min-w-0 md:min-w-[180px]">
         <div className="text-xs text-ink-400">GARAPAN · Admin</div>
-        <div className="font-display text-base font-bold tracking-tight text-ink-900">
+        <div className="truncate font-display text-base font-bold tracking-tight text-ink-900">
           {title}
         </div>
       </div>
 
       <form
         onSubmit={handleSearchSubmit}
-        className="flex h-9 max-w-[520px] flex-1 items-center gap-2 rounded-[9px] border border-border bg-surface-2 px-3 text-ink-400"
+        className="hidden h-9 max-w-[520px] flex-1 items-center gap-2 rounded-[9px] border border-border bg-surface-2 px-3 text-ink-400 md:flex"
       >
         <Search className="size-4 shrink-0" strokeWidth={1.75} />
         <Input
@@ -121,7 +150,7 @@ export function TopBar() {
           <DropdownMenuContent
             align="end"
             sideOffset={8}
-            className="w-[360px] p-0"
+            className="w-[min(360px,calc(100vw-24px))] p-0"
           >
             <div className="border-b border-border px-4 py-3">
               <div className="flex items-center justify-between gap-3">
@@ -240,7 +269,7 @@ export function TopBar() {
             >
               {initials(name)}
             </span>
-            <span className="max-w-[120px] truncate text-[13px] font-semibold text-ink-700">
+            <span className="hidden max-w-[120px] truncate text-[13px] font-semibold text-ink-700 sm:inline">
               {name}
             </span>
             <ChevronDown className="size-3.5 text-ink-400" />

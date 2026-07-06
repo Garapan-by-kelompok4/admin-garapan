@@ -13,11 +13,19 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 export function Sidebar() {
+  return (
+    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col border-r border-border bg-surface md:flex">
+      <SidebarContent />
+    </aside>
+  );
+}
+
+export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const badgeCounts = useOpsBadgeCounts();
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col border-r border-border bg-surface">
+    <>
       {/* Brand */}
       <div className="flex items-center gap-3 border-b border-border px-5 pb-[18px] pt-5">
         <div className="grid size-[34px] place-items-center rounded-[9px] bg-brand-mark">
@@ -55,6 +63,7 @@ export function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={onNavigate}
                   className={cn(
                     "mb-0.5 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                     active
@@ -77,6 +86,6 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
-    </aside>
+    </>
   );
 }

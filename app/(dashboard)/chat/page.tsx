@@ -26,7 +26,6 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const [showSessionList] = useState(true);
   const isDocumentVisible = useDocumentVisible();
 
   const { data: sessions = [], isLoading: isLoadingSessions } = useQuery({
@@ -55,6 +54,13 @@ export default function ChatPage() {
     }
   };
 
+  const handleBackToSessions = () => {
+    setSelectedSessionId(null);
+    if (requestedSessionId) {
+      router.replace("/chat", { scroll: false });
+    }
+  };
+
   const filteredSessions = useMemo(() => {
     const query = search.toLowerCase();
     return sessions.filter((s) => {
@@ -73,7 +79,7 @@ export default function ChatPage() {
   }, [sessions, search, roleFilter, unreadOnly]);
 
   return (
-    <div className="flex h-[calc(100vh-140px)] border border-border rounded-xl bg-white shadow-sh-2 overflow-hidden select-none">
+    <div className="flex h-[calc(100vh-112px)] overflow-hidden rounded-xl border border-border bg-white shadow-sh-2 select-none md:h-[calc(100vh-140px)]">
       <ChatSessionList
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
@@ -83,7 +89,7 @@ export default function ChatPage() {
         onRoleFilterChange={setRoleFilter}
         unreadOnly={unreadOnly}
         onUnreadOnlyChange={setUnreadOnly}
-        showSessionList={showSessionList}
+        showSessionList
         filteredSessions={filteredSessions}
         isLoadingSessions={isLoadingSessions}
       />
@@ -94,6 +100,7 @@ export default function ChatPage() {
           activeSessionId={activeSessionId}
           activeSession={activeSession}
           onEndSession={handleEndSession}
+          onBackToSessions={handleBackToSessions}
         />
       )}
     </div>

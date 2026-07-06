@@ -17,6 +17,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { UserDetail } from "@/lib/api/users";
 import { UserAvatar } from "@/components/user-avatar";
+import {
+  mobileSheetBodyPaddingClass,
+  mobileSheetDialogClass,
+  mobileSheetHandleClass,
+  mobileSheetScrollClass,
+  mobileSheetShellClass,
+} from "@/lib/mobile-sheet";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { UserStatusPill } from "./user-status-pill";
 
@@ -44,12 +51,15 @@ export function UserDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-[min(1120px,95vw)] sm:max-w-[min(1120px,95vw)] rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3"
+        className={`${mobileSheetDialogClass} sm:!w-[min(1120px,95vw)]`}
         showCloseButton={false}
       >
         {isLoading ? (
-          <div className="flex flex-col h-full max-h-[85vh]">
-            <div className="px-5 py-4 border-b border-border bg-surface-2/50">
+          <div className={mobileSheetShellClass}>
+            <div className={mobileSheetHandleClass} aria-hidden>
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+            <div className="shrink-0 px-4 py-3.5 border-b border-border bg-surface-2/50 sm:px-5 sm:py-4">
               <div className="flex items-center gap-3.5">
                 <div className="h-12 w-12 rounded-full bg-surface-2 animate-pulse flex-shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -59,8 +69,10 @@ export function UserDetailDialog({
                 <div className="h-6 w-16 bg-surface-2 rounded-full animate-pulse flex-shrink-0" />
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              <div className="rounded-xl border border-border bg-white p-6 space-y-5">
+            <div
+              className={`${mobileSheetScrollClass} ${mobileSheetBodyPaddingClass} space-y-5`}
+            >
+              <div className="rounded-xl border border-border bg-white p-4 space-y-5 sm:p-6">
                 <div className="h-3 bg-surface-2 rounded animate-pulse w-32" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {[1, 2, 3, 4].map((i) => (
@@ -99,55 +111,50 @@ export function UserDetailDialog({
             </div>
           </div>
         ) : userDetail ? (
-          <div className="flex flex-col h-full max-h-[85vh]">
-            <div className="px-5 py-4 border-b border-border bg-surface-2/50">
-              <div className="flex items-center gap-4">
+          <div className={mobileSheetShellClass}>
+            <div className={mobileSheetHandleClass} aria-hidden>
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+            <div className="shrink-0 border-b border-border bg-surface-2/50 px-4 py-3.5 sm:px-5 sm:py-4">
+              <div className="flex items-start gap-3">
                 <UserAvatar
                   name={userDetail.fullName}
                   avatarUrl={userDetail.avatarUrl}
-                  className="size-12 border-2 border-white flex-shrink-0"
+                  className="size-11 shrink-0 border-2 border-white sm:size-12"
                 />
 
-                <div className="flex-1 min-w-0">
-                  <h2
-                    className="font-heading font-bold text-[15px] text-ink-900 tracking-tight leading-tight min-w-0"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {userDetail.fullName || "User"}
-                  </h2>
-                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-ink-400 font-medium">
-                    <Mail className="h-3 w-3 flex-shrink-0" />
-                    <span className="min-w-0 truncate">{userDetail.email}</span>
-                    <span className="flex-shrink-0">•</span>
-                    <span className="select-none flex-shrink-0 whitespace-nowrap">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h2 className="font-heading text-[15px] font-bold leading-tight tracking-tight text-ink-900">
+                      {userDetail.fullName || "User"}
+                    </h2>
+                    <button
+                      onClick={handleClose}
+                      aria-label="Tutup dialog"
+                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-ink-500 shadow-sm transition-colors hover:bg-surface-2 hover:text-ink-900"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-ink-400">
+                    <Mail className="h-3 w-3 shrink-0" />
+                    <span className="min-w-0 break-all">{userDetail.email}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="select-none text-[11px] font-medium text-ink-500">
                       {userDetail.role === "MAHASISWA" ? "Mahasiswa" : "Klien"}
                     </span>
+                    <UserStatusPill user={userDetail} />
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 flex-shrink-0">
-                  <UserStatusPill user={userDetail} />
-                  <button
-                    onClick={handleClose}
-                    aria-label="Tutup dialog"
-                    className="h-8 w-8 rounded-lg border border-border bg-white flex items-center justify-center text-ink-500 hover:bg-surface-2 hover:text-ink-900 transition-colors cursor-pointer shadow-sm flex-shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
             </div>
 
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-6 space-y-6"
+              className={`${mobileSheetScrollClass} ${mobileSheetBodyPaddingClass} space-y-5`}
             >
-              <div className="rounded-xl border border-border bg-white p-6 shadow-sh-1">
+              <div className="rounded-xl border border-border bg-white p-4 shadow-sh-1 sm:p-6">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-400 mb-5">
                   Ringkasan User
                 </h3>
@@ -216,8 +223,8 @@ export function UserDetailDialog({
                   <span className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
                     Bio
                   </span>
-                  <div className="mt-2 max-h-[160px] overflow-y-auto">
-                    <p className="text-sm text-ink-700 leading-relaxed">
+                  <div className="mt-2">
+                    <p className="text-sm leading-relaxed text-ink-700">
                       {userDetail.bio ||
                         "Tidak ada biodata diri yang dicantumkan."}
                     </p>
@@ -237,20 +244,12 @@ export function UserDetailDialog({
                         key={order.id}
                         className="border border-border rounded-lg p-4 hover:bg-surface-2/30 transition-colors"
                       >
-                        <div className="flex justify-between items-start gap-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0 flex-1">
-                            <div
-                              className="text-sm font-semibold text-ink-900 min-w-0"
-                              style={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                              }}
-                            >
+                            <div className="text-sm font-semibold leading-snug text-ink-900">
                               {order.title}
                             </div>
-                            <div className="text-xs text-ink-400 mt-1.5 flex gap-2">
+                            <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 text-xs text-ink-400">
                               <span className="font-mono">
                                 {order.id.slice(0, 8)}…
                               </span>
@@ -258,12 +257,12 @@ export function UserDetailDialog({
                               <span>{formatDate(order.date)}</span>
                             </div>
                           </div>
-                          <div className="text-right flex flex-col items-end gap-1.5 flex-shrink-0">
+                          <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
                             <span className="text-base font-bold text-ink-900">
                               {formatCurrency(order.amount)}
                             </span>
                             <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full select-none ${
+                              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold select-none ${
                                 order.status === "Selesai" ||
                                 order.status === "COMPLETED"
                                   ? "bg-success-50 text-success-700"
@@ -305,20 +304,12 @@ export function UserDetailDialog({
                         key={rep.id}
                         className="border border-border rounded-lg p-4 hover:bg-surface-2/30 transition-colors"
                       >
-                        <div className="flex justify-between items-start gap-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0 flex-1">
-                            <div
-                              className="text-sm font-semibold text-ink-900"
-                              style={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                              }}
-                            >
+                            <div className="text-sm font-semibold text-ink-900">
                               {rep.type}
                             </div>
-                            <div className="text-xs text-ink-400 mt-1.5 flex gap-2">
+                            <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 text-xs text-ink-400">
                               <span className="font-mono">
                                 {rep.id.slice(0, 8)}…
                               </span>

@@ -40,7 +40,7 @@ export function TransactionAreaChart({
 
   return (
     <div className="lg:col-span-2 bg-white border border-border rounded-xl p-5 space-y-4 shadow-sh-1">
-      <div className="flex justify-between items-center border-b border-border pb-3">
+      <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="font-heading font-bold text-sm text-ink-900">
             Nilai Transaksi Harian
@@ -53,11 +53,11 @@ export function TransactionAreaChart({
         <ChartPeriodToggle period={period} onPeriodChange={onPeriodChange} />
       </div>
 
-      <div className="grid grid-cols-3 gap-4 py-1 select-none">
+      <div className="grid grid-cols-1 gap-3 py-1 select-none sm:grid-cols-3 sm:gap-4">
         {summary.map((agg) => (
           <div
             key={agg.label}
-            className="border-r border-border last:border-r-0"
+            className="border-b border-border pb-2 last:border-b-0 sm:border-b-0 sm:border-r sm:pb-0 sm:last:border-r-0"
           >
             <div className="text-[11px] text-ink-400 font-semibold">
               {agg.label}

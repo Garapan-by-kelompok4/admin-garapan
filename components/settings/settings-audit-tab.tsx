@@ -16,7 +16,7 @@ export function SettingsAuditTab({
 }: SettingsAuditTabProps) {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-border pb-3 gap-4">
+      <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div>
           <h3 className="font-heading font-bold text-sm text-ink-900">
             Log Aktivitas Admin

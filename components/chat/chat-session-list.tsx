@@ -72,11 +72,11 @@ export function ChatSessionList({
     <div
       className={`${
         activeSessionId
-          ? "w-[320px] border-r border-slate-200 shadow-[4px_0_12px_rgba(0,0,0,0.05)] z-10"
+          ? "hidden md:flex md:w-[320px] md:border-r md:border-slate-200 md:shadow-[4px_0_12px_rgba(0,0,0,0.05)] md:z-10"
           : "w-full"
       } flex flex-col h-full bg-white flex-shrink-0 transition-all duration-300 ${
         activeSessionId && !showSessionList
-          ? "w-0 overflow-hidden border-r-0"
+          ? "md:w-0 md:overflow-hidden md:border-r-0"
           : ""
       }`}
     >

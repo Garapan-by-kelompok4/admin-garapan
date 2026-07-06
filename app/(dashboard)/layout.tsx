@@ -13,7 +13,9 @@ export default function DashboardLayout({
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar />
-          <main className="flex-1 px-8 pb-12 pt-7">{children}</main>
+          <main className="flex-1 px-4 pb-8 pt-4 md:px-8 md:pb-12 md:pt-7">
+            {children}
+          </main>
         </div>
       </div>
     </AuthProvider>

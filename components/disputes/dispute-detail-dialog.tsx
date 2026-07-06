@@ -16,6 +16,13 @@ import {
   ResolveDisputePayload,
 } from "@/lib/api/disputes";
 import { avatarClass, initials } from "@/lib/avatar";
+import {
+  mobileSheetBodyPaddingClass,
+  mobileSheetDialogClass,
+  mobileSheetHandleClass,
+  mobileSheetScrollClass,
+  mobileSheetShellClass,
+} from "@/lib/mobile-sheet";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   DisputePriorityPill,
@@ -50,7 +57,7 @@ function MetadataItem({
         {label}
       </div>
       <div
-        className={`mt-1 truncate text-sm font-semibold text-ink-900 ${mono ? "font-mono" : ""}`}
+        className={`mt-1 text-sm font-semibold text-ink-900 ${mono ? "break-all font-mono" : "break-words"}`}
       >
         {value}
       </div>
@@ -86,14 +93,10 @@ function PersonCard({
           {initials(name)}
         </div>
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-ink-900">
-            {name}
-          </div>
-          <div className="mt-0.5 truncate text-[11px] text-ink-400">
-            {email}
-          </div>
+          <div className="text-sm font-semibold text-ink-900">{name}</div>
+          <div className="mt-0.5 break-all text-[11px] text-ink-400">{email}</div>
           {id && (
-            <div className="mt-1 font-mono text-[10px] font-semibold text-ink-400">
+            <div className="mt-1 break-all font-mono text-[10px] font-semibold text-ink-400">
               {id.slice(0, 8)}…
             </div>
           )}
@@ -116,12 +119,15 @@ export function DisputeDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="!w-[min(1180px,96vw)] !max-w-none sm:!max-w-none rounded-xl p-0 overflow-hidden border-border bg-white shadow-sh-3"
+        className={`${mobileSheetDialogClass} sm:!w-[min(1180px,96vw)]`}
         showCloseButton={false}
       >
         {isLoading ? (
-          <div className="flex flex-col h-full max-h-[85vh]">
-            <div className="border-b border-border bg-surface-2/50 px-6 py-5">
+          <div className={mobileSheetShellClass}>
+            <div className={mobileSheetHandleClass} aria-hidden>
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+            <div className="shrink-0 border-b border-border bg-surface-2/50 px-4 py-3.5 sm:px-6 sm:py-5">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="h-4 bg-surface-2 rounded animate-pulse w-40" />
@@ -135,7 +141,9 @@ export function DisputeDetailDialog({
                 </div>
               </div>
             </div>
-            <div className="grid flex-1 grid-cols-1 gap-5 overflow-y-auto bg-surface-2/40 p-6 lg:grid-cols-[1fr_360px]">
+            <div
+              className={`${mobileSheetScrollClass} grid grid-cols-1 gap-4 bg-surface-2/40 ${mobileSheetBodyPaddingClass} lg:grid-cols-[1fr_360px]`}
+            >
               <div className="space-y-5">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {[1, 2].map((i) => (
@@ -175,24 +183,27 @@ export function DisputeDetailDialog({
             </div>
           </div>
         ) : disputeDetail ? (
-          <div className="flex flex-col h-full max-h-[85vh]">
-            <div className="border-b border-border bg-white px-6 py-5">
+          <div className={mobileSheetShellClass}>
+            <div className={mobileSheetHandleClass} aria-hidden>
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+            <div className="shrink-0 border-b border-border bg-white px-4 py-3.5 sm:px-6 sm:py-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-heading text-xl font-bold tracking-tight text-ink-900">
+                    <h2 className="font-heading text-lg font-bold tracking-tight text-ink-900 sm:text-xl">
                       Dispute & Laporan
                     </h2>
                     <DisputePriorityPill priority={disputeDetail.priority} />
                     <DisputeStatusPill status={disputeDetail.status} />
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-ink-400">
-                    <span className="font-mono text-ink-500 bg-surface-3 px-1.5 py-0.5 rounded select-all">
+                    <span className="select-all rounded bg-surface-3 px-1.5 py-0.5 font-mono text-ink-500">
                       {disputeDetail.id.slice(0, 8)}…
                     </span>
                     <span>•</span>
                     <span>Transaksi</span>
-                    <span className="font-mono font-bold text-brand-600 select-all">
+                    <span className="select-all font-mono font-bold text-brand-600">
                       {disputeDetail.orderId?.slice(0, 8)}…
                     </span>
                     <span>•</span>
@@ -214,9 +225,11 @@ export function DisputeDetailDialog({
               </div>
             </div>
 
-            <div className="grid flex-1 grid-cols-1 gap-5 overflow-y-auto bg-surface-2/50 p-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-              <main className="min-w-0 space-y-5">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div
+              className={`${mobileSheetScrollClass} grid grid-cols-1 gap-4 bg-surface-2/50 ${mobileSheetBodyPaddingClass} lg:grid-cols-[minmax(0,1fr)_360px]`}
+            >
+              <main className="min-w-0 space-y-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
                   <MetadataItem
                     icon={<ReceiptText className="h-3.5 w-3.5" />}
                     label="ID Laporan"
@@ -258,7 +271,7 @@ export function DisputeDetailDialog({
                   />
                 </div>
 
-                <section className="rounded-lg border border-border bg-white p-5 shadow-sh-1">
+                <section className="rounded-lg border border-border bg-white p-4 shadow-sh-1 sm:p-5">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-brand-500" />
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-400">

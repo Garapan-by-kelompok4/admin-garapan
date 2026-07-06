@@ -15,20 +15,20 @@ export function DashboardActivityFeed({
 }: DashboardActivityFeedProps) {
   return (
     <div className="lg:col-span-2 bg-white border border-border rounded-xl overflow-hidden shadow-sh-1">
-      <div className="p-4 bg-white border-b border-border flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 border-b border-border bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h3 className="font-heading font-bold text-sm text-ink-900">
             Aktivitas Audit Log Terbaru
           </h3>
-          <p className="text-[11px] text-ink-400 font-medium mt-0.5">
+          <p className="mt-0.5 text-[11px] font-medium leading-5 text-ink-400">
             Audit otomatis aktivitas admin dan peristiwa penting di marketplace.
           </p>
         </div>
         <Link
           href="/settings?tab=audit"
-          className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-0.5 cursor-pointer"
+          className="inline-flex h-8 w-fit shrink-0 items-center gap-1 rounded-lg border border-brand-100 bg-brand-50 px-2.5 text-xs font-bold whitespace-nowrap text-brand-600 hover:text-brand-700 sm:border-0 sm:bg-transparent sm:px-0"
         >
-          Lihat Semua <ArrowRight className="h-3 w-3" />
+          Lihat Semua <ArrowRight className="h-3 w-3 shrink-0" />
         </Link>
       </div>
 
@@ -55,7 +55,7 @@ export function DashboardActivityFeed({
             return (
               <div
                 key={act.id}
-                className="p-3.5 px-5 flex items-start gap-4 hover:bg-surface-2 transition-all"
+                className="flex items-start gap-3 p-4 transition-all hover:bg-surface-2 sm:gap-4 sm:px-5"
               >
                 <div
                   className={`h-8 w-8 rounded-lg flex items-center justify-center border ${badgeStyle} flex-shrink-0`}
@@ -63,14 +63,14 @@ export function DashboardActivityFeed({
                   <Activity className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs text-ink-700 font-medium leading-relaxed">
+                  <div className="text-xs font-medium leading-relaxed text-ink-700">
                     <span className="font-bold text-ink-900">
                       {act.actorName}
                     </span>{" "}
                     ({act.actorRole}): {act.message}
                   </div>
-                  <div className="text-[10px] text-ink-450 mt-1 font-medium flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                  <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] font-medium text-ink-450">
+                    <Clock className="h-3 w-3 shrink-0" />
                     {new Date(act.createdAt).toLocaleTimeString("id-ID", {
                       hour: "2-digit",
                       minute: "2-digit",
