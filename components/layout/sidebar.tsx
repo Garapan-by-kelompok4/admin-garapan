@@ -1,17 +1,12 @@
 "use client";
 
-import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { useLogout } from "@/hooks/use-logout";
 import { useOpsBadgeCounts } from "@/hooks/use-ops-badge-counts";
-import { avatarClass, initials } from "@/lib/avatar";
 import { NAV_GROUPS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/store/auth-store";
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -19,8 +14,6 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const user = useAuthStore((state) => state.user);
-  const logout = useLogout();
   const badgeCounts = useOpsBadgeCounts();
 
   return (
@@ -84,34 +77,6 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
-
-      {/* Footer */}
-      <div className="flex items-center gap-3 border-t border-border p-3">
-        <div
-          className={cn(
-            "grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
-            avatarClass(user?.name ?? "Admin"),
-          )}
-        >
-          {initials(user?.name ?? "Admin")}
-        </div>
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="truncate text-[13px] font-semibold text-ink-900">
-            {user?.name ?? "Admin"}
-          </div>
-          <div className="truncate text-xs text-ink-400">Administrator</div>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          onClick={() => void logout()}
-          title="Keluar"
-          className="size-8 rounded-[7px] bg-surface text-ink-500 hover:bg-surface-3 hover:text-danger-500"
-        >
-          <LogOut className="size-4" strokeWidth={1.75} />
-        </Button>
-      </div>
     </aside>
   );
 }
