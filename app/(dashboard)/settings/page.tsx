@@ -41,7 +41,6 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
   const activeTab: SettingsTabId =
     parseSettingsTab(searchParams.get("tab")) ?? "profile";
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
   const [deleteSkillTarget, setDeleteSkillTarget] = useState<{
     id: string;
@@ -164,10 +163,7 @@ export default function SettingsPage() {
 
         {activeTab === "security" && (
           <div className="space-y-6">
-            <SettingsSecurityTab
-              is2FAEnabled={is2FAEnabled}
-              on2FAToggle={() => setIs2FAEnabled((prev) => !prev)}
-            />
+            <SettingsSecurityTab />
             <ChangePasswordForm
               isPending={changePasswordMutation.isPending}
               onSubmit={(values) => changePasswordMutation.mutate(values)}
