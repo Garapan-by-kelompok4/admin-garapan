@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
 import { chatApi } from "@/lib/api/chat";
 import { ChatRoom } from "@/components/chat/chat-room";
 import {
@@ -15,7 +16,13 @@ import {
 } from "@/lib/query/polling";
 
 export default function ChatPage() {
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedSessionId = searchParams.get("session");
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
+  const activeSessionId = requestedSessionId ?? selectedSessionId;
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -33,6 +40,20 @@ export default function ChatPage() {
   });
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) || null;
+
+  const handleSelectSession = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    if (requestedSessionId) {
+      router.replace("/chat", { scroll: false });
+    }
+  };
+
+  const handleEndSession = () => {
+    setSelectedSessionId(null);
+    if (requestedSessionId) {
+      router.replace("/chat", { scroll: false });
+    }
+  };
 
   const filteredSessions = useMemo(() => {
     const query = search.toLowerCase();
@@ -55,7 +76,7 @@ export default function ChatPage() {
     <div className="flex h-[calc(100vh-140px)] border border-border rounded-xl bg-white shadow-sh-2 overflow-hidden select-none">
       <ChatSessionList
         activeSessionId={activeSessionId}
-        onSelectSession={setActiveSessionId}
+        onSelectSession={handleSelectSession}
         search={search}
         onSearchChange={setSearch}
         roleFilter={roleFilter}
@@ -72,7 +93,7 @@ export default function ChatPage() {
           key={activeSessionId}
           activeSessionId={activeSessionId}
           activeSession={activeSession}
-          onEndSession={() => setActiveSessionId(null)}
+          onEndSession={handleEndSession}
         />
       )}
     </div>
