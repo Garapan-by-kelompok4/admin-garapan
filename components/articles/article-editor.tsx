@@ -69,7 +69,7 @@ export function ArticleEditor({
 }: ArticleEditorProps) {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-border pb-4">
+      <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={onBack}
@@ -98,7 +98,7 @@ export function ArticleEditor({
               placeholder="Judul Artikel..."
               value={title}
               onChange={(event) => onTitleChange(event.target.value)}
-              className="w-full border-b border-border/80 pb-2 font-heading text-2xl font-extrabold tracking-tight text-ink-900 placeholder:text-ink-300 focus:border-brand-400 focus:outline-none"
+              className="w-full border-b border-border/80 pb-2 font-heading text-xl font-extrabold tracking-tight text-ink-900 placeholder:text-ink-300 focus:border-brand-400 focus:outline-none sm:text-2xl"
             />
 
             <div className="space-y-2">
@@ -248,7 +248,7 @@ export function ArticleEditor({
                 />
               </div>
 
-              <div className="mt-4 flex flex-col gap-2 border-t border-border pt-2">
+              <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-4 flex flex-col gap-2 border-t border-border bg-white p-5 pt-3 md:static md:mx-0 md:mb-0 md:p-0 md:pt-2">
                 <button
                   type="button"
                   disabled={!canSave}

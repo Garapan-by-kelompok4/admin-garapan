@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { ordersApi } from "@/lib/api/orders";
-import { getErrorMessage } from "@/lib/utils";
+import { formatCurrency, formatDate, getErrorMessage } from "@/lib/utils";
 import { useTransactionsSummaryStats } from "@/hooks/use-transactions-summary-stats";
 import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
@@ -12,6 +12,7 @@ import { TransactionsSummaryCards } from "@/components/transactions/transactions
 import { TransactionsToolbar } from "@/components/transactions/transactions-toolbar";
 import { createTransactionsColumns } from "@/components/transactions/transactions-columns";
 import { TransactionDetailDialog } from "@/components/transactions/transaction-detail-dialog";
+import { TransactionStatusPill } from "@/components/transactions/transaction-status-pill";
 
 export default function TransactionsPage() {
   const [search, setSearch] = useState("");
@@ -87,6 +88,54 @@ export default function TransactionsPage() {
           limit={limit}
           isLoading={isLoading}
           onPageChange={setPage}
+          mobileCard={(order) => (
+            <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-[11px] font-bold text-ink-500">
+                    {order.id}
+                  </div>
+                  <div className="mt-2 line-clamp-2 text-sm font-bold text-ink-900">
+                    {order.serviceTitle}
+                  </div>
+                </div>
+                <TransactionStatusPill status={order.escrowStatus} />
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <div className="font-semibold text-ink-400">Klien</div>
+                  <div className="mt-1 truncate font-bold text-ink-800">
+                    {order.clientName}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold text-ink-400">Mahasiswa</div>
+                  <div className="mt-1 truncate font-bold text-ink-800">
+                    {order.studentName}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold text-ink-400">Nominal</div>
+                  <div className="mt-1 font-bold text-ink-900">
+                    {formatCurrency(order.amount)}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold text-ink-400">Tanggal</div>
+                  <div className="mt-1 font-bold text-ink-800">
+                    {formatDate(order.createdAt)}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedOrderId(order.id)}
+                className="mt-4 h-9 w-full rounded-lg border border-border bg-white text-xs font-bold text-ink-700 shadow-sm"
+              >
+                Lihat Detail Escrow
+              </button>
+            </div>
+          )}
         />
       )}
 

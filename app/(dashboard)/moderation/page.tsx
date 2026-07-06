@@ -8,7 +8,7 @@ import { contentApi } from "@/lib/api/content";
 import { moderationContentLabels } from "@/lib/moderation/content-labels";
 import { invalidateModerationQueries } from "@/lib/moderation/invalidate-queries";
 import { MODERATION_PAGE_DESCRIPTION } from "@/lib/moderation/page-meta";
-import { getErrorMessage } from "@/lib/utils";
+import { formatDate, getErrorMessage } from "@/lib/utils";
 import { useModerationSummaryStats } from "@/hooks/use-moderation-summary-stats";
 import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
@@ -17,6 +17,8 @@ import { ModerationToolbar } from "@/components/moderation/moderation-toolbar";
 import type { ModerationTypeFilter } from "@/components/moderation/moderation-toolbar";
 import { createModerationColumns } from "@/components/moderation/moderation-columns";
 import { ModerationDetailDialog } from "@/components/moderation/moderation-detail-dialog";
+import { ModerationTypePill } from "@/components/moderation/moderation-type-pill";
+import { ModerationStatusPill } from "@/components/moderation/moderation-status-pill";
 
 export default function ModerationPage() {
   const queryClient = useQueryClient();
@@ -124,6 +126,45 @@ export default function ModerationPage() {
           limit={limit}
           isLoading={isLoading}
           onPageChange={setPage}
+          mobileCard={(content) => (
+            <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <ModerationTypePill contentType={content.contentType} />
+                    <span className="font-mono text-[10px] font-bold text-brand-600">
+                      {content.id.slice(0, 8)}
+                    </span>
+                  </div>
+                  <div className="mt-2 line-clamp-2 text-sm font-bold text-ink-900">
+                    {content.title}
+                  </div>
+                </div>
+                <ModerationStatusPill status={content.status} />
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <div className="font-semibold text-ink-400">Pemilik</div>
+                  <div className="mt-1 truncate font-bold text-ink-800">
+                    {content.owner.fullName}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold text-ink-400">Tanggal</div>
+                  <div className="mt-1 font-bold text-ink-800">
+                    {formatDate(content.createdAt)}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedContentId(content.id)}
+                className="mt-4 h-9 w-full rounded-lg border border-border bg-white text-xs font-bold text-ink-700 shadow-sm"
+              >
+                Tinjau Konten
+              </button>
+            </div>
+          )}
         />
       )}
 

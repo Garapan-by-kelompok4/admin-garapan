@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { FileText } from "lucide-react";
 
 import { ArticleEditorSkeleton } from "@/components/articles/article-editor-skeleton";
 
@@ -29,6 +30,7 @@ import {
   type ArticleFormInput,
 } from "@/lib/validators/articles";
 import { paginatedListPlaceholder } from "@/lib/query/pagination";
+import { formatDate, formatNumber } from "@/lib/utils";
 
 export default function ArticlesPage() {
   const queryClient = useQueryClient();
@@ -375,6 +377,96 @@ export default function ArticlesPage() {
           error={listQuery.error}
           onPageChange={setPage}
           onCreateNew={handleCreateNew}
+          mobileCard={(article) => {
+            const isPublished = article.status === "Published";
+            return (
+              <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1">
+                <div className="flex gap-3">
+                  <div className="h-14 w-20 shrink-0 overflow-hidden rounded border border-border bg-surface-2">
+                    {article.imageUrl ? (
+                      <img
+                        src={article.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-surface-3">
+                        <FileText className="h-4 w-4 text-ink-300" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="line-clamp-2 text-sm font-bold text-ink-900">
+                      {article.title}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                          isPublished
+                            ? "bg-success-50 text-success-700"
+                            : "bg-slate-50 text-slate-650"
+                        }`}
+                      >
+                        {isPublished ? "Published" : "Draft"}
+                      </span>
+                      <span className="text-[11px] font-semibold text-ink-400">
+                        {article.category || "Umum"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="font-semibold text-ink-400">Update</div>
+                    <div className="mt-1 font-bold text-ink-800">
+                      {formatDate(article.updatedAt)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-ink-400">Views</div>
+                    <div className="mt-1 font-bold text-ink-800">
+                      {formatNumber(article.views)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleEditClick(article.id)}
+                    className="h-9 flex-1 rounded-lg border border-border bg-white px-3 text-xs font-bold text-ink-700 shadow-sm"
+                  >
+                    Edit
+                  </button>
+                  {isPublished ? (
+                    <button
+                      type="button"
+                      onClick={() => unpublishMutation.mutate(article.id)}
+                      className="h-9 flex-1 rounded-lg border border-border bg-white px-3 text-xs font-bold text-ink-700"
+                    >
+                      Tarik Draf
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => publishMutation.mutate(article.id)}
+                      className="h-9 flex-1 rounded-lg bg-brand-500 px-3 text-xs font-bold text-white"
+                    >
+                      Terbitkan
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setDeleteArticleId(article.id)}
+                    className="h-9 rounded-lg border border-danger-200 bg-danger-50 px-3 text-xs font-bold text-danger-700"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            );
+          }}
         />
       ) : (
         <ArticleEditor

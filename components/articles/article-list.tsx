@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   AlertTriangle,
@@ -58,6 +59,7 @@ export interface ArticleListProps {
   error: Error | null;
   onPageChange: (page: number) => void;
   onCreateNew: () => void;
+  mobileCard?: (article: Article) => ReactNode;
 }
 
 export function ArticleList({
@@ -81,6 +83,7 @@ export function ArticleList({
   error,
   onPageChange,
   onCreateNew,
+  mobileCard,
 }: ArticleListProps) {
   return (
     <>
@@ -279,6 +282,7 @@ export function ArticleList({
           limit={limit}
           isLoading={isLoading}
           onPageChange={onPageChange}
+          mobileCard={mobileCard}
         />
       )}
     </>

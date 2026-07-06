@@ -6,13 +6,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { usersApi, type UserStatusFilter } from "@/lib/api/users";
-import { getErrorMessage } from "@/lib/utils";
+import { formatDate, getErrorMessage } from "@/lib/utils";
 import { paginatedListPlaceholder } from "@/lib/query/pagination";
 import { DataTable } from "@/components/data-table/data-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { UsersToolbar } from "@/components/users/users-toolbar";
 import { createUsersColumns } from "@/components/users/users-columns";
 import { UserDetailDialog } from "@/components/users/user-detail-dialog";
+import { UserAvatar } from "@/components/user-avatar";
+import { UserStatusPill } from "@/components/users/user-status-pill";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
@@ -129,6 +131,77 @@ export default function UsersPage() {
           limit={limit}
           isLoading={isLoading}
           onPageChange={setPage}
+          mobileCard={(user) => {
+            const isBanned = user.bannedAt !== null;
+            return (
+              <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1">
+                <div className="flex items-start gap-3">
+                  <UserAvatar
+                    name={user.fullName}
+                    avatarUrl={user.avatarUrl}
+                    className="size-10"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-bold text-ink-900">
+                      {user.fullName || "User"}
+                    </div>
+                    <div className="mt-1 truncate text-xs font-medium text-ink-400">
+                      {user.email}
+                    </div>
+                  </div>
+                  <UserStatusPill user={user} />
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="font-semibold text-ink-400">
+                      {activeTab === "MAHASISWA" ? "Universitas" : "Perusahaan"}
+                    </div>
+                    <div className="mt-1 truncate font-bold text-ink-800">
+                      {activeTab === "MAHASISWA"
+                        ? user.university || "-"
+                        : user.company || "-"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-ink-400">
+                      Tgl. Daftar
+                    </div>
+                    <div className="mt-1 font-bold text-ink-800">
+                      {formatDate(user.createdAt)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUserId(user.id)}
+                    className="h-9 flex-1 rounded-lg border border-border bg-white text-xs font-bold text-ink-700 shadow-sm"
+                  >
+                    Lihat Detail
+                  </button>
+                  {isBanned ? (
+                    <button
+                      type="button"
+                      onClick={() => unbanMutation.mutate(user.id)}
+                      className="h-9 flex-1 rounded-lg border border-success-200 bg-success-50 text-xs font-bold text-success-700"
+                    >
+                      Pulihkan
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleBan(user.id, user.fullName || "User")}
+                      className="h-9 flex-1 rounded-lg border border-danger-200 bg-danger-50 text-xs font-bold text-danger-700"
+                    >
+                      Blokir
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          }}
         />
       )}
 
