@@ -1,9 +1,18 @@
+import Image from "next/image";
+
 export function LoginHero() {
   return (
     <div className="relative hidden flex-col overflow-hidden bg-hero-gradient px-14 py-12 text-white lg:flex">
       <div className="flex items-center gap-3">
-        <div className="grid size-[42px] place-items-center rounded-xl bg-brand-mark text-lg font-extrabold">
-          G
+        <div className="grid size-[42px] place-items-center rounded-xl bg-brand-mark">
+          <Image
+            src="/brand/logo-mark-white.png"
+            alt=""
+            width={28}
+            height={28}
+            className="size-7"
+            priority
+          />
         </div>
         <div>
           <div className="font-display text-lg font-extrabold">GARAPAN</div>
