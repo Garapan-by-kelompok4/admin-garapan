@@ -8,7 +8,7 @@ import { contentApi } from "@/lib/api/content";
 import { disputesApi } from "@/lib/api/disputes";
 import { ordersApi } from "@/lib/api/orders";
 import {
-  CHAT_POLL_INTERVAL_MS,
+  CHAT_BADGE_POLL_INTERVAL_MS,
   OPS_BADGE_POLL_INTERVAL_MS,
   TRANSACTIONS_BADGE_POLL_INTERVAL_MS,
   visibilityAwareInterval,
@@ -54,11 +54,13 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
     ),
   });
 
-  const { data: chatSessions = [] } = useQuery({
-    queryKey: ["chatSessions"],
-    queryFn: () => chatApi.listSessions().catch(() => []),
-    refetchInterval: CHAT_POLL_INTERVAL_MS,
-    refetchIntervalInBackground: true,
+  const { data: chatUnreadRes } = useQuery({
+    queryKey: ["chatUnreadCount"],
+    queryFn: () => chatApi.getUnreadCount().catch(() => ({ unreadCount: 0 })),
+    refetchInterval: visibilityAwareInterval(
+      CHAT_BADGE_POLL_INTERVAL_MS,
+      isDocumentVisible,
+    ),
     refetchOnWindowFocus: true,
   });
 
@@ -74,15 +76,10 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
     ),
   });
 
-  const unreadChatCount = chatSessions.reduce(
-    (acc, session) => acc + (session.unreadCount || 0),
-    0,
-  );
-
   return {
     moderation: moderationRes?.total ?? 0,
     disputes: disputesRes?.total ?? 0,
-    chat: unreadChatCount,
+    chat: chatUnreadRes?.unreadCount ?? 0,
     transactions: transactionsRes?.total ?? 0,
   };
 }

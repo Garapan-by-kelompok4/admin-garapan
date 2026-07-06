@@ -493,6 +493,14 @@ export const chatApi = {
     return sessions.map(normaliseSession);
   },
 
+  getUnreadCount: async (): Promise<{ unreadCount: number }> => {
+    const response = await apiClient<unknown>(
+      "/live-chat-admin/unread-count",
+    );
+    const record = asRecord(response);
+    return { unreadCount: numberFromValue(record.unreadCount, 0) };
+  },
+
   getMessages: async (userId: string): Promise<ChatMessage[]> => {
     const { messages } = await chatApi.getThreadPage(userId);
     return messages;

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
   ChevronDown,
@@ -27,11 +26,8 @@ import {
 import { useLogout } from "@/hooks/use-logout";
 import { useOpsBadgeCounts } from "@/hooks/use-ops-badge-counts";
 import { avatarClass, initials } from "@/lib/avatar";
-import { chatApi } from "@/lib/api/chat";
-import { formatTime } from "@/lib/chat-utils";
 import { Input } from "@/components/ui/input";
 import { pageTitle } from "@/lib/nav";
-import { CHAT_POLL_INTERVAL_MS } from "@/lib/query/polling";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 import { SidebarContent } from "@/components/layout/sidebar";
@@ -47,19 +43,9 @@ export function TopBar() {
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
   const opsCounts = useOpsBadgeCounts();
-  const { data: chatSessions = [] } = useQuery({
-    queryKey: ["chatSessions"],
-    queryFn: () => chatApi.listSessions().catch(() => []),
-    refetchInterval: CHAT_POLL_INTERVAL_MS,
-    refetchIntervalInBackground: true,
-    refetchOnWindowFocus: true,
-  });
   const title = pageTitle(pathname);
   const name = user?.name ?? "Admin";
   const [searchQuery, setSearchQuery] = useState("");
-  const unreadChatSessions = chatSessions
-    .filter((session) => session.unreadCount > 0)
-    .slice(0, 3);
   const totalNotificationCount =
     opsCounts.moderation + opsCounts.disputes + opsCounts.chat;
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -171,42 +157,19 @@ export function TopBar() {
             </div>
 
             <div className="max-h-[380px] overflow-y-auto p-1.5">
-              {unreadChatSessions.map((session) => (
+              {opsCounts.chat > 0 ? (
                 <DropdownMenuItem
-                  key={session.id}
-                  render={
-                    <Link
-                      href={`/chat?session=${encodeURIComponent(session.id)}`}
-                    />
-                  }
+                  render={<Link href="/chat" />}
                   className="block cursor-pointer px-2.5 py-2.5"
                 >
-                  <div className="flex gap-3">
-                    <div className="relative mt-0.5 grid size-9 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-700">
-                      <MessageCircle className="size-4" strokeWidth={1.8} />
-                      <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger-500 px-1 text-[9px] font-bold text-white">
-                        {session.unreadCount}
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="truncate text-[13px] font-semibold text-ink-900">
-                          Chat baru dari {session.name}
-                        </div>
-                        <span className="shrink-0 text-[11px] text-ink-400">
-                          {formatTime(session.lastMessageAt || "")}
-                        </span>
-                      </div>
-                      <div className="mt-0.5 line-clamp-2 text-xs leading-5 text-ink-500">
-                        {session.lastMessage || "Ada pesan belum dibaca."}
-                      </div>
-                      <div className="mt-1 text-[11px] font-semibold text-brand-600">
-                        Buka Live Chat
-                      </div>
-                    </div>
-                  </div>
+                  <NotificationSummaryRow
+                    icon={MessageCircle}
+                    tone="info"
+                    title={`${opsCounts.chat} pesan live chat belum dibaca`}
+                    description="Buka Live Chat untuk melihat sesi dukungan terbaru."
+                  />
                 </DropdownMenuItem>
-              ))}
+              ) : null}
 
               {opsCounts.moderation > 0 ? (
                 <DropdownMenuItem
