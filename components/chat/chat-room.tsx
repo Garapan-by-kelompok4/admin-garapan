@@ -33,6 +33,7 @@ import {
   Calendar,
   Sparkles,
   ChevronDown,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth-store";
@@ -45,12 +46,14 @@ export interface ChatRoomProps {
   activeSessionId: string;
   activeSession: ChatSession | null;
   onEndSession: () => void;
+  onBackToSessions?: () => void;
 }
 
 export function ChatRoom({
   activeSessionId,
   activeSession,
   onEndSession,
+  onBackToSessions,
 }: ChatRoomProps) {
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
@@ -236,8 +239,16 @@ export function ChatRoom({
   return (
     <>
       <div className="flex-1 flex flex-col h-full bg-surface-2 min-w-0 relative">
-        <div className="h-[60px] border-b border-border bg-white px-5 flex items-center justify-between flex-shrink-0 gap-3">
+        <div className="h-[60px] border-b border-border bg-white px-3 md:px-5 flex items-center justify-between flex-shrink-0 gap-3">
           <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              aria-label="Kembali ke daftar chat"
+              onClick={onBackToSessions}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-white text-ink-600 shadow-sm md:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
             <div
               onClick={() => setShowUserInfo(!showUserInfo)}
               className="flex min-w-0 items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
@@ -278,7 +289,7 @@ export function ChatRoom({
             <button
               type="button"
               onClick={() => setShowCloseConfirm(true)}
-              className="px-3 py-1.5 border border-danger-200 bg-danger-50/50 hover:bg-danger-55 hover:text-danger-700 text-xs font-bold text-danger-600 rounded-lg transition-colors cursor-pointer"
+              className="hidden px-3 py-1.5 border border-danger-200 bg-danger-50/50 hover:bg-danger-55 hover:text-danger-700 text-xs font-bold text-danger-600 rounded-lg transition-colors cursor-pointer sm:inline-flex"
             >
               Tutup Sesi
             </button>
@@ -288,7 +299,7 @@ export function ChatRoom({
         <div
           ref={messagesContainerRef}
           onScroll={handleMessagesScroll}
-          className="flex-1 overflow-y-auto p-5 space-y-4"
+          className="flex-1 overflow-y-auto p-4 space-y-4 md:p-5"
         >
           {isLoadingMessages && allMessages.length === 0 ? (
             <div className="p-8 text-center text-xs text-ink-400 font-medium">
@@ -348,8 +359,8 @@ export function ChatRoom({
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="bg-white border-t border-border p-4 flex flex-col gap-3 flex-shrink-0">
-          <div className="flex min-w-0 items-center gap-1.5 select-none">
+        <div className="bg-white border-t border-border p-3 md:p-4 flex flex-col gap-3 flex-shrink-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 select-none">
             <span className="text-[10px] font-bold text-brand-600 self-center mr-1 flex items-center gap-1 flex-shrink-0">
               <Sparkles className="h-3 w-3" /> Balas cepat:
             </span>
@@ -369,7 +380,7 @@ export function ChatRoom({
                   Template lainnya
                   <ChevronDown className="h-3 w-3 text-ink-400" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[360px]">
+                <DropdownMenuContent align="start" className="w-[min(360px,calc(100vw-24px))]">
                   {overflowQuickReplies.map((reply, idx) => (
                     <DropdownMenuItem
                       key={idx}
@@ -430,7 +441,7 @@ export function ChatRoom({
       </div>
 
       {showUserInfo && (
-        <div className="w-[280px] border-l border-border flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto transition-all duration-300 animate-in slide-in-from-right duration-200">
+        <div className="hidden w-[280px] border-l border-border md:flex flex-col h-full bg-white flex-shrink-0 overflow-y-auto transition-all duration-300 animate-in slide-in-from-right duration-200">
           {activeSession && (
             <div className="p-5 space-y-6">
               <div className="text-center space-y-3 border-b border-border pb-5">
