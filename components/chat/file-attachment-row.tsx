@@ -13,14 +13,14 @@ export interface FileAttachmentRowProps {
   isMe?: boolean;
 }
 
-function fileIcon(mimeType?: string | null) {
+function FileTypeIcon({ mimeType }: { mimeType?: string | null }) {
   if (
     mimeType === "application/zip" ||
     mimeType === "application/x-zip-compressed"
   ) {
-    return Archive;
+    return <Archive className="h-4 w-4" />;
   }
-  return FileText;
+  return <FileText className="h-4 w-4" />;
 }
 
 export function FileAttachmentRow({
@@ -30,7 +30,6 @@ export function FileAttachmentRow({
   fileSize,
   isMe = false,
 }: FileAttachmentRowProps) {
-  const Icon = fileIcon(mimeType);
   const sizeLabel = formatChatFileSize(fileSize);
 
   return (
@@ -52,7 +51,7 @@ export function FileAttachmentRow({
           isMe ? "bg-white/15 text-white" : "bg-white text-brand-600",
         )}
       >
-        <Icon className="h-4 w-4" />
+        <FileTypeIcon mimeType={mimeType} />
       </div>
       <div className="min-w-0 flex-1">
         <p
