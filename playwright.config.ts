@@ -27,7 +27,7 @@ export default defineConfig({
     },
     {
       name: "features",
-      testMatch: /features\.spec\.ts/,
+      testMatch: /(?:features|mobile-responsive)\.spec\.ts/,
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
