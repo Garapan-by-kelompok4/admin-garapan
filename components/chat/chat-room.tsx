@@ -11,28 +11,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { chatApi, ChatMessage, ChatThreadPage, ChatSession } from "@/lib/api/chat";
 import { usersApi } from "@/lib/api/users";
 import { avatarClass, initials } from "@/lib/avatar";
-import { formatDateLabel, quickReplies } from "@/lib/chat-utils";
+import {
+  chatAttachmentErrorMessage,
+  validateChatAttachment,
+} from "@/lib/chat-attachments";
+import { formatDateLabel } from "@/lib/chat-utils";
 import { formatDate } from "@/lib/utils";
 import { ChatMessageBubble } from "@/components/chat/chat-message-bubble";
+import { SupportComposer } from "@/components/chat/support-composer";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useDocumentVisible } from "@/hooks/use-document-visible";
 import {
   CHAT_POLL_INTERVAL_MS,
   visibilityAwareInterval,
 } from "@/lib/query/polling";
 import {
-  Send,
   Phone,
   Mail,
   Calendar,
-  Sparkles,
-  ChevronDown,
   ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -132,8 +128,6 @@ export function ChatRoom({
   }, [olderMessages, liveMessages, optimisticMessages]);
 
   const hasMoreMessages = allMessages.length < totalMessages;
-  const visibleQuickReplies = quickReplies.slice(0, 2);
-  const overflowQuickReplies = quickReplies.slice(2);
 
   const loadOlderMessages = useCallback(async () => {
     if (isLoadingOlder || !hasMoreMessages) return;
@@ -184,6 +178,26 @@ export function ChatRoom({
     }, 60);
   }, []);
 
+  const appendMessageToThread = useCallback(
+    (newMessage: ChatMessage) => {
+      queryClient.setQueryData<ChatThreadPage>(
+        ["chatMessages", activeSessionId],
+        (old) =>
+          old
+            ? {
+                ...old,
+                messages: [...old.messages, newMessage],
+                total: old.total + 1,
+              }
+            : old,
+      );
+      setOptimisticMessages((prev) => [...prev, newMessage]);
+      queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
+      scrollToBottom("smooth");
+    },
+    [activeSessionId, queryClient, scrollToBottom],
+  );
+
   const liveLength = livePage?.messages.length ?? 0;
   useEffect(() => {
     if (liveLength > 0 && liveLength !== liveMessagesLenRef.current) {
@@ -197,23 +211,24 @@ export function ChatRoom({
     mutationFn: ({ userId, message }: { userId: string; message: string }) =>
       chatApi.sendMessage(userId, message),
     onSuccess: (newMessage) => {
-      queryClient.setQueryData<ChatThreadPage>(
-        ["chatMessages", activeSessionId],
-        (old) =>
-          old
-            ? {
-                ...old,
-                messages: [...old.messages, newMessage],
-                total: old.total + 1,
-              }
-            : old,
-      );
-      setOptimisticMessages((prev) => [...prev, newMessage]);
+      appendMessageToThread(newMessage);
       setMessageInput("");
-      queryClient.invalidateQueries({ queryKey: ["chatSessions"] });
     },
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : "Gagal mengirim pesan");
+    },
+  });
+
+  const uploadAttachmentMutation = useMutation({
+    mutationFn: ({ userId, file }: { userId: string; file: File }) =>
+      chatApi.sendAttachment(userId, file),
+    onSuccess: (newMessage) => {
+      appendMessageToThread(newMessage);
+    },
+    onError: (err: unknown) => {
+      toast.error(
+        err instanceof Error ? err.message : "Gagal mengunggah lampiran",
+      );
     },
   });
 
@@ -229,6 +244,19 @@ export function ChatRoom({
 
   const handleQuickReply = (text: string) => {
     setMessageInput(text);
+  };
+
+  const handleFileSelected = (file: File) => {
+    const validationError = validateChatAttachment(file);
+    if (validationError) {
+      toast.error(chatAttachmentErrorMessage(validationError));
+      return;
+    }
+
+    uploadAttachmentMutation.mutate({
+      userId: activeSessionId,
+      file,
+    });
   };
 
   const handleSaveNote = () => {
@@ -359,72 +387,15 @@ export function ChatRoom({
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="bg-white border-t border-border p-3 md:p-4 flex flex-col gap-3 flex-shrink-0">
-          <div className="flex min-w-0 flex-wrap items-center gap-1.5 select-none">
-            <span className="text-[10px] font-bold text-brand-600 self-center mr-1 flex items-center gap-1 flex-shrink-0">
-              <Sparkles className="h-3 w-3" /> Balas cepat:
-            </span>
-            {visibleQuickReplies.map((r, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleQuickReply(r)}
-                title={r}
-                className="min-w-0 max-w-[360px] px-2.5 py-1 text-[11px] font-medium rounded-full border border-border bg-surface-2 hover:bg-surface-3 hover:text-ink-900 text-ink-600 transition-colors cursor-pointer"
-              >
-                <span className="block truncate">{r}</span>
-              </button>
-            ))}
-            {overflowQuickReplies.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex h-[26px] flex-shrink-0 items-center gap-1 rounded-full border border-border bg-white px-2.5 text-[11px] font-bold text-ink-600 shadow-sm transition-colors hover:bg-surface-2 hover:text-ink-900">
-                  Template lainnya
-                  <ChevronDown className="h-3 w-3 text-ink-400" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[min(360px,calc(100vw-24px))]">
-                  {overflowQuickReplies.map((reply, idx) => (
-                    <DropdownMenuItem
-                      key={idx}
-                      onClick={() => handleQuickReply(reply)}
-                      className="cursor-pointer text-xs font-medium leading-relaxed"
-                    >
-                      {reply}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-
-          <form
-            onSubmit={handleSendMessage}
-            className="flex gap-2 items-end"
-          >
-            <textarea
-              rows={1}
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              placeholder="Tulis pesan balasan bantuan..."
-              className="flex-1 min-h-[38px] max-h-[100px] p-2 px-3 bg-surface-2 border border-border rounded-lg text-xs placeholder:text-ink-300 focus:outline-none focus:border-brand-400 focus:ring-3 focus:ring-brand-50 transition-all font-medium resize-y"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
-
-            <button
-              type="submit"
-              disabled={
-                sendMessageMutation.isPending || !messageInput.trim()
-              }
-              className="h-[38px] px-4 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-            >
-              <span>Kirim</span>
-              <Send className="h-3.5 w-3.5" />
-            </button>
-          </form>
-        </div>
+        <SupportComposer
+          messageInput={messageInput}
+          onMessageInputChange={setMessageInput}
+          onSend={handleSendMessage}
+          onFileSelected={handleFileSelected}
+          onQuickReply={handleQuickReply}
+          isSending={sendMessageMutation.isPending}
+          isUploading={uploadAttachmentMutation.isPending}
+        />
 
         <ConfirmDialog
           open={showCloseConfirm}

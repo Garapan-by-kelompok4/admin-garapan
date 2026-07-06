@@ -1,3 +1,5 @@
+import { chatMessagePreviewText } from "@/lib/chat-attachments";
+
 import { apiClient } from "./client";
 import {
   asRecord,
@@ -8,12 +10,19 @@ import {
   dateValue,
 } from "./normalizers";
 
+export type ChatMessageType = "TEXT" | "FILE";
+
 export interface ChatMessage {
   id: string;
   senderId: string;
   senderName: string;
   senderRole: "ADMIN" | "MAHASISWA" | "KLIEN";
   message: string;
+  messageType?: ChatMessageType;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
   createdAt: string;
   isRead?: boolean;
 }
@@ -86,7 +95,54 @@ function normaliseMessage(raw: unknown, index = 0): ChatMessage {
       false,
   );
 
-  return {
+  const rawMessageType =
+    record.messageType ??
+    record.message_type ??
+    nested.messageType ??
+    nested.message_type;
+  const messageType: ChatMessageType | undefined =
+    rawMessageType === "FILE" || rawMessageType === "TEXT"
+      ? rawMessageType
+      : record.fileUrl || record.file_url || nested.fileUrl || nested.file_url
+        ? "FILE"
+        : undefined;
+
+  const fileUrl = textFromValue(
+    record.fileUrl ?? record.file_url ?? nested.fileUrl ?? nested.file_url,
+    "",
+  );
+  const fileName = textFromValue(
+    record.fileName ?? record.file_name ?? nested.fileName ?? nested.file_name,
+    "",
+  );
+  const mimeType = textFromValue(
+    record.mimeType ?? record.mime_type ?? nested.mimeType ?? nested.mime_type,
+    "",
+  );
+  const fileSizeRaw =
+    record.fileSize ??
+    record.file_size ??
+    nested.fileSize ??
+    nested.file_size;
+  const fileSize =
+    fileSizeRaw === null || fileSizeRaw === undefined
+      ? null
+      : numberFromValue(fileSizeRaw, 0);
+
+  const messageText = textFromValue(
+    record.message,
+    textFromValue(
+      nested.message ??
+        nested.text ??
+        nested.content ??
+        nested.body ??
+        nested.pesan ??
+        record.pesan,
+      "",
+    ),
+  );
+
+  const normalized: ChatMessage = {
     id: String(
       record.id ??
         nested.id ??
@@ -111,38 +167,73 @@ function normaliseMessage(raw: unknown, index = 0): ChatMessage {
       senderRole === "KLIEN"
         ? senderRole
         : "KLIEN",
-    message: textFromValue(
-      record.message,
-      textFromValue(
-        nested.message ??
-          nested.text ??
-          nested.content ??
-          nested.body ??
-          nested.pesan ??
-          record.pesan,
-        "",
-      ),
-    ),
+    message: messageText,
+    messageType,
+    fileUrl: fileUrl || null,
+    fileName: fileName || null,
+    fileSize,
+    mimeType: mimeType || null,
     createdAt: String(createdAt),
     isRead,
   };
+
+  if (!normalized.message && normalized.messageType === "FILE") {
+    normalized.message = chatMessagePreviewText(normalized);
+  }
+
+  return normalized;
 }
 
 function isMessageRecord(item: unknown): boolean {
   const record = asRecord(item);
+  const hasBody = Boolean(
+    record.message ||
+      record.text ||
+      record.content ||
+      record.body ||
+      record.pesan ||
+      record.fileUrl ||
+      record.file_url ||
+      record.messageType === "FILE" ||
+      record.message_type === "FILE",
+  );
   return Boolean(
     (record.senderId ||
       record.sender_id ||
       record.sender ||
       record.senderRole ||
       record.sender_role) &&
-    (record.message ||
-      record.text ||
-      record.content ||
-      record.body ||
-      record.pesan) &&
+    hasBody &&
     (record.createdAt || record.created_at),
   );
+}
+
+function resolveLastMessagePreview(
+  s: ReturnType<typeof asRecord>,
+  latestMessage: ReturnType<typeof asRecord>,
+): string {
+  const rawLast =
+    s.lastMessage ??
+    s.last_message ??
+    s.latestMessage ??
+    s.latest_message;
+
+  if (rawLast && typeof rawLast === "object") {
+    const msg = asRecord(rawLast);
+    const messageType =
+      msg.messageType === "FILE" || msg.message_type === "FILE"
+        ? ("FILE" as const)
+        : undefined;
+
+    return chatMessagePreviewText({
+      message: textFromValue(msg.message, ""),
+      messageType,
+      fileName: textFromValue(msg.fileName ?? msg.file_name, "") || null,
+      mimeType: textFromValue(msg.mimeType ?? msg.mime_type, "") || null,
+    });
+  }
+
+  return textFromValue(rawLast ?? s.last ?? latestMessage.message, "");
 }
 
 function normaliseSession(raw: unknown, index: number): ChatSession {
@@ -164,14 +255,7 @@ function normaliseSession(raw: unknown, index: number): ChatSession {
       user.full_name,
     "User",
   );
-  const lastMessage = textFromValue(
-    s.lastMessage ??
-      s.last_message ??
-      s.last ??
-      s.latestMessage ??
-      s.latest_message,
-    "",
-  );
+  const lastMessage = resolveLastMessagePreview(s, latestMessage);
 
   // Safe message list timestamp comparison (independent of array sorting order)
   let arrayMessageAt = "";
@@ -339,8 +423,8 @@ function participantFromMessage(raw: unknown, index: number): ChatSession {
     name: participantName,
     nama: participantName,
     role: participantRole,
-    lastMessage: msg.message,
-    last: msg.message,
+    lastMessage: chatMessagePreviewText(msg),
+    last: chatMessagePreviewText(msg),
     lastMessageAt: msg.createdAt,
     time: msg.createdAt,
     unreadCount: isUnread ? 1 : 0,
@@ -466,5 +550,60 @@ export const chatApi = {
     } catch (e) {
       console.warn("Failed to mark chat as read:", e);
     }
+  },
+
+  sendAttachment: async (
+    userId: string,
+    file: File,
+    options: { retryOnUnauthorized?: boolean } = {},
+  ): Promise<ChatMessage> => {
+    const { retryOnUnauthorized = true } = options;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(
+      `/api/proxy/live-chat-admin/${userId}/attachments`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      },
+    );
+
+    if (response.status === 401 && retryOnUnauthorized) {
+      const refreshed = await fetch("/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (refreshed.ok) {
+        return chatApi.sendAttachment(userId, file, {
+          retryOnUnauthorized: false,
+        });
+      }
+    }
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      let detail = "";
+      try {
+        const error = JSON.parse(text) as Record<string, unknown>;
+        detail =
+          typeof error.message === "string"
+            ? error.message
+            : Array.isArray(error.message)
+              ? error.message.join("; ")
+              : JSON.stringify(error);
+      } catch {
+        detail = text.slice(0, 500);
+      }
+      throw new Error(
+        detail.length > 0 && detail !== "{}"
+          ? detail
+          : `Upload gagal (status ${response.status})`,
+      );
+    }
+
+    const raw = await response.json();
+    return normaliseMessage(asRecord(raw).data ?? raw);
   },
 };

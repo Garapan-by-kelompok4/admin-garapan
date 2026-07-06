@@ -67,14 +67,57 @@ const MOCK_ARTICLE = {
 };
 
 const MOCK_CHAT_SESSION = {
-  id: "chat-user-1",
   userId: "chat-user-1",
-  name: "E2E Chat User",
-  role: "MAHASISWA",
+  user: {
+    email: "mhs@garapan.test",
+    role: "MAHASISWA",
+    displayName: "E2E Chat User",
+    online: true,
+  },
+  lastMessage: {
+    id: "chat-msg-2",
+    message: "",
+    messageType: "FILE",
+    fileUrl: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+    fileName: "bukti-screenshot.jpg",
+    mimeType: "image/jpeg",
+    createdAt: "2026-01-06T10:00:00.000Z",
+    senderId: "chat-user-1",
+  },
   unreadCount: 1,
-  lastMessage: "Halo admin",
-  lastMessageAt: "2026-01-06T10:00:00.000Z",
+  messageCount: 2,
 };
+
+const MOCK_CHAT_MESSAGES = [
+  {
+    id: "chat-msg-1",
+    userId: "chat-user-1",
+    adminId: "e2e-admin-1",
+    senderId: "chat-user-1",
+    senderRole: "MAHASISWA",
+    message: "Halo admin",
+    messageType: "TEXT",
+    fileUrl: null,
+    fileName: null,
+    fileSize: null,
+    mimeType: null,
+    createdAt: "2026-01-06T09:55:00.000Z",
+  },
+  {
+    id: "chat-msg-2",
+    userId: "chat-user-1",
+    adminId: "e2e-admin-1",
+    senderId: "chat-user-1",
+    senderRole: "MAHASISWA",
+    message: "",
+    messageType: "FILE",
+    fileUrl: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+    fileName: "bukti-screenshot.jpg",
+    fileSize: 245_000,
+    mimeType: "image/jpeg",
+    createdAt: "2026-01-06T10:00:00.000Z",
+  },
+];
 
 function paginated<T>(items: T[], page = 1, limit = 10) {
   const start = (page - 1) * limit;
@@ -187,14 +230,31 @@ function handleProxyRoute(url: string, method: string): unknown {
 
   if (path.startsWith("/live-chat-admin")) {
     if (path === "/live-chat-admin" || path.startsWith("/live-chat-admin?")) {
-      return { sessions: [MOCK_CHAT_SESSION] };
+      return [MOCK_CHAT_SESSION];
     }
+
+    if (path.endsWith("/attachments") && method === "POST") {
+      return {
+        id: "chat-msg-upload",
+        userId: "chat-user-1",
+        adminId: MOCK_ADMIN_USER.id,
+        senderId: MOCK_ADMIN_USER.id,
+        senderRole: "ADMIN",
+        message: "",
+        messageType: "FILE",
+        fileUrl: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+        fileName: "admin-reply.jpg",
+        fileSize: 120_000,
+        mimeType: "image/jpeg",
+        createdAt: new Date().toISOString(),
+      };
+    }
+
     return {
-      messages: [],
-      page: 1,
-      limit: 20,
-      total: 0,
-      hasMore: false,
+      data: MOCK_CHAT_MESSAGES,
+      page: queryInt(url, "page", 1),
+      limit: queryInt(url, "limit", 20),
+      total: MOCK_CHAT_MESSAGES.length,
     };
   }
 
