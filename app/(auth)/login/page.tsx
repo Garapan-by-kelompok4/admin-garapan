@@ -8,7 +8,7 @@ export default function LoginPage() {
     <div className="grid min-h-screen grid-cols-1 bg-surface lg:grid-cols-2">
       <LoginHero />
 
-      <div className="grid place-items-center p-8 lg:p-12">
+      <div className="grid place-items-center px-5 py-8 sm:p-8 lg:p-12">
         <Suspense fallback={null}>
           <LoginForm />
         </Suspense>
