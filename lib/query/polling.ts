@@ -1,5 +1,6 @@
 /** Shared TanStack Query polling intervals (ms). */
 export const CHAT_POLL_INTERVAL_MS = 5_000;
+export const CHAT_BADGE_POLL_INTERVAL_MS = 30_000;
 export const OPS_BADGE_POLL_INTERVAL_MS = 30_000;
 export const TRANSACTIONS_BADGE_POLL_INTERVAL_MS = 60_000;
 
