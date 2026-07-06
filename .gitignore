@@ -48,3 +48,5 @@ next-env.d.ts
 # design handoff mockup
 /design_handoff_skillmahasiswa_admin/
 
+# local brainstorming companion output
+/.superpowers/
