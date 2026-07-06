@@ -1,12 +1,14 @@
 "use client";
 
 import { useId, useLayoutEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface StatSparklineProps {
   points: number[];
   color: string;
   /** Stagger draw-in when multiple sparklines mount together */
   delayMs?: number;
+  className?: string;
 }
 
 const VIEW_WIDTH = 100;
@@ -55,6 +57,7 @@ export function StatSparkline({
   points,
   color,
   delayMs = 0,
+  className,
 }: StatSparklineProps) {
   const gradientId = useId();
   const lineRef = useRef<SVGPathElement>(null);
@@ -120,7 +123,10 @@ export function StatSparkline({
     <svg
       viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
       preserveAspectRatio="none"
-      className="block aspect-[100/32] w-full select-none pointer-events-none"
+      className={cn(
+        "pointer-events-none block h-full w-full select-none",
+        className,
+      )}
       aria-hidden
       overflow="visible"
     >
@@ -143,7 +149,7 @@ export function StatSparkline({
         d={linePath}
         fill="none"
         stroke={color}
-        strokeWidth="1.75"
+        strokeWidth="1.45"
         strokeLinecap="round"
         strokeLinejoin="round"
         style={{
@@ -155,10 +161,10 @@ export function StatSparkline({
       <circle
         cx={lastX}
         cy={lastY}
-        r="2.5"
+        r="2"
         fill="white"
         stroke={color}
-        strokeWidth="1.5"
+        strokeWidth="1.25"
         style={{
           opacity: isDrawn ? 1 : 0,
           transition: dotTransition,
