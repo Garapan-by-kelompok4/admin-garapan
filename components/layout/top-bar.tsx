@@ -1,11 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, ChevronDown, LogOut, Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Bell,
+  ChevronDown,
+  Flag,
+  LogOut,
+  MessageCircle,
+  Search,
+  ShieldAlert,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +26,11 @@ import {
 import { useLogout } from "@/hooks/use-logout";
 import { useOpsBadgeCounts } from "@/hooks/use-ops-badge-counts";
 import { avatarClass, initials } from "@/lib/avatar";
+import { chatApi } from "@/lib/api/chat";
+import { formatTime } from "@/lib/chat-utils";
 import { Input } from "@/components/ui/input";
 import { pageTitle } from "@/lib/nav";
+import { CHAT_POLL_INTERVAL_MS } from "@/lib/query/polling";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -26,10 +39,22 @@ export function TopBar() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
-  const { chat: unreadChatCount } = useOpsBadgeCounts();
+  const opsCounts = useOpsBadgeCounts();
+  const { data: chatSessions = [] } = useQuery({
+    queryKey: ["chatSessions"],
+    queryFn: () => chatApi.listSessions().catch(() => []),
+    refetchInterval: CHAT_POLL_INTERVAL_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+  });
   const title = pageTitle(pathname);
   const name = user?.name ?? "Admin";
   const [searchQuery, setSearchQuery] = useState("");
+  const unreadChatSessions = chatSessions
+    .filter((session) => session.unreadCount > 0)
+    .slice(0, 3);
+  const totalNotificationCount =
+    opsCounts.moderation + opsCounts.disputes + opsCounts.chat;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -76,19 +101,129 @@ export function TopBar() {
       </form>
 
       <div className="ml-auto flex items-center gap-2">
-        <Link
-          href="/chat"
-          title="Notifikasi chat"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "icon" }),
-            "relative text-ink-500 hover:bg-surface-3",
-          )}
-        >
-          <Bell className="size-[18px]" strokeWidth={1.75} />
-          {unreadChatCount > 0 ? (
-            <span className="absolute right-2 top-2 size-1.5 rounded-full bg-danger-500" />
-          ) : null}
-        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                title="Notifikasi"
+                className="relative text-ink-500 hover:bg-surface-3"
+              />
+            }
+          >
+            <Bell className="size-[18px]" strokeWidth={1.75} />
+            {totalNotificationCount > 0 ? (
+              <span className="absolute right-2 top-2 size-1.5 rounded-full bg-danger-500" />
+            ) : null}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            sideOffset={8}
+            className="w-[360px] p-0"
+          >
+            <div className="border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-bold text-ink-900">
+                    Notifikasi
+                  </div>
+                  <div className="text-xs text-ink-400">
+                    Ringkasan aktivitas yang perlu ditinjau
+                  </div>
+                </div>
+                {totalNotificationCount > 0 ? (
+                  <span className="rounded-full bg-danger-50 px-2 py-0.5 text-[11px] font-bold text-danger-700">
+                    {totalNotificationCount}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="max-h-[380px] overflow-y-auto p-1.5">
+              {unreadChatSessions.map((session) => (
+                <DropdownMenuItem
+                  key={session.id}
+                  render={
+                    <Link
+                      href={`/chat?session=${encodeURIComponent(session.id)}`}
+                    />
+                  }
+                  className="block cursor-pointer px-2.5 py-2.5"
+                >
+                  <div className="flex gap-3">
+                    <div className="relative mt-0.5 grid size-9 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-700">
+                      <MessageCircle className="size-4" strokeWidth={1.8} />
+                      <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger-500 px-1 text-[9px] font-bold text-white">
+                        {session.unreadCount}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="truncate text-[13px] font-semibold text-ink-900">
+                          Chat baru dari {session.name}
+                        </div>
+                        <span className="shrink-0 text-[11px] text-ink-400">
+                          {formatTime(session.lastMessageAt || "")}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 line-clamp-2 text-xs leading-5 text-ink-500">
+                        {session.lastMessage || "Ada pesan belum dibaca."}
+                      </div>
+                      <div className="mt-1 text-[11px] font-semibold text-brand-600">
+                        Buka Live Chat
+                      </div>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+
+              {opsCounts.moderation > 0 ? (
+                <DropdownMenuItem
+                  render={<Link href="/moderation" />}
+                  className="block cursor-pointer px-2.5 py-2.5"
+                >
+                  <NotificationSummaryRow
+                    icon={ShieldAlert}
+                    tone="warn"
+                    title={`${opsCounts.moderation} konten perlu moderasi`}
+                    description="Tinjau laporan jasa atau project yang masuk."
+                  />
+                </DropdownMenuItem>
+              ) : null}
+
+              {opsCounts.disputes > 0 ? (
+                <DropdownMenuItem
+                  render={<Link href="/disputes" />}
+                  className="block cursor-pointer px-2.5 py-2.5"
+                >
+                  <NotificationSummaryRow
+                    icon={Flag}
+                    tone="danger"
+                    title={`${opsCounts.disputes} laporan/dispute aktif`}
+                    description="Periksa laporan pengguna dan status resolusinya."
+                  />
+                </DropdownMenuItem>
+              ) : null}
+
+              {totalNotificationCount === 0 ? (
+                <div className="px-4 py-8 text-center">
+                  <div className="mx-auto grid size-10 place-items-center rounded-full bg-surface-2 text-ink-400">
+                    <Bell className="size-4" strokeWidth={1.8} />
+                  </div>
+                  <div className="mt-3 text-sm font-semibold text-ink-900">
+                    Tidak ada notifikasi baru
+                  </div>
+                  <div className="mt-1 text-xs leading-5 text-ink-400">
+                    Chat, laporan, dan moderasi yang perlu tindakan akan muncul
+                    di sini.
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -129,5 +264,40 @@ export function TopBar() {
         </DropdownMenu>
       </div>
     </header>
+  );
+}
+
+type NotificationSummaryRowProps = {
+  icon: LucideIcon;
+  tone: "danger" | "info" | "warn";
+  title: string;
+  description: string;
+};
+
+function NotificationSummaryRow({
+  icon: Icon,
+  tone,
+  title,
+  description,
+}: NotificationSummaryRowProps) {
+  return (
+    <div className="flex gap-3">
+      <div
+        className={cn(
+          "mt-0.5 grid size-9 shrink-0 place-items-center rounded-full",
+          tone === "danger" && "bg-danger-50 text-danger-700",
+          tone === "info" && "bg-brand-50 text-brand-700",
+          tone === "warn" && "bg-warn-50 text-warn-700",
+        )}
+      >
+        <Icon className="size-4" strokeWidth={1.8} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-semibold text-ink-900">{title}</div>
+        <div className="mt-0.5 text-xs leading-5 text-ink-500">
+          {description}
+        </div>
+      </div>
+    </div>
   );
 }
