@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, ChevronDown, CircleHelp, LogOut, Search } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -76,16 +76,6 @@ export function TopBar() {
       </form>
 
       <div className="ml-auto flex items-center gap-2">
-        <Link
-          href="/settings"
-          title="Bantuan"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "icon" }),
-            "text-ink-500 hover:bg-surface-3",
-          )}
-        >
-          <CircleHelp className="size-[18px]" strokeWidth={1.75} />
-        </Link>
         <Link
           href="/chat"
           title="Notifikasi chat"
