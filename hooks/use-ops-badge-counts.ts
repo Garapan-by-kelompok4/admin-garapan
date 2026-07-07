@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 import { useDocumentVisible } from "@/hooks/use-document-visible";
 import { chatApi } from "@/lib/api/chat";
@@ -23,9 +24,28 @@ export interface OpsBadgeCounts {
 
 export function useOpsBadgeCounts(): OpsBadgeCounts {
   const isDocumentVisible = useDocumentVisible();
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    const schedule =
+      typeof requestIdleCallback === "function"
+        ? requestIdleCallback
+        : (cb: () => void) => window.setTimeout(cb, 150);
+
+    const id = schedule(() => setEnabled(true));
+
+    return () => {
+      if (typeof requestIdleCallback === "function" && typeof id === "number") {
+        cancelIdleCallback(id);
+      } else {
+        clearTimeout(id as number);
+      }
+    };
+  }, []);
 
   const { data: moderationRes } = useQuery({
     queryKey: ["sidebarModerationCount"],
+    enabled,
     queryFn: () =>
       contentApi
         .stats()
@@ -44,6 +64,7 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
 
   const { data: disputesRes } = useQuery({
     queryKey: ["sidebarDisputesCount"],
+    enabled,
     queryFn: () =>
       disputesApi
         .list({ page: 1, limit: 1 })
@@ -56,6 +77,7 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
 
   const { data: chatUnreadRes } = useQuery({
     queryKey: ["chatUnreadCount"],
+    enabled,
     queryFn: () => chatApi.getUnreadCount().catch(() => ({ unreadCount: 0 })),
     refetchInterval: visibilityAwareInterval(
       CHAT_BADGE_POLL_INTERVAL_MS,
@@ -66,6 +88,7 @@ export function useOpsBadgeCounts(): OpsBadgeCounts {
 
   const { data: transactionsRes } = useQuery({
     queryKey: ["sidebarTransactionsCount"],
+    enabled,
     queryFn: () =>
       ordersApi
         .list({ page: 1, limit: 1 })

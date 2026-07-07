@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { ChartSkeleton } from "@/components/charts/chart-skeleton";
@@ -50,6 +50,19 @@ export default function DashboardPage() {
       staleTime: 60_000,
     });
 
+  const statsWithDeltas = useMemo<DashboardStats | undefined>(() => {
+    if (!stats) return undefined;
+    const deltas = analytics?.deltas;
+    if (!deltas) return stats;
+
+    return {
+      ...stats,
+      activeUsersDelta: deltas.users,
+      transactionsDelta: deltas.orders,
+      revenueDelta: deltas.revenue,
+    };
+  }, [stats, analytics]);
+
   const { data: activities = [], isLoading: isLoadingActivities } = useQuery<
     ActivityItem[]
   >({
@@ -60,7 +73,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <DashboardStatCards stats={stats} />
+      <DashboardStatCards stats={statsWithDeltas} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <TransactionAreaChart

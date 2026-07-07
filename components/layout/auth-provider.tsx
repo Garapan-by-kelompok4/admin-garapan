@@ -2,27 +2,41 @@
 
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 
 import { fetchMe } from "@/lib/api/auth";
-import { useAuthStore } from "@/store/auth-store";
+import { type AdminUser, useAuthStore } from "@/store/auth-store";
+
+type AuthProviderProps = {
+  children: React.ReactNode;
+  /** Hydrated from the server when the access JWT is still valid. */
+  initialUser?: AdminUser | null;
+};
 
 /**
- * Hydrates the auth store from /api/auth/me on first mount and gates the
- * dashboard shell until the session is confirmed. `proxy.ts` already blocks
+ * Hydrates the auth store from the server layout (fast path) or /api/auth/me on
+ * first mount when the access JWT has expired. `proxy.ts` already blocks
  * unauthenticated navigation; this is the client-side counterpart that also
  * handles a dead session (refresh failed) by clearing state and bouncing to
  * /login.
  */
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({
+  children,
+  initialUser = null,
+}: AuthProviderProps) {
   const router = useRouter();
   const status = useAuthStore((state) => state.status);
   const setUser = useAuthStore((state) => state.setUser);
   const setStatus = useAuthStore((state) => state.setStatus);
   const reset = useAuthStore((state) => state.reset);
 
+  useLayoutEffect(() => {
+    if (!initialUser) return;
+    useAuthStore.setState({ user: initialUser, status: "authenticated" });
+  }, [initialUser]);
+
   useEffect(() => {
-    if (status !== "loading") return;
+    if (initialUser || status !== "loading") return;
 
     let active = true;
     fetchMe()
@@ -40,9 +54,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, [status, setUser, setStatus, reset, router]);
+  }, [initialUser, status, setUser, setStatus, reset, router]);
 
-  if (status !== "authenticated") {
+  if (!initialUser && status !== "authenticated") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface-2">
         <Loader2 className="size-6 animate-spin text-brand-500" />
