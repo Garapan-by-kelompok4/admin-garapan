@@ -1,3 +1,5 @@
+import { fetchAllPaginated, paginateSlice } from "@/lib/query/pagination";
+
 import { apiClient } from "./client";
 import { asRecord, enumValue } from "./normalizers";
 
@@ -38,6 +40,11 @@ export interface ListOrdersParams {
   limit?: number;
   status?: string;
   search?: string;
+}
+
+export interface ListOrdersWithEscrowParams
+  extends Omit<ListOrdersParams, "status"> {
+  escrowFilter?: string;
 }
 
 export interface ListOrdersResponse {
@@ -142,6 +149,29 @@ function normaliseListResponse(
 }
 
 export const ordersApi = {
+  listWithEscrowFilter: async (
+    params: ListOrdersWithEscrowParams = {},
+  ): Promise<ListOrdersResponse> => {
+    const { escrowFilter = "Semua", page = 1, limit = 10, search } = params;
+
+    if (escrowFilter === "Semua") {
+      return ordersApi.list({ page, limit, search });
+    }
+
+    if (!ESCROW_STATUSES.includes(escrowFilter as EscrowStatus)) {
+      return ordersApi.list({ page, limit, search });
+    }
+
+    const escrowStatus = escrowFilter as EscrowStatus;
+
+    // Escrow labels don't map 1:1 to a single PesananStatus on the backend.
+    const all = await fetchAllPaginated((fetchPage, fetchLimit) =>
+      ordersApi.list({ page: fetchPage, limit: fetchLimit, search }),
+    );
+    const filtered = all.filter((order) => order.escrowStatus === escrowStatus);
+    return paginateSlice(filtered, page, limit);
+  },
+
   list: async (params: ListOrdersParams = {}): Promise<ListOrdersResponse> => {
     const query = new URLSearchParams();
     if (params.page) query.set("page", String(params.page));
