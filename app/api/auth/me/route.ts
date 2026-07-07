@@ -1,34 +1,31 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { nestjsBaseUrl } from "@/lib/auth/api";
-import { ACCESS_TOKEN_COOKIE } from "@/lib/auth/cookies";
-import { toAdminUser, type AdminMeResponse } from "@/lib/auth/profile";
+import { clearAuthCookies, setAuthCookies } from "@/lib/auth/cookies";
+import { resolveSession } from "@/lib/auth/session";
 
 /**
  * GET /api/auth/me — hydrate the client auth store.
  *
- * Returns the admin profile for the current access-token cookie, or 401 if the
- * token is missing/expired/non-admin. The client may then call
- * /api/auth/refresh and retry once before falling back to /login.
+ * Returns the admin profile for the current session. When the 15m access JWT
+ * has expired but the refresh cookie is still valid, this handler refreshes
+ * server-side and rewrites cookies so the client only needs one round trip.
  */
-export async function GET(request: NextRequest) {
-  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
-  if (!accessToken) {
-    return NextResponse.json({ message: "Tidak terautentikasi" }, { status: 401 });
+export async function GET(_request: NextRequest) {
+  const session = await resolveSession();
+
+  if (!session) {
+    const response = NextResponse.json(
+      { message: "Tidak terautentikasi" },
+      { status: 401 },
+    );
+    clearAuthCookies(response);
+    return response;
   }
 
-  const meResponse = await fetch(`${nestjsBaseUrl()}/admin/me`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
-  });
-
-  const user = meResponse.ok
-    ? toAdminUser((await meResponse.json()) as AdminMeResponse)
-    : null;
-
-  if (!user) {
-    return NextResponse.json({ message: "Tidak terautentikasi" }, { status: 401 });
+  const response = NextResponse.json({ user: session.user });
+  if (session.newTokens) {
+    setAuthCookies(response, session.newTokens);
   }
 
-  return NextResponse.json({ user });
+  return response;
 }

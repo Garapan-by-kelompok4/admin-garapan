@@ -201,28 +201,21 @@ function normaliseAnalytics(raw: unknown): AnalyticsResponse {
 
 export const dashboardApi = {
   getStats: async (): Promise<DashboardStats> => {
-    const [statsRaw, analyticsRaw] = await Promise.all([
-      apiClient<unknown>(
-        "/admin/stats?sparklineDays=7&includeSparklines=true",
-      ),
-      apiClient<unknown>("/admin/analytics?days=30&includeDeltas=true").catch(
-        () => null,
-      ),
-    ]);
+    const statsRaw = await apiClient<unknown>(
+      "/admin/stats?sparklineDays=7&includeSparklines=true",
+    );
     const r = asRecord(statsRaw);
-    const analytics = analyticsRaw ? normaliseAnalytics(analyticsRaw) : null;
-    const deltas = analytics?.deltas;
     const sparklines = normaliseStatsSparklines(statsRaw);
 
     return {
       activeUsers: Number(r.users ?? 0),
-      activeUsersDelta: deltas?.users ?? null,
+      activeUsersDelta: null,
       activeUsersSparkline: sparklines.activeUsersSparkline,
       transactionsCount: Number(asRecord(r.orders).total ?? 0),
-      transactionsDelta: deltas?.orders ?? null,
+      transactionsDelta: null,
       transactionsSparkline: sparklines.transactionsSparkline,
       revenue: Number(r.revenue ?? 0),
-      revenueDelta: deltas?.revenue ?? null,
+      revenueDelta: null,
       revenueSparkline: sparklines.revenueSparkline,
       pendingReports: Number(r.pendingDisputes ?? 0),
       pendingReportsDelta: null,

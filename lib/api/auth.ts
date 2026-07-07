@@ -46,25 +46,9 @@ export async function logout(): Promise<void> {
   }).catch(() => undefined);
 }
 
-/**
- * GET /api/auth/me — hydrate the auth store. On a 401 (e.g. the 15m access JWT
- * expired) it tries /api/auth/refresh once and retries, so a still-valid 7d
- * session is not dropped on a hard refresh.
- */
-export async function fetchMe(
-  retryOnUnauthorized = true,
-): Promise<{ user: AdminUser }> {
+/** GET /api/auth/me — hydrate the auth store (refresh handled server-side). */
+export async function fetchMe(): Promise<{ user: AdminUser }> {
   const response = await fetch("/api/auth/me", { credentials: "include" });
-
-  if (response.status === 401 && retryOnUnauthorized) {
-    const refreshed = await fetch("/api/auth/refresh", {
-      method: "POST",
-      credentials: "include",
-    });
-    if (refreshed.ok) {
-      return fetchMe(false);
-    }
-  }
 
   if (!response.ok) {
     throw new AuthError(
