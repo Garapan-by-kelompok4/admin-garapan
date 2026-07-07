@@ -6,7 +6,7 @@ import { disputesApi } from "@/lib/api/disputes";
 
 export interface DisputesSummaryStats {
   openCount: number;
-  processingCount: number;
+  rejectedCount: number;
   totalCount: number;
   resolvedCount: number;
 }
@@ -20,8 +20,7 @@ async function fetchDisputesSummaryStats(): Promise<DisputesSummaryStats> {
 
   return {
     openCount: open.total,
-    // Backend has no distinct IN_PROGRESS status; Diproses maps to PENDING like Terbuka.
-    processingCount: 0,
+    rejectedCount: rejected.total,
     totalCount: open.total + resolved.total + rejected.total,
     resolvedCount: resolved.total,
   };

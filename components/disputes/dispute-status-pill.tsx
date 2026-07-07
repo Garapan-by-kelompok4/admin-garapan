@@ -35,11 +35,6 @@ export function disputeStatusTone(status: Dispute["status"]): StatusTone {
         dotClassName: "bg-danger-500",
         labelClassName: "text-xs font-semibold text-danger-700",
       };
-    case "Diproses":
-      return {
-        dotClassName: "bg-warn-500",
-        labelClassName: "text-xs font-semibold text-warn-700",
-      };
     case "Selesai":
       return {
         dotClassName: "bg-success-500",
@@ -99,13 +94,6 @@ export function DisputeStatusPill({
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-danger-50 text-danger-700">
           <span className="h-1.5 w-1.5 rounded-full bg-danger-500" />
           Terbuka
-        </span>
-      );
-    case "Diproses":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-warn-50 text-warn-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-warn-500" />
-          Diproses
         </span>
       );
     case "Selesai":

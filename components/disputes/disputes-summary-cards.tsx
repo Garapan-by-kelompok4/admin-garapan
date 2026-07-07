@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, Clock, Flag } from "lucide-react";
+import { AlertTriangle, CheckCircle, Flag, XCircle } from "lucide-react";
 
 import {
   PageSummaryStatCards,
@@ -7,14 +7,14 @@ import {
 
 interface DisputesSummaryCardsProps {
   openCount: number;
-  processingCount: number;
+  rejectedCount: number;
   totalCount: number;
   resolvedCount: number;
 }
 
 export function DisputesSummaryCards({
   openCount,
-  processingCount,
+  rejectedCount,
   totalCount,
   resolvedCount,
 }: DisputesSummaryCardsProps) {
@@ -26,10 +26,10 @@ export function DisputesSummaryCards({
       iconClassName: "bg-danger-50 text-danger-500 border-danger-100",
     },
     {
-      label: "Sedang Diproses",
-      value: processingCount,
-      icon: Clock,
-      iconClassName: "bg-warn-50 text-warn-500 border-warn-100",
+      label: "Ditolak",
+      value: rejectedCount,
+      icon: XCircle,
+      iconClassName: "bg-slate-100 text-slate-600 border-slate-200",
     },
     {
       label: "Total Laporan",

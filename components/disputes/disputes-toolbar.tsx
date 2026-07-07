@@ -23,7 +23,6 @@ export function DisputesToolbar({
   const statusOptions = [
     { value: "Semua", label: "Semua Laporan" },
     { value: "Terbuka", label: "Terbuka" },
-    { value: "Diproses", label: "Diproses" },
     { value: "Selesai", label: "Selesai" },
     { value: "Ditolak", label: "Ditolak" },
   ];

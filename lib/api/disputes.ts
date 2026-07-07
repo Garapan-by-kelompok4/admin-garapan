@@ -2,7 +2,7 @@ import { apiClient } from "./client";
 import { asRecord, recordList } from "./normalizers";
 
 export type DisputePriority = "Tinggi" | "Sedang" | "Rendah";
-export type DisputeStatus = "Terbuka" | "Diproses" | "Selesai" | "Ditolak";
+export type DisputeStatus = "Terbuka" | "Selesai" | "Ditolak";
 export type DisputeOutcome = "RELEASE" | "REFUND" | "PARTIAL_REFUND" | "REJECT";
 
 export interface Dispute {
@@ -134,7 +134,7 @@ export const disputesApi = {
 
     if (params.status) {
       let backendStatus = params.status;
-      if (params.status === "Terbuka" || params.status === "Diproses") {
+      if (params.status === "Terbuka") {
         backendStatus = "PENDING";
       } else if (params.status === "Selesai") {
         backendStatus = "RESOLVED";
