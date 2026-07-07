@@ -77,7 +77,7 @@ export function LoginForm() {
               id="email"
               type="email"
               autoComplete="username"
-              placeholder="nama@garapan.test"
+              placeholder="admin@garapan.id"
               className="h-11 pl-10"
               aria-invalid={Boolean(errors.email)}
               {...register("email")}
