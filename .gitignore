@@ -16,6 +16,10 @@
 /playwright-report/
 /playwright/.auth/
 
+# local caches
+/.turbo/
+/.cache/
+
 # next.js
 /.next/
 /out/
@@ -32,6 +36,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
 # env files (can opt-in for committing if needed)
 .env*
