@@ -5,6 +5,7 @@ export interface PageSummaryStatCard {
   value: string | number;
   icon: LucideIcon;
   iconClassName: string;
+  hint?: string;
 }
 
 interface PageSummaryStatCardsProps {
@@ -25,7 +26,10 @@ export function PageSummaryStatCards({ cards }: PageSummaryStatCardsProps) {
             <item.icon className="h-4 w-4 lg:h-4.5 lg:w-4.5" />
           </div>
           <div className="mt-2.5 lg:mt-4">
-            <div className="text-[10.5px] font-semibold leading-snug text-ink-450 sm:text-[12.5px]">
+            <div
+              className="text-[10.5px] font-semibold leading-snug text-ink-450 sm:text-[12.5px]"
+              title={item.hint}
+            >
               {item.label}
             </div>
             <div className="mt-1 font-heading text-base font-extrabold leading-tight tracking-tight text-ink-900 tabular-nums sm:mt-1.5 sm:text-xl lg:text-2xl">
