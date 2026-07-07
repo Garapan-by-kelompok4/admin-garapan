@@ -1,7 +1,6 @@
 import { apiClient } from "./client";
-import { asRecord, recordList } from "./normalizers";
+import { asRecord, nullableNumber, recordList } from "./normalizers";
 
-export type DisputePriority = "Tinggi" | "Sedang" | "Rendah";
 export type DisputeStatus = "Terbuka" | "Selesai" | "Ditolak";
 export type DisputeOutcome = "RELEASE" | "REFUND" | "PARTIAL_REFUND" | "REJECT";
 
@@ -16,13 +15,16 @@ export interface Dispute {
   reportedEmail: string;
   issueType: string;
   description: string;
-  priority: DisputePriority;
   status: DisputeStatus;
   createdAt: string;
   orderAmount: number;
 }
 
 export interface DisputeDetail extends Dispute {
+  resolutionNote: string | null;
+  resolvedAt: string | null;
+  refundAmount: number | null;
+  orderStatus: string | null;
   evidenceUrls?: string[];
 }
 
@@ -46,6 +48,19 @@ export interface ResolveDisputePayload {
   refundAmount?: string;
 }
 
+function disputeParticipantName(user: Record<string, unknown>): string {
+  const mahasiswa = asRecord(user.mahasiswa);
+  const klien = asRecord(user.klien);
+
+  return String(
+    user.displayName ??
+      mahasiswa.fullName ??
+      klien.companyName ??
+      user.email ??
+      "-",
+  );
+}
+
 function normaliseDispute(raw: unknown): Dispute {
   if (!raw) {
     return {
@@ -59,7 +74,6 @@ function normaliseDispute(raw: unknown): Dispute {
       reportedEmail: "-",
       issueType: "-",
       description: "",
-      priority: "Sedang",
       status: "Terbuka",
       createdAt: new Date().toISOString(),
       orderAmount: 0,
@@ -80,18 +94,13 @@ function normaliseDispute(raw: unknown): Dispute {
     id: String(r.id ?? ""),
     orderId: String(r.pesananId ?? pesanan.id ?? ""),
     reporterId: String(reporter.id ?? r.reporterId ?? ""),
-    reporterName: String(
-      reporter.fullName ?? reporter.displayName ?? reporter.email ?? "-",
-    ),
+    reporterName: disputeParticipantName(reporter),
     reporterEmail: String(reporter.email ?? "-"),
     reportedId: String(target.id ?? r.targetId ?? ""),
-    reportedName: String(
-      target.fullName ?? target.displayName ?? target.email ?? "-",
-    ),
+    reportedName: disputeParticipantName(target),
     reportedEmail: String(target.email ?? "-"),
     issueType: String(r.reason ?? "-"),
     description: String(r.reason ?? ""),
-    priority: "Sedang",
     status,
     createdAt: String(r.createdAt ?? new Date().toISOString()),
     orderAmount: Number(pesanan.totalPrice ?? 0),
@@ -131,6 +140,7 @@ export const disputesApi = {
     const query = new URLSearchParams();
     if (params.page) query.set("page", String(params.page));
     if (params.limit) query.set("limit", String(params.limit));
+    if (params.search) query.set("search", params.search);
 
     if (params.status) {
       let backendStatus = params.status;
@@ -154,10 +164,15 @@ export const disputesApi = {
     const raw = await apiClient<unknown>(`/admin/disputes/${id}`);
     const dispute = normaliseDispute(raw);
     const record = asRecord(raw);
-    const resolutionNote = String(record.resolutionNote ?? "");
+    const pesanan = asRecord(record.pesanan);
+    const resolutionNote = String(record.resolutionNote ?? "").trim();
+
     return {
       ...dispute,
-      description: resolutionNote || dispute.description,
+      resolutionNote: resolutionNote || null,
+      resolvedAt: record.resolvedAt ? String(record.resolvedAt) : null,
+      refundAmount: nullableNumber(record.refundAmount),
+      orderStatus: pesanan.status ? String(pesanan.status) : null,
     };
   },
 

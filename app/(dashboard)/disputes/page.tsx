@@ -29,12 +29,13 @@ export default function DisputesPage() {
   const { data: summaryStats } = useDisputesSummaryStats();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["disputes", page, statusFilter],
+    queryKey: ["disputes", page, statusFilter, search],
     queryFn: () =>
       disputesApi.list({
         page,
         limit,
         status: statusFilter === "Semua" ? undefined : statusFilter,
+        search: search || undefined,
       }),
     placeholderData: paginatedListPlaceholder,
   });
@@ -135,12 +136,6 @@ export default function DisputesPage() {
                   <div className="font-semibold text-ink-400">Nominal</div>
                   <div className="mt-1 font-bold text-ink-800">
                     {formatCurrency(dispute.orderAmount)}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-ink-400">Prioritas</div>
-                  <div className="mt-1 font-bold text-ink-800">
-                    {dispute.priority}
                   </div>
                 </div>
                 <div>

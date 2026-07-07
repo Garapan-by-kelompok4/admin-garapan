@@ -25,6 +25,7 @@ import {
   type ResolveDisputeFormInput,
   type ResolveDisputeInput,
 } from "@/lib/validators/disputes";
+import { getDisputeOutcomeLabel } from "@/lib/disputes/outcome";
 
 interface ResolutionFormProps {
   disputeDetail: DisputeDetail;
@@ -117,34 +118,30 @@ export function ResolutionForm({
                   className="h-[38px] w-full border-border bg-white px-3 text-sm font-medium text-ink-700 focus-visible:border-brand-400 focus-visible:ring-brand-50"
                 >
                   <SelectValue placeholder="Pilih resolusi...">
-                    {(value) => {
-                      if (value === "RELEASE") {
-                        return "Cairkan penuh ke Freelancer";
-                      }
-                      if (value === "REFUND") return "Refund penuh ke Klien";
-                      if (value === "PARTIAL_REFUND") {
-                        return "Refund parsial";
-                      }
-                      if (value === "REJECT") return "Tolak laporan";
-                      return "Pilih resolusi...";
-                    }}
+                    {(value) =>
+                      value
+                        ? getDisputeOutcomeLabel(
+                            value as ResolveDisputePayload["outcome"],
+                          )
+                        : "Pilih resolusi..."
+                    }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent align="start" className="min-w-[280px] p-1">
                   <SelectItem value="RELEASE" className="px-2 py-1.5 text-sm">
-                    Cairkan penuh ke Freelancer (Mahasiswa)
+                    {getDisputeOutcomeLabel("RELEASE")}
                   </SelectItem>
                   <SelectItem value="REFUND" className="px-2 py-1.5 text-sm">
-                    Refund penuh ke Client (Klien)
+                    {getDisputeOutcomeLabel("REFUND")}
                   </SelectItem>
                   <SelectItem
                     value="PARTIAL_REFUND"
                     className="px-2 py-1.5 text-sm"
                   >
-                    Refund Parsial ke Client &amp; Sisa ke Freelancer
+                    {getDisputeOutcomeLabel("PARTIAL_REFUND")}
                   </SelectItem>
                   <SelectItem value="REJECT" className="px-2 py-1.5 text-sm">
-                    Tolak Laporan (Tutup tanpa perubahan dana)
+                    {getDisputeOutcomeLabel("REJECT")}
                   </SelectItem>
                 </SelectContent>
               </Select>

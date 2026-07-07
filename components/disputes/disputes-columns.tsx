@@ -97,10 +97,7 @@ export function createDisputesColumns({
         const statusTone = disputeStatusTone(row.original.status);
 
         return (
-          <StatusStack
-            className="w-[110px]"
-            sublabel={row.original.priority}
-          >
+          <StatusStack className="w-[110px]">
             <StatusIndicator
               label={row.original.status}
               dotClassName={statusTone.dotClassName}
