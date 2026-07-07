@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect } from "react";
 
 import { fetchMe } from "@/lib/api/auth";
 import { type AdminUser, useAuthStore } from "@/store/auth-store";
@@ -29,12 +29,11 @@ export function AuthProvider({
   const setUser = useAuthStore((state) => state.setUser);
   const setStatus = useAuthStore((state) => state.setStatus);
   const reset = useAuthStore((state) => state.reset);
-  const hydratedRef = useRef(false);
 
-  if (initialUser && !hydratedRef.current) {
-    hydratedRef.current = true;
+  useLayoutEffect(() => {
+    if (!initialUser) return;
     useAuthStore.setState({ user: initialUser, status: "authenticated" });
-  }
+  }, [initialUser]);
 
   useEffect(() => {
     if (initialUser || status !== "loading") return;
