@@ -34,9 +34,9 @@ export function LoginHero() {
 
         <div className="mt-10 flex gap-8">
           {[
-            { value: "12,4K", label: "Mahasiswa aktif" },
-            { value: "3,8K", label: "Klien terverifikasi" },
-            { value: "Rp 4,2M", label: "Transaksi / bulan" },
+            { value: "Internal", label: "Akses terbatas" },
+            { value: "9 Modul", label: "Operasional utama" },
+            { value: "Aman", label: "Sesi terlindungi" },
           ].map((stat) => (
             <div key={stat.label}>
               <div className="font-display text-2xl font-extrabold tracking-tight">
