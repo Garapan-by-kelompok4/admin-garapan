@@ -24,7 +24,7 @@ const PROTECTED_PREFIXES = [
   "/settings",
 ];
 
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = Boolean(
     request.cookies.get(ACCESS_TOKEN_COOKIE)?.value,

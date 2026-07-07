@@ -1,0 +1,165 @@
+import { apiClient } from "./client";
+import { asRecord, recordList, textFromValue } from "./normalizers";
+
+export interface SkillItem {
+  id: string;
+  name: string;
+  category: string;
+  createdAt: string;
+}
+
+export interface KategoriItem {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+export interface AdminProfile {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  bio?: string;
+  avatarUrl?: string;
+  role: string;
+}
+
+function normaliseProfile(raw: unknown): AdminProfile {
+  const record = asRecord(raw);
+  return {
+    id: String(record.id ?? ""),
+    fullName: textFromValue(
+      record.fullName ?? record.name ?? record.displayName,
+      "",
+    ),
+    email: textFromValue(record.email, ""),
+    phone: textFromValue(record.phone ?? record.phoneNumber ?? record.telp, ""),
+    bio: textFromValue(record.bio ?? record.description ?? record.about, ""),
+    avatarUrl: textFromValue(record.avatarUrl, ""),
+    role: textFromValue(record.role, "ADMIN"),
+  };
+}
+
+function normaliseKategori(raw: unknown, index = 0): KategoriItem {
+  const record = asRecord(raw);
+  return {
+    id: String(record.id ?? record._id ?? `kategori-${index}`),
+    name: textFromValue(record.name ?? record.title ?? record.label, ""),
+    icon: textFromValue(record.icon ?? record.emoji, ""),
+  };
+}
+
+function normaliseSkills(raw: unknown): SkillItem[] {
+  if (!raw) return [];
+  const record = asRecord(raw);
+  const data = asRecord(record.data);
+  const items = Array.isArray(raw)
+    ? raw
+    : Array.isArray(record.data)
+      ? record.data
+      : Array.isArray(record.items)
+        ? record.items
+        : Array.isArray(data.items)
+          ? data.items
+          : [];
+  return items.map((item, index: number) => {
+    const s = asRecord(item);
+    const kategoriObj = asRecord(s.kategori);
+    return {
+      id: String(s.id || s._id || `skill-${index}`),
+      name: textFromValue(s.name || s.skillName || s.title, ""),
+      category: textFromValue(
+        Object.keys(kategoriObj).length > 0
+          ? kategoriObj.name
+          : s.category || s.kategori || s.type,
+        "",
+      ),
+      createdAt: textFromValue(
+        s.createdAt || s.created_at,
+        new Date().toISOString(),
+      ),
+    };
+  });
+}
+
+export const settingsApi = {
+  getProfile: async (): Promise<AdminProfile> => {
+    const raw = await apiClient<unknown>("/admin/me");
+    return normaliseProfile(raw);
+  },
+
+  updateProfile: async (
+    payload: Partial<AdminProfile>,
+  ): Promise<AdminProfile> => {
+    const body: Record<string, unknown> = {};
+    if (payload.fullName !== undefined) body.displayName = payload.fullName;
+
+    const raw = await apiClient<unknown>("/admin/me", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    return normaliseProfile(raw);
+  },
+
+  changePassword: async (payload: {
+    oldPassword: string;
+    newPassword: string;
+  }): Promise<void> => {
+    return apiClient<void>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({
+        currentPassword: payload.oldPassword,
+        newPassword: payload.newPassword,
+      }),
+    });
+  },
+
+  listKategori: async (): Promise<KategoriItem[]> => {
+    const raw = await apiClient<unknown>("/admin/kategori");
+    if (Array.isArray(raw)) {
+      return raw.map((item, index) => normaliseKategori(item, index));
+    }
+    const record = asRecord(raw);
+    return recordList(record.data).map((item, index) =>
+      normaliseKategori(item, index),
+    );
+  },
+
+  listSkills: async (): Promise<SkillItem[]> => {
+    const raw = await apiClient<unknown>("/admin/skills");
+    return normaliseSkills(raw);
+  },
+
+  createSkill: async (payload: {
+    name: string;
+    kategoriId?: string;
+  }): Promise<SkillItem> => {
+    const raw = await apiClient<unknown>("/admin/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        name: payload.name,
+        kategoriId: payload.kategoriId || undefined,
+      }),
+    });
+    // Backend NestJS returns the skill object directly: { id, name, kategoriId, kategori }
+    const item = asRecord(raw);
+    const kategoriObj = asRecord(item.kategori);
+    return {
+      id: String(item.id || ""),
+      name: textFromValue(item.name, payload.name),
+      category: textFromValue(
+        Object.keys(kategoriObj).length > 0
+          ? kategoriObj.name
+          : item.category || item.kategori,
+        "",
+      ),
+      createdAt: textFromValue(item.createdAt, new Date().toISOString()),
+    };
+  },
+
+  deleteSkill: async (id: string): Promise<void> => {
+    return apiClient<void>(`/admin/skills/${id}`, {
+      method: "DELETE",
+    });
+  },
+};

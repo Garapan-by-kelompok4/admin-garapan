@@ -11,13 +11,20 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "pnpm test:unit && pnpm test:e2e",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
     "@hookform/resolvers": "^5.2.2",
+    "@tailwindcss/typography": "^0.5.20",
     "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-table": "^8.21.3",
+    "@tiptap/extension-link": "^3.27.1",
+    "@tiptap/extension-placeholder": "^3.27.1",
     "@tiptap/pm": "^3.15.3",
     "@tiptap/react": "^3.15.3",
     "@tiptap/starter-kit": "^3.15.3",
@@ -46,9 +53,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
-    "typescript": "^5"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["sharp", "unrs-resolver"]
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

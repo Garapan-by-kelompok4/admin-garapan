@@ -10,6 +10,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { MODERATION_PAGE_TITLE } from "@/lib/moderation/page-meta";
+
 export type NavItem = {
   href: string;
   label: string;
@@ -32,8 +34,18 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Manajemen",
     items: [
       { href: "/users", label: "Manajemen User", icon: Users },
-      { href: "/moderation", label: "Moderasi Konten", icon: Shield, badge: "moderation" },
-      { href: "/disputes", label: "Dispute & Laporan", icon: Flag, badge: "disputes" },
+      {
+        href: "/moderation",
+        label: MODERATION_PAGE_TITLE,
+        icon: Shield,
+        badge: "moderation",
+      },
+      {
+        href: "/disputes",
+        label: "Dispute & Laporan",
+        icon: Flag,
+        badge: "disputes",
+      },
       { href: "/transactions", label: "Transaksi & Escrow", icon: Wallet },
     ],
   },

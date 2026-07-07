@@ -17,11 +17,20 @@ export async function apiClient<T>(
 ): Promise<T> {
   const { retryOnUnauthorized = true, ...init } = options;
 
+  const hasBody = "body" in init && init.body !== undefined;
+  const mergedHeaders: Record<string, string> = {
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
+  };
+  if (hasBody) {
+    mergedHeaders["Content-Type"] = "application/json";
+  }
+
   const response = await fetch(`/api/proxy${path}`, {
     ...init,
     credentials: "include",
     headers: {
-      "Content-Type": "application/json",
+      ...mergedHeaders,
       ...init.headers,
     },
   });
@@ -34,10 +43,22 @@ export async function apiClient<T>(
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
+    const text = await response.text().catch(() => "");
+    let detail = "";
+    try {
+      const error = JSON.parse(text) as Record<string, unknown>;
+      detail =
+        typeof error.message === "string"
+          ? error.message
+          : Array.isArray(error.message)
+            ? error.message.join("; ")
+            : JSON.stringify(error);
+    } catch {
+      detail = text.slice(0, 500);
+    }
     throw new Error(
-      typeof error.message === "string"
-        ? error.message
+      detail.length > 0 && detail !== "{}"
+        ? detail
         : `Request failed with status ${response.status}`,
     );
   }

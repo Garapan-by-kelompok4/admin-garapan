@@ -1,5 +1,108 @@
-import { ComingSoon } from "@/components/layout/coming-soon";
+"use client";
+
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { chatApi } from "@/lib/api/chat";
+import { ChatRoom } from "@/components/chat/chat-room";
+import {
+  ChatSessionList,
+  RoleFilter,
+} from "@/components/chat/chat-session-list";
+import { useDocumentVisible } from "@/hooks/use-document-visible";
+import {
+  CHAT_POLL_INTERVAL_MS,
+  visibilityAwareInterval,
+} from "@/lib/query/polling";
 
 export default function ChatPage() {
-  return <ComingSoon title="Live Chat" />;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedSessionId = searchParams.get("session");
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
+  const activeSessionId = requestedSessionId ?? selectedSessionId;
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const isDocumentVisible = useDocumentVisible();
+
+  const { data: sessions = [], isLoading: isLoadingSessions } = useQuery({
+    queryKey: ["chatSessions"],
+    queryFn: () => chatApi.listSessions(),
+    refetchInterval: visibilityAwareInterval(
+      CHAT_POLL_INTERVAL_MS,
+      isDocumentVisible,
+    ),
+    refetchOnWindowFocus: true,
+  });
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId) || null;
+
+  const handleSelectSession = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    if (requestedSessionId) {
+      router.replace("/chat", { scroll: false });
+    }
+  };
+
+  const handleEndSession = () => {
+    setSelectedSessionId(null);
+    if (requestedSessionId) {
+      router.replace("/chat", { scroll: false });
+    }
+  };
+
+  const handleBackToSessions = () => {
+    setSelectedSessionId(null);
+    if (requestedSessionId) {
+      router.replace("/chat", { scroll: false });
+    }
+  };
+
+  const filteredSessions = useMemo(() => {
+    const query = search.toLowerCase();
+    return sessions.filter((s) => {
+      const matchesSearch =
+        s.name.toLowerCase().includes(query) ||
+        s.id.toLowerCase().includes(query);
+
+      if (!matchesSearch) return false;
+
+      if (unreadOnly && s.unreadCount <= 0) return false;
+      if (roleFilter === "KLIEN") return s.role === "KLIEN";
+      if (roleFilter === "MAHASISWA") return s.role === "MAHASISWA";
+
+      return true;
+    });
+  }, [sessions, search, roleFilter, unreadOnly]);
+
+  return (
+    <div className="flex h-[calc(100vh-112px)] overflow-hidden rounded-xl border border-border bg-white shadow-sh-2 select-none md:h-[calc(100vh-140px)]">
+      <ChatSessionList
+        activeSessionId={activeSessionId}
+        onSelectSession={handleSelectSession}
+        search={search}
+        onSearchChange={setSearch}
+        roleFilter={roleFilter}
+        onRoleFilterChange={setRoleFilter}
+        unreadOnly={unreadOnly}
+        onUnreadOnlyChange={setUnreadOnly}
+        showSessionList
+        filteredSessions={filteredSessions}
+        isLoadingSessions={isLoadingSessions}
+      />
+
+      {activeSessionId && (
+        <ChatRoom
+          key={activeSessionId}
+          activeSessionId={activeSessionId}
+          activeSession={activeSession}
+          onEndSession={handleEndSession}
+          onBackToSessions={handleBackToSessions}
+        />
+      )}
+    </div>
+  );
 }

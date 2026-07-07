@@ -66,7 +66,7 @@ Domain terms used across the admin panel, mobile app, and NestJS backend. UI lab
 | **Laporan** | Report / dispute | Filed via mobile with `pesananId` + text `reason`; admin resolves |
 | **Pelapor** | Reporter | User who opened the Laporan |
 | **Terlapor** | Reported party | Target user of the Laporan |
-| **Moderasi konten** | Content moderation | Admin review of flagged Jasa/Project listings |
+| **Moderasi jasa & proyek** | Listing moderation | Admin review of flagged Jasa/Project listings reported via mobile |
 
 ### Laporan status (`LaporanStatus`)
 

@@ -41,12 +41,13 @@ async function handle(request: NextRequest, context: RouteContext) {
   });
   headers.set("Authorization", `Bearer ${accessToken}`);
 
-  const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  const hasBody = ["POST", "PUT", "PATCH"].includes(request.method);
+  const bodyBuffer = hasBody ? await request.arrayBuffer() : undefined;
 
   const upstream = await fetch(target, {
     method: request.method,
     headers,
-    body: hasBody ? await request.arrayBuffer() : undefined,
+    body: bodyBuffer,
     redirect: "manual",
     cache: "no-store",
   });
@@ -57,7 +58,22 @@ async function handle(request: NextRequest, context: RouteContext) {
     responseHeaders.set("content-type", contentType);
   }
 
-  return new NextResponse(upstream.body, {
+  // Force disable browser and intermediate caching for all proxy requests
+  responseHeaders.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  responseHeaders.set("Pragma", "no-cache");
+  responseHeaders.set("Expires", "0");
+
+  // 204 No Content / 205 Reset Content must not carry a body
+  if (upstream.status === 204 || upstream.status === 205) {
+    return new NextResponse(null, {
+      status: upstream.status,
+      headers: responseHeaders,
+    });
+  }
+
+  const responseBody = await upstream.arrayBuffer();
+
+  return new NextResponse(responseBody, {
     status: upstream.status,
     headers: responseHeaders,
   });
