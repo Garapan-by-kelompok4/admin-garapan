@@ -28,7 +28,7 @@ export function CategoryDonutChart({
         </p>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-between gap-4 py-2 min-h-[170px] select-none sm:flex-row">
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 py-2 min-h-[170px] select-none sm:flex-row sm:gap-5">
         {isLoading ? (
           <div className="h-[150px] w-full bg-surface-2 animate-pulse rounded-full" />
         ) : (
@@ -65,25 +65,23 @@ export function CategoryDonutChart({
               </div>
             </div>
 
-            <div className="w-full flex-1 space-y-2 sm:max-w-[130px]">
+            <div className="w-full min-w-0 space-y-2 sm:flex-1">
               {categories.map((cat, index) => (
                 <div
                   key={`${cat.name}-${index}`}
-                  className="flex items-center justify-between text-xs"
+                  className="flex items-center gap-2 text-xs min-w-0"
                 >
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span
-                      className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
-                      style={{
-                        backgroundColor:
-                          DONUT_COLORS[index % DONUT_COLORS.length],
-                      }}
-                    />
-                    <span className="text-ink-600 font-semibold truncate">
-                      {cat.name}
-                    </span>
-                  </div>
-                  <span className="font-mono text-[11px] font-bold text-ink-400 pl-1">
+                  <span
+                    className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
+                    style={{
+                      backgroundColor:
+                        DONUT_COLORS[index % DONUT_COLORS.length],
+                    }}
+                  />
+                  <span className="text-ink-600 font-semibold truncate min-w-0 flex-1">
+                    {cat.name}
+                  </span>
+                  <span className="font-mono text-[11px] font-bold text-ink-400 tabular-nums flex-shrink-0">
                     {cat.percentage}%
                   </span>
                 </div>
