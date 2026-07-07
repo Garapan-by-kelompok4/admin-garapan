@@ -45,7 +45,7 @@ export function DashboardAttentionPanel({
 }: DashboardAttentionPanelProps) {
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-border rounded-xl p-5 space-y-3.5 shadow-sh-1">
+      <div className="min-h-[458px] bg-white border border-border rounded-xl p-5 space-y-3.5 shadow-sh-1">
         <h3 className="font-heading font-bold text-sm text-ink-900 border-b border-border pb-2.5">
           Pusat Perhatian Admin
         </h3>

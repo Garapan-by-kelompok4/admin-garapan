@@ -14,7 +14,7 @@ export function DashboardActivityFeed({
   isLoading,
 }: DashboardActivityFeedProps) {
   return (
-    <div className="lg:col-span-2 bg-white border border-border rounded-xl overflow-hidden shadow-sh-1">
+    <div className="lg:col-span-2 min-h-[458px] bg-white border border-border rounded-xl overflow-hidden shadow-sh-1">
       <div className="flex flex-col gap-3 border-b border-border bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h3 className="font-heading font-bold text-sm text-ink-900">
@@ -32,7 +32,7 @@ export function DashboardActivityFeed({
         </Link>
       </div>
 
-      <div className="divide-y divide-border max-h-[360px] overflow-y-auto">
+      <div className="divide-y divide-border h-[360px] overflow-y-auto">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, idx) => (
             <div key={idx} className="p-4 flex gap-3 animate-pulse">
