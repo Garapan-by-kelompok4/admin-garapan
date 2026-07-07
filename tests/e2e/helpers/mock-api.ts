@@ -32,9 +32,20 @@ const MOCK_DISPUTE = {
   reason: "Pekerjaan tidak sesuai",
   status: "PENDING",
   createdAt: "2026-01-02T00:00:00.000Z",
-  reporter: { fullName: "E2E Reporter", email: "reporter@garapan.test" },
-  target: { fullName: "E2E Reported", email: "reported@garapan.test" },
-  pesanan: { totalPrice: 500000 },
+  reporter: {
+    id: "reporter-1",
+    email: "reporter@garapan.test",
+    role: "KLIEN",
+    displayName: "E2E Reporter",
+    klien: { companyName: "E2E Reporter Co" },
+  },
+  target: {
+    id: "target-1",
+    email: "reported@garapan.test",
+    role: "MAHASISWA",
+    mahasiswa: { fullName: "E2E Reported" },
+  },
+  pesanan: { id: "order-dispute-1", status: "DISPUTED", totalPrice: 500000 },
 };
 
 const MOCK_ORDER = {
