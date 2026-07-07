@@ -26,19 +26,13 @@ export default function TransactionsPage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["transactions", page, search, statusFilter],
-    queryFn: async () => {
-      let apiStatus: string | undefined = undefined;
-      if (statusFilter === "Ditahan") apiStatus = "PAID";
-      else if (statusFilter === "Dicairkan") apiStatus = "COMPLETED";
-      else if (statusFilter === "Refund") apiStatus = "CANCELLED";
-
-      return ordersApi.list({
+    queryFn: () =>
+      ordersApi.listWithEscrowFilter({
         page,
         limit,
-        status: apiStatus,
+        escrowFilter: statusFilter,
         search: search || undefined,
-      });
-    },
+      }),
     placeholderData: paginatedListPlaceholder,
   });
 
