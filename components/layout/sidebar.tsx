@@ -50,7 +50,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex-1 overflow-y-auto px-[10px] pb-5 pt-2 select-none">
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-1">
-            <div className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-ink-300">
+            <div className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
               {group.label}
             </div>
             {group.items.map((item) => {
