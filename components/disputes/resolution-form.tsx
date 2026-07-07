@@ -76,10 +76,7 @@ export function ResolutionForm({
     });
   };
 
-  if (
-    disputeDetail.status !== "Terbuka" &&
-    disputeDetail.status !== "Diproses"
-  ) {
+  if (disputeDetail.status !== "Terbuka") {
     return null;
   }
 

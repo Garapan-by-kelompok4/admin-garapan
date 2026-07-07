@@ -18,7 +18,7 @@ import { DisputeStatusPill } from "@/components/disputes/dispute-status-pill";
 export default function DisputesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Terbuka");
+  const [statusFilter, setStatusFilter] = useState("Semua");
   const [page, setPage] = useState(1);
   const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(
     null,
@@ -74,7 +74,7 @@ export default function DisputesPage() {
     <div className="space-y-6">
       <DisputesSummaryCards
         openCount={summaryStats?.openCount ?? 0}
-        processingCount={summaryStats?.processingCount ?? 0}
+        rejectedCount={summaryStats?.rejectedCount ?? 0}
         totalCount={summaryStats?.totalCount ?? 0}
         resolvedCount={summaryStats?.resolvedCount ?? 0}
       />
