@@ -19,45 +19,53 @@ export type ResolvedSession = {
 };
 
 async function fetchAdminMe(accessToken: string): Promise<AdminUser | null> {
-  const response = await fetch(`${nestjsBaseUrl()}/admin/me`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(`${nestjsBaseUrl()}/admin/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    return toAdminUser((await response.json()) as AdminMeResponse);
+  } catch {
     return null;
   }
-
-  return toAdminUser((await response.json()) as AdminMeResponse);
 }
 
 async function refreshTokens(
   refreshToken: string,
 ): Promise<TokenPair | null> {
-  const response = await fetch(`${nestjsBaseUrl()}/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(`${nestjsBaseUrl()}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    const tokens = (await response.json()) as {
+      accessToken?: string;
+      refreshToken?: string;
+    };
+
+    if (!tokens.accessToken || !tokens.refreshToken) {
+      return null;
+    }
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+  } catch {
     return null;
   }
-
-  const tokens = (await response.json()) as {
-    accessToken?: string;
-    refreshToken?: string;
-  };
-
-  if (!tokens.accessToken || !tokens.refreshToken) {
-    return null;
-  }
-
-  return {
-    accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken,
-  };
 }
 
 /**
