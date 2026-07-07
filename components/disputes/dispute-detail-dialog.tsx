@@ -25,10 +25,10 @@ import {
 } from "@/lib/mobile-sheet";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
-  DisputePriorityPill,
   DisputeStatusPill,
 } from "./dispute-status-pill";
 import { ResolutionForm } from "./resolution-form";
+import { ResolutionSummary } from "./resolution-summary";
 
 interface DisputeDetailDialogProps {
   open: boolean;
@@ -70,13 +70,11 @@ function PersonCard({
   toneClassName,
   name,
   email,
-  id,
 }: {
   label: string;
   toneClassName: string;
   name: string;
   email: string;
-  id: string;
 }) {
   return (
     <div className="rounded-lg border border-border bg-white p-4 shadow-sh-1">
@@ -95,11 +93,6 @@ function PersonCard({
         <div className="min-w-0">
           <div className="text-sm font-semibold text-ink-900">{name}</div>
           <div className="mt-0.5 break-all text-[11px] text-ink-400">{email}</div>
-          {id && (
-            <div className="mt-1 break-all font-mono text-[10px] font-semibold text-ink-400">
-              {id.slice(0, 8)}…
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -194,7 +187,6 @@ export function DisputeDetailDialog({
                     <h2 className="font-heading text-lg font-bold tracking-tight text-ink-900 sm:text-xl">
                       Dispute & Laporan
                     </h2>
-                    <DisputePriorityPill priority={disputeDetail.priority} />
                     <DisputeStatusPill status={disputeDetail.status} />
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-ink-400">
@@ -260,14 +252,12 @@ export function DisputeDetailDialog({
                     toneClassName="bg-brand-500"
                     name={disputeDetail.reporterName}
                     email={disputeDetail.reporterEmail}
-                    id={disputeDetail.reporterId}
                   />
                   <PersonCard
                     label="Terlapor (Mahasiswa)"
                     toneClassName="bg-warn-500"
                     name={disputeDetail.reportedName}
                     email={disputeDetail.reportedEmail}
-                    id={disputeDetail.reportedId}
                   />
                 </div>
 
@@ -301,19 +291,27 @@ export function DisputeDetailDialog({
                         Keputusan Resolusi
                       </h3>
                       <p className="mt-1 text-xs font-medium leading-relaxed text-ink-500">
-                        Pilih keputusan escrow dan catat alasan resmi untuk
-                        audit internal.
+                        {disputeDetail.status === "Terbuka"
+                          ? "Pilih keputusan escrow dan catat alasan resmi untuk audit internal."
+                          : "Ringkasan keputusan admin yang sudah dicatat untuk dispute ini."}
                       </p>
                     </div>
                   </div>
 
-                  <ResolutionForm
-                    key={disputeDetail.id}
-                    disputeDetail={disputeDetail}
-                    onResolve={onResolve}
-                    isPending={isResolvePending}
-                    className="pt-4"
-                  />
+                  {disputeDetail.status === "Terbuka" ? (
+                    <ResolutionForm
+                      key={disputeDetail.id}
+                      disputeDetail={disputeDetail}
+                      onResolve={onResolve}
+                      isPending={isResolvePending}
+                      className="pt-4"
+                    />
+                  ) : (
+                    <ResolutionSummary
+                      disputeDetail={disputeDetail}
+                      className="pt-4"
+                    />
+                  )}
                 </div>
               </aside>
             </div>
